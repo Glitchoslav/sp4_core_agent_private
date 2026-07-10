@@ -1,0 +1,106 @@
+{
+  "mission": {
+    "type": "campaign",
+    "goal": "Potrebujem 2 IG posty o AI a budúcnosti práce",
+    "template": "Marketing Campaign Mission",
+    "id": "m_20251125_279481",
+    "createdAt": "2025-11-25T00:41:19.481Z",
+    "context": {
+      "userInput": "Potrebujem 2 IG posty o AI a budúcnosti práce",
+      "detectedLanguage": "sk",
+      "urgency": "normal",
+      "budget": "balanced"
+    }
+  },
+  "plan": {
+    "estimatedCost": 0.2,
+    "estimatedTime": 25,
+    "confidence": 0.85,
+    "risks": [
+      "Audience targeting may need refinement",
+      "Visual briefs require human designer input"
+    ],
+    "tasks": [
+      {
+        "id": "t1",
+        "type": "research",
+        "description": "Audience research and pain points analysis",
+        "brain": "groq",
+        "model": "llama-3.3-70b-versatile",
+        "priority": "high",
+        "dependencies": [],
+        "estimatedCost": 0.08,
+        "estimatedTime": 8,
+        "retryStrategy": "fallback_to_local"
+      },
+      {
+        "id": "t2",
+        "type": "content",
+        "description": "Copywriting (3x IG posts + 1 email + landing text)",
+        "brain": "groq",
+        "model": "llama-3.3-70b-versatile",
+        "priority": "high",
+        "dependencies": [
+          "t1"
+        ],
+        "estimatedCost": 0.12,
+        "estimatedTime": 12,
+        "retryStrategy": "increase_creativity"
+      },
+      {
+        "id": "t3",
+        "type": "content",
+        "description": "Visual concept briefs (for designer)",
+        "brain": "google",
+        "model": "gemini-2.5-flash",
+        "priority": "normal",
+        "dependencies": [
+          "t2"
+        ],
+        "estimatedCost": 0,
+        "estimatedTime": 5,
+        "retryStrategy": "none"
+      }
+    ]
+  },
+  "execution": {
+    "status": "completed",
+    "startedAt": "2025-11-25T00:41:19.484Z",
+    "completedAt": "2025-11-25T00:41:34.177Z",
+    "currentTask": "t3",
+    "results": [
+      {
+        "taskId": "t1",
+        "status": "completed",
+        "output": "Ako prvý krok, musíme poznať našu cieľovú skupinu. Kto sú tí ľudia, ktorí by mali záujem o tému AI a budúcnosti práce?\n\n**Cieľová skupina:**\n\n* Vek: 18-45 rokov\n* Profesia: Študenti, mladí profesionáli, podnikatelia, manažéri\n* Záujmy: Technológie, inovácie, budúcnosť práce, osobný rozvoj\n* Sociálne siete: Instagram, Facebook, Twitter, LinkedIn\n\n**Pain points:**\n\n* Strach z nahradenia práce automatizáciou a AI\n* Neistota ohľadom budúcnosti práce a potrebných zručností\n* Túžba po osobnom rozvoji a zvyšovaní kvalifikácií\n* Zaujímavosť o nové technológie a ich aplikácie\n* Potreba informácií o tom, ako sa pripraviť na zmeny na trhu práce\n\n**Otázky, ktoré sa násia cieľová skupina často pýta:**\n\n* Ako sa môžem pripraviť na budúcnosť práce v dobe AI?\n* Ktoré zručnosti budú najviac dôležité v budúcnosti?\n* Ako môžem využiť AI a automatizáciu v svojej práci?\n* Čo sa stane so môjou prácou, keď bude nahradená automatizáciou?\n\nTeraz, keď máme lepšie ponanie o našej cieľovej skupine a ich pain points, môžeme začať tvoriť obsah pre naše 2 IG posty. Čo si myslíš, ako by sme mali postupovať ďalej?",
+        "qualityScore": 1,
+        "actualCost": 0.08,
+        "actualTime": 0,
+        "retries": 0,
+        "completedAt": "2025-11-25T00:41:21.896Z"
+      },
+      {
+        "taskId": "t2",
+        "status": "completed",
+        "output": "Máme dobrý základ, teraz môžeme začať tvoriť obsah. Tu sú moje návrhy:\n\n**IG post 1:**\n\"Budúcnosť práce je už tu! \nAko sa môžete pripraviť na zmeny, ktoré prináša AI a automatizácia? \nPoznajte, ktoré zručnosti budú najviac dôležité v budúcnosti a ako môžete využiť AI v svojej práci. \nSledujte nás a získať viac informácií o tom, ako sa môžete pripraviť na budúcnosť práce! #AI #budúcnosťpráce #osobnýrozvoj\"\n\n**IG post 2:**\n\"Strach z nahradenia práce automatizáciou a AI je reálny, ale môžete sa pripraviť! \nZistite, ako môžete využiť AI a automatizáciu v svojej práci a zvyšovať svoje kvalifikácie. \nNepočkávanie, začnite sa pripravovať na budúcnosť práce už dnes! #AI #automatizácia #práca\"\n\n**IG post 3:**\n\"Ktoré zručnosti budú najviac dôležité v budúcnosti? \nZistite, ako môžete rozvíjať svoje zručnosti a byť pripravení na zmeny na trhu práce. \nSledujte nás a získať viac informácií o tom, ako sa môžete pripraviť na budúcnosť práce! #zručnosti #budúcnosťpráce #osobnýrozvoj\"\n\n**Email:**\nSubject: Pripravte sa na budúcnosť práce!\nDobrý deň,\nchcete sa pripraviť na zmeny, ktoré prináša AI a automatizácia? \nPoznajte, ktoré zručnosti budú najviac dôležité v budúcnosti a ako môžete využiť AI v svojej práci. \nKliknite na link a získať viac informácií o tom, ako sa môžete pripraviť na budúcnosť práce! \n[Link na landing page]\n\n**Landing text:**\n\"Pripravte sa na budúcnosť práce!\nAko sa môžete pripraviť na zmeny, ktoré prináša AI a automatizácia? \nPoznajte, ktoré zručnosti budú najviac dôležité v budúcnosti a ako môžete využiť AI v svojej práci. \nZistite, ako môžete rozvíjať svoje zručnosti a byť pripravení na zmeny na trhu práce. \nKliknite na link a začnite sa pripravovať na budúcnosť práce už dnes! \n[Link na ďalšie informácie]\"",
+        "qualityScore": 1,
+        "actualCost": 0.12,
+        "actualTime": 0,
+        "retries": 0,
+        "completedAt": "2025-11-25T00:41:23.764Z"
+      },
+      {
+        "taskId": "t3",
+        "status": "completed",
+        "output": "Tu sú vizuálne koncepty pre dizajnéra pre dva IG posty:\n\n---\n\n### **Vizuálny koncept 1: IG Post 1**\n\n**Názov príspevku:** \"Budúcnosť práce je už tu!\"\n\n**Kľúčová správa:** Budúcnosť práce s AI a automatizáciou je už prítomná. Pripravte sa na ňu učením sa nových zručností a využívaním AI. (Pozitívne, progresívne, posilňujúce)\n\n**Cieľ:** Inšpirovať a motivovať k proaktívnej príprave na zmeny. Vyvolať pocit príležitosti a rastu.\n\n**Vizuálny koncept:** Dynamický a inšpiratívny obrázok, ktorý spája ľudský potenciál s technologickým pokrokom.\n\n*   **Predstava:**\n    *   **Možnosť A (Ilustrácia/Digitálne umenie):** Štylizovaná, rodovo neutrálna postava (človek) stojí sebavedomo na plošine alebo ceste, hľadiac vpred k jasnému, sa vy",
+        "qualityScore": 1,
+        "actualCost": 0,
+        "actualTime": 0.2,
+        "retries": 0,
+        "completedAt": "2025-11-25T00:41:34.176Z"
+      }
+    ],
+    "totalCost": 0.2,
+    "totalTime": 0.2
+  }
+}

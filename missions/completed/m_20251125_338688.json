@@ -1,0 +1,106 @@
+{
+  "mission": {
+    "type": "campaign",
+    "goal": "Potrebujem 2 IG posty o AI a budúcnosti práce",
+    "template": "Marketing Campaign Mission",
+    "id": "m_20251125_338688",
+    "createdAt": "2025-11-25T01:48:58.688Z",
+    "context": {
+      "userInput": "Potrebujem 2 IG posty o AI a budúcnosti práce",
+      "detectedLanguage": "sk",
+      "urgency": "normal",
+      "budget": "balanced"
+    }
+  },
+  "plan": {
+    "estimatedCost": 0.2,
+    "estimatedTime": 25,
+    "confidence": 0.85,
+    "risks": [
+      "Audience targeting may need refinement",
+      "Visual briefs require human designer input"
+    ],
+    "tasks": [
+      {
+        "id": "t1",
+        "type": "research",
+        "description": "Audience research and pain points analysis",
+        "brain": "groq",
+        "model": "llama-3.3-70b-versatile",
+        "priority": "high",
+        "dependencies": [],
+        "estimatedCost": 0.08,
+        "estimatedTime": 8,
+        "retryStrategy": "fallback_to_local"
+      },
+      {
+        "id": "t2",
+        "type": "content",
+        "description": "Copywriting (3x IG posts + 1 email + landing text)",
+        "brain": "groq",
+        "model": "llama-3.3-70b-versatile",
+        "priority": "high",
+        "dependencies": [
+          "t1"
+        ],
+        "estimatedCost": 0.12,
+        "estimatedTime": 12,
+        "retryStrategy": "increase_creativity"
+      },
+      {
+        "id": "t3",
+        "type": "content",
+        "description": "Visual concept briefs (for designer)",
+        "brain": "google",
+        "model": "gemini-2.5-flash",
+        "priority": "normal",
+        "dependencies": [
+          "t2"
+        ],
+        "estimatedCost": 0,
+        "estimatedTime": 5,
+        "retryStrategy": "none"
+      }
+    ]
+  },
+  "execution": {
+    "status": "completed",
+    "startedAt": "2025-11-25T01:48:58.691Z",
+    "completedAt": "2025-11-25T01:49:14.301Z",
+    "currentTask": "t3",
+    "results": [
+      {
+        "taskId": "t1",
+        "status": "completed",
+        "output": "Ako prvý krok, musíme identifikovať naši cieľovú skupinu a ich bolesti. Pre dva Instagramové posty o AI a budúcnosti práce, môžeme predpokladať, že naše publikum sa bude skladať z mladých ľudí a odborníkov, ktorí sa zaujímajú o technológie a ich vplyv na spoločnosť.\n\n**Cieľová skupina:**\n\n* Vek: 18-45 rokov\n* Zaujímajú sa o technológie, inovácie a budúcnosť práce\n* Aktívni na sociálnych sieťach, najmä na Instagram\n\n**Bolsti body (pain points):**\n\n1. **Strach z nahradenia**: Mnohí ľudia sa boja, že AI a automatizácia nahradia ich pracovné miesta.\n2. **Neistota ohľadom budúcnosti**: Ľudia sa pýtajú, aký bude vplyv AI na pracovný trh a aké nové pracovné miesta sa objavia.\n3. **Potreba nových zručností**: S rozvojom AI sa objavuje potreba nových zručností a odborných znalostí, aby ľudia mohli úspešne konkurovať.\n4. **Zaujímavosť o novými technológiami**: Mnohí ľudia sú zvedaví, ako fungujú AI a iné nové technológie a ako ich môžu využiť v svojom osobnom a pracovnom živote.\n\n**Otázky, ktoré môžeme zodpovedať v našich IG postoch:**\n\n1. Aké sú výhody a nevýhody AI v pracovnom procese?\n2. Aké nové pracovné miesta sa objavia vďaka AI a ako sa na ne môžeme pripraviť?\n3. Ako môžeme využiť AI a iné nové technológie, aby sme zlepšili naše pracovné procesy a zvýšili našu produktivitu?\n\nTeraz, keď máme lepšie pochopenie našej cieľovej skupiny a ich bolesti, môžeme začať tvoriť obsah pre naše dva Instagramové posty. Čo si myslíš, ako by sme mali postupovať ďalej?",
+        "qualityScore": 1,
+        "actualCost": 0.08,
+        "actualTime": 0,
+        "retries": 0,
+        "completedAt": "2025-11-25T01:49:01.335Z"
+      },
+      {
+        "taskId": "t2",
+        "status": "completed",
+        "output": "Môžem začať tvoriť obsah pre vaše IG posty, email a landing text. Tu sú moje návrhy:\n\n**IG Post 1:**\n\"Čo znamená AI pre váš pracovný život?\nStrach z nahradenia, neistota ohľadom budúcnosti, ale aj nové možnosťou! AI môže nahradíť niektoré pracovné miesta, ale tiež vytvára nové. Zaujímajú sa o to, ako môžete využiť AI, aby ste zlepšili svoje pracovné procesy a zvýšili produktivitu? Sledujte nás a zistite, ako môžete byť pripravení na budúcnosť práce! #AI #budúcnosťpráce #novétechnológie\"\n\n**IG Post 2:**\n\"Aké sú výhody a nevýhody AI v pracovnom procese?\nAI môže automatizovať opakované úkony, zvýšiť produktivitu a poskytovať nové inšpirácie. Ale môže tiež nahradíť niektoré pracovné miesta a vyžadovať nové zručnosti. Zaujímajú sa o to, ako môžete využiť AI, aby ste zlepšili svoje pracovné procesy a zostali konkurencieschopní? Sledujte nás a zistite, ako môžete byť pripravení na budúcnosť práce! #AI #budúcnosťpráce #novétechnológie\"\n\n**IG Post 3:**\n\"Aké nové pracovné miesta sa objavia vďaka AI?\nOd vývojárov AI po odborníkov na údaje, AI vytvára nové pracovné miesta, ktoré ešte pred niekoľkými rokmi neexistovali. Zaujímajú sa o to, aké nové zručnosti a znalosti budete potrebovať, aby ste mohli úspešne konkurovať? Sledujte nás a zistite, ako môžete byť pripravení na budúcnosť práce! #AI #budúcnosťpráce #novépracovné miesta\"\n\n**Email:**\n\"Zaujímajú sa o to, ako môžete využiť AI, aby ste zlepšili svoje pracovné procesy a zostali konkurencieschopní? Chcete vedieť, aké nové pracovné miesta sa objavia vďaka AI a ako môžete byť pripravení? Sledujte nás a zistite, ako môžete byť pripravení na budúcnosť práce! Kliknite na odkaz, aby ste sa dozvedeli viac: [odkaz na landing page]\"\n\n**Landing Text:**\n\"Vitajte na našej stránke!\nChcete vedieť, ako môžete využiť AI, aby ste zlepšili svoje pracovné procesy a zostali konkurencieschopní? Chcete zistiť, aké nové pracovné miesta sa objavia vďaka AI a ako môžete byť pripravení? Naša stránka je určená pre vás, ktorí chcete byť pripravení na budúcnosť práce. Zistite, ako môžete využiť AI, aby ste zlepšili svoje pracovné procesy a zostali konkurencieschopní. Kliknite na odkaz, aby ste sa dozvedeli viac: [odkaz na ďalšie informácie]\"\n\nMôžem začať upravovať a vylepšovať tieto návrhy, ak vám to nevyhovuje. Povedzte mi, čo si myslíte!",
+        "qualityScore": 1,
+        "actualCost": 0.12,
+        "actualTime": 0,
+        "retries": 0,
+        "completedAt": "2025-11-25T01:49:03.877Z"
+      },
+      {
+        "taskId": "t3",
+        "status": "completed",
+        "output": "Tu sú vizuálne koncepty pre dizajnéra, založené na obsahu vašich IG príspevkov:\n\n---\n\n### **Všeobecné pokyny pre vizuálny štýl:**\n\n*   **Štýl:** Moderný, čistý, profesionálny, s nádychom technologickej sofistikovanosti. Môže byť abstraktný, ilustratívny alebo kombinácia s fotografickými prvkami.\n*   **Farebná paleta:** Používajte kombináciu dôveryhodných farieb (napr. modrá, šedá, biela) s akcentnými farbami, ktoré symbolizujú inovácie a príležitosti (napr. zelená, fialová, tyrkysová).\n*",
+        "qualityScore": 1,
+        "actualCost": 0,
+        "actualTime": 0.2,
+        "retries": 0,
+        "completedAt": "2025-11-25T01:49:14.300Z"
+      }
+    ],
+    "totalCost": 0.2,
+    "totalTime": 0.2
+  }
+}

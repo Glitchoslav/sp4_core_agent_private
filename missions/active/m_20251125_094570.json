@@ -1,0 +1,110 @@
+{
+  "mission": {
+    "type": "code",
+    "goal": "Vytvor mi Python funkciu na výpočet faktoriálu",
+    "template": "Code Project Mission",
+    "id": "m_20251125_094570",
+    "createdAt": "2025-11-25T03:08:14.570Z",
+    "context": {
+      "userInput": "Vytvor mi Python funkciu na výpočet faktoriálu",
+      "detectedLanguage": "sk",
+      "urgency": "normal",
+      "budget": "balanced"
+    }
+  },
+  "plan": {
+    "estimatedCost": 0.5,
+    "estimatedTime": 50,
+    "confidence": 0.85,
+    "risks": [
+      "Complex algorithms may require iterative refinement",
+      "Testing coverage depends on project scope"
+    ],
+    "tasks": [
+      {
+        "id": "t1",
+        "type": "code",
+        "description": "Architecture design and module breakdown",
+        "brain": "groq",
+        "model": "llama-3.3-70b-versatile",
+        "priority": "high",
+        "dependencies": [],
+        "estimatedCost": 0.08,
+        "estimatedTime": 8,
+        "retryStrategy": "fallback_to_local"
+      },
+      {
+        "id": "t2",
+        "type": "code",
+        "description": "Core implementation (main logic + modules)",
+        "brain": "groq",
+        "model": "llama-3.3-70b-versatile",
+        "priority": "high",
+        "dependencies": [
+          "t1"
+        ],
+        "estimatedCost": 0.25,
+        "estimatedTime": 25,
+        "retryStrategy": "increase_tokens_retry"
+      },
+      {
+        "id": "t3",
+        "type": "code",
+        "description": "Unit tests and error handling",
+        "brain": "google",
+        "model": "gemini-2.5-flash",
+        "priority": "normal",
+        "dependencies": [
+          "t2"
+        ],
+        "estimatedCost": 0,
+        "estimatedTime": 10,
+        "retryStrategy": "fallback_to_groq"
+      },
+      {
+        "id": "t4",
+        "type": "documentation",
+        "description": "README, API docs, usage examples",
+        "brain": "local",
+        "model": "llama3:8b",
+        "priority": "low",
+        "dependencies": [
+          "t2"
+        ],
+        "estimatedCost": 0,
+        "estimatedTime": 7,
+        "retryStrategy": "none"
+      }
+    ]
+  },
+  "execution": {
+    "status": "running",
+    "startedAt": "2025-11-25T03:08:14.573Z",
+    "completedAt": null,
+    "currentTask": "t2",
+    "results": [
+      {
+        "taskId": "t1",
+        "status": "completed",
+        "output": "Pre výpočet faktoriálu môžeme vytvoriť jednoduchú Python funkciu. Tu je návrh architektúry a rozdelenie modulov:\n\n**Modul 1: Faktoriál**\n\n* Názov modulu: `faktorial`\n* Funkcia: `faktorial(n)`\n* Účel: Vypočíta faktoriál čísla `n`\n* Vstup: `n` (nezáporné celé číslo)\n* Výstup: Faktoriál čísla `n`\n\n**Modul 2: Ovládanie vstupu**\n\n* Názov modulu: `input_control`\n* Funkcia: `over_vstup(n)`\n* Účel: Skontroluje, či vstupné číslo `n` je nezáporné celé číslo\n* Vstup: `n` (číselný vstup)\n* Výstup: `True` ak je vstup platný, `False` inak\n\n**Modul 3: Hlavný program**\n\n* Názov modulu: `main`\n* Funkcia: `main()`\n* Účel: Načítava vstupné číslo, volá funkciu `faktorial` a vypisuje výsledok\n* Vstup: žiadny\n* Výstup: Faktoriál vstupného čísla\n\nTieto moduly môžeme implementovať v samostatných súboroch alebo v jednom súbore s použitím funkcionálneho programovania.\n\nPríklad implementácie:\n```python\n# faktorial.py\n\ndef faktorial(n):\n    if n == 0:\n        return 1\n    else:\n        return n * faktorial(n-1)\n\ndef over_vstup(n):\n    if isinstance(n, int) and n >= 0:\n        return True\n    else:\n        return False\n\ndef main():\n    n = int(input(\"Zadajte číslo: \"))\n    if over_vstup(n):\n        result = faktorial(n)\n        print(f\"Faktoriál čísla {n} je: {result}\")\n    else:\n        print(\"Neplatný vstup!\")\n\nif __name__ == \"__main__\":\n    main()\n```\nTento kód môžeme ďalej rozvinúť a optimalizovať, ale základná štruktúra architektúry a modulov je tu už nastavená.",
+        "qualityScore": 1,
+        "actualCost": 0.08,
+        "actualTime": 0,
+        "retries": 0,
+        "completedAt": "2025-11-25T03:08:17.142Z"
+      },
+      {
+        "taskId": "t2",
+        "status": "completed",
+        "output": "Môžem ti pomôcť s tým. Tu je návrh implementácie core logiky a modulov pre výpočet faktoriálu:\n\n**Modul 1: Faktoriál**\n```python\n# faktorial.py\n\ndef faktorial(n: int) -> int:\n    \"\"\"\n    Vypočíta faktoriál čísla n.\n\n    Args:\n        n (int): Nezáporné celé číslo.\n\n    Returns:\n        int: Faktoriál čísla n.\n    \"\"\"\n    if n == 0:\n        return 1\n    else:\n        return n * faktorial(n-1)\n```\n\n**Modul 2: Ovládanie vstupu**\n```python\n# input_control.py\n\ndef over_vstup(n: int) -> bool:\n    \"\"\"\n    Skontroluje, či vstupné číslo n je nezáporné celé číslo.\n\n    Args:\n        n (int): Číselný vstup.\n\n    Returns:\n        bool: True ak je vstup platný, False inak.\n    \"\"\"\n    return isinstance(n, int) and n >= 0\n```\n\n**Modul 3: Hlavný program**\n```python\n# main.py\n\nimport faktorial\nimport input_control\n\ndef main() -> None:\n    \"\"\"\n    Načítava vstupné číslo, volá funkciu faktorial a vypisuje výsledok.\n    \"\"\"\n    while True:\n        try:\n            n = int(input(\"Zadajte číslo: \"))\n            if input_control.over_vstup(n):\n                result = faktorial.faktorial(n)\n                print(f\"Faktoriál čísla {n} je: {result}\")\n            else:\n                print(\"Neplatný vstup!\")\n            break\n        except ValueError:\n            print(\"Neplatný vstup! Zadajte celé číslo.\")\n\nif __name__ == \"__main__\":\n    main()\n```\n\nTento kód používa funkcionálne programovanie a je rozdelený do troch samostatných modulov. Modul `faktorial` obsahuje funkciu `faktorial`, ktorá vypočíta faktoriál čísla. Modul `input_control` obsahuje funkciu `over_vstup`, ktorá skontroluje, či vstupné číslo je nezáporné celé číslo. Modul `main` obsahuje funkciu `main`, ktorá načítava vstupné číslo, volá funkciu `faktorial` a vypisuje výsledok.\n\nMôžem ti aj poradit, ako môžeš tento kód ďalej rozvinúť a optimalizovať. Napríklad môžeš pridať ďalšie funkcie, ktoré budú skontrolkovať vstupné údaje, alebo môžeš použiť iné algoritmy pre výpočet faktoriálu.",
+        "qualityScore": 1,
+        "actualCost": 0.25,
+        "actualTime": 0,
+        "retries": 0,
+        "completedAt": "2025-11-25T03:08:19.127Z"
+      }
+    ],
+    "totalCost": 0.33,
+    "totalTime": 0
+  }
+}

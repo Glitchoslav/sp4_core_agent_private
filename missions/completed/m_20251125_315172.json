@@ -1,0 +1,130 @@
+{
+  "mission": {
+    "type": "code",
+    "goal": "Vytvor mi Python funkciu na sčítanie dvoch čísel",
+    "template": "Code Project Mission",
+    "id": "m_20251125_315172",
+    "createdAt": "2025-11-25T01:48:35.172Z",
+    "context": {
+      "userInput": "Vytvor mi Python funkciu na sčítanie dvoch čísel",
+      "detectedLanguage": "sk",
+      "urgency": "normal",
+      "budget": "balanced"
+    }
+  },
+  "plan": {
+    "estimatedCost": 0.5,
+    "estimatedTime": 50,
+    "confidence": 0.85,
+    "risks": [
+      "Complex algorithms may require iterative refinement",
+      "Testing coverage depends on project scope"
+    ],
+    "tasks": [
+      {
+        "id": "t1",
+        "type": "code",
+        "description": "Architecture design and module breakdown",
+        "brain": "groq",
+        "model": "llama-3.3-70b-versatile",
+        "priority": "high",
+        "dependencies": [],
+        "estimatedCost": 0.08,
+        "estimatedTime": 8,
+        "retryStrategy": "fallback_to_local"
+      },
+      {
+        "id": "t2",
+        "type": "code",
+        "description": "Core implementation (main logic + modules)",
+        "brain": "groq",
+        "model": "llama-3.3-70b-versatile",
+        "priority": "high",
+        "dependencies": [
+          "t1"
+        ],
+        "estimatedCost": 0.25,
+        "estimatedTime": 25,
+        "retryStrategy": "increase_tokens_retry"
+      },
+      {
+        "id": "t3",
+        "type": "code",
+        "description": "Unit tests and error handling",
+        "brain": "google",
+        "model": "gemini-2.5-flash",
+        "priority": "normal",
+        "dependencies": [
+          "t2"
+        ],
+        "estimatedCost": 0,
+        "estimatedTime": 10,
+        "retryStrategy": "fallback_to_groq"
+      },
+      {
+        "id": "t4",
+        "type": "documentation",
+        "description": "README, API docs, usage examples",
+        "brain": "local",
+        "model": "llama3:8b",
+        "priority": "low",
+        "dependencies": [
+          "t2"
+        ],
+        "estimatedCost": 0,
+        "estimatedTime": 7,
+        "retryStrategy": "none"
+      }
+    ]
+  },
+  "execution": {
+    "status": "completed",
+    "startedAt": "2025-11-25T01:48:35.179Z",
+    "completedAt": "2025-11-25T01:48:58.650Z",
+    "currentTask": "t4",
+    "results": [
+      {
+        "taskId": "t1",
+        "status": "completed",
+        "output": "Architektúra dizajnu a rozloženie modulov pre funkcie sčítania dvoch čísel v Pythone môže vyzeráť nasledovne:\n\n1. **Hlavný modul (main.py)**: Tento modul bude obsahovať vstupné bod programu a bude volať funkcie z iných modulov.\n2. **Modul pre sčítanie (addition.py)**: Tento modul bude obsahovať funkciu na sčítanie dvoch čísel.\n3. **Modul pre validáciu vstupných údajov (validation.py)**: Tento modul bude obsahovať funkcie na validáciu vstupných údajov, aby sa zabezpečilo, že vstupné údaje sú platné čísla.\n\nFunkcia na sčítanie dvoch čísel môže vyzeráť takto:\n\n```python\n# addition.py\ndef add(a, b):\n    \"\"\"\n    Funkcia na sčítanie dvoch čísel.\n\n    Args:\n        a (float): Prvé číslo\n        b (float): Druhé číslo\n\n    Returns:\n        float: Súčet dvoch čísel\n    \"\"\"\n    return a + b\n```\n\nFunkcia na validáciu vstupných údajov môže vyzeráť takto:\n\n```python\n# validation.py\ndef validate_input(a, b):\n    \"\"\"\n    Funkcia na validáciu vstupných údajov.\n\n    Args:\n        a (any): Prvý vstup\n        b (any): Druhý vstup\n\n    Returns:\n        bool: True ak vstupné údaje sú platné čísla, inak False\n    \"\"\"\n    return isinstance(a, (int, float)) and isinstance(b, (int, float))\n```\n\nV hlavnom module sa môžeme volať funkcie z iných modulov takto:\n\n```python\n# main.py\nfrom addition import add\nfrom validation import validate_input\n\ndef main():\n    a = float(input(\"Zadajte prvé číslo: \"))\n    b = float(input(\"Zadajte druhé číslo: \"))\n\n    if validate_input(a, b):\n        result = add(a, b)\n        print(f\"Súčet čísel {a} a {b} je {result}\")\n    else:\n        print(\"Neplatné vstupné údaje\")\n\nif __name__ == \"__main__\":\n    main()\n```\n\nTento dizajn umožňuje ľahko pridávať nové funkcie a moduly, ak sa to bude vyžadovať.",
+        "qualityScore": 1,
+        "actualCost": 0.08,
+        "actualTime": 0.1,
+        "retries": 0,
+        "completedAt": "2025-11-25T01:48:38.247Z"
+      },
+      {
+        "taskId": "t2",
+        "status": "completed",
+        "output": "Funkcia na sčítanie dvoch čísel môže vyzeráť takto:\n\n```python\n# addition.py\ndef add(a, b):\n    \"\"\"\n    Funkcia na sčítanie dvoch čísel.\n\n    Args:\n        a (float): Prvé číslo\n        b (float): Druhé číslo\n\n    Returns:\n        float: Súčet dvoch čísel\n    \"\"\"\n    return a + b\n```\n\nTáto funkcia sa nachádza v module `addition.py` a môže byť volaná z hlavného modulu `main.py` pomocou importu.\n\nPre validáciu vstupných údajov môžeme použiť funkciu `validate_input`, ktorá sa nachádza v module `validation.py`:\n\n```python\n# validation.py\ndef validate_input(a, b):\n    \"\"\"\n    Funkcia na validáciu vstupných údajov.\n\n    Args:\n        a (any): Prvý vstup\n        b (any): Druhý vstup\n\n    Returns:\n        bool: True ak vstupné údaje sú platné čísla, inak False\n    \"\"\"\n    return isinstance(a, (int, float)) and isinstance(b, (int, float))\n```\n\nHlavný modul `main.py` môže vyzeráť takto:\n\n```python\n# main.py\nfrom addition import add\nfrom validation import validate_input\n\ndef main():\n    while True:\n        try:\n            a = float(input(\"Zadajte prvé číslo: \"))\n            b = float(input(\"Zadajte druhé číslo: \"))\n\n            if validate_input(a, b):\n                result = add(a, b)\n                print(f\"Súčet čísel {a} a {b} je {result}\")\n            else:\n                print(\"Neplatné vstupné údaje\")\n        except ValueError:\n            print(\"Neplatný vstup. Skúste znovu.\")\n\nif __name__ == \"__main__\":\n    main()\n```\n\nTento dizajn umožňuje ľahko pridávať nové funkcie a moduly, ak sa to bude vyžadovať. Funkcia `add` sa stará o sčítanie dvoch čísel, funkcia `validate_input` sa stará o validáciu vstupných údajov a hlavný modul `main.py` sa stará o čítanie vstupných údajov a volanie funkcií.",
+        "qualityScore": 1,
+        "actualCost": 0.25,
+        "actualTime": 0,
+        "retries": 0,
+        "completedAt": "2025-11-25T01:48:39.475Z"
+      },
+      {
+        "taskId": "t3",
+        "status": "completed",
+        "output": "",
+        "qualityScore": 0.49999999999999994,
+        "actualCost": 0,
+        "actualTime": 0.2,
+        "retries": 2,
+        "completedAt": "2025-11-25T01:48:48.744Z"
+      },
+      {
+        "taskId": "t4",
+        "status": "completed",
+        "output": "README ---------- Tento projekt obsahuje jednoduchú Python funkciu na sčítanie dvoch čísel. Funkcia `add` sa nachádza v module `addition.py` a môže byť volaná z hlavného modulu `main.py` pomocou importu.",
+        "qualityScore": 1,
+        "actualCost": 0,
+        "actualTime": 0.2,
+        "retries": 0,
+        "completedAt": "2025-11-25T01:48:58.649Z"
+      }
+    ],
+    "totalCost": 0.33,
+    "totalTime": 0.5
+  }
+}

@@ -1,0 +1,72 @@
+{
+    "name": "Web Development Mission",
+    "avgCost": 0.45,
+    "avgTime": 45,
+    "commonRisks": [
+        "Frontend may need retry (Gemini inconsistent on React)",
+        "Database schema complexity depends on requirements"
+    ],
+    "tasks": [
+        {
+            "type": "code",
+            "description": "Database schema design (PostgreSQL/MySQL)",
+            "brain": "groq",
+            "model": "llama-3.3-70b-versatile",
+            "priority": "high",
+            "dependencies": [],
+            "estimatedCost": 0.05,
+            "estimatedTime": 5,
+            "retryStrategy": "increase_tokens_retry"
+        },
+        {
+            "type": "code",
+            "description": "Backend API (Node.js + Express/Fastify)",
+            "brain": "groq",
+            "model": "llama-3.3-70b-versatile",
+            "priority": "high",
+            "dependencies": [
+                "t1"
+            ],
+            "estimatedCost": 0.15,
+            "estimatedTime": 12,
+            "retryStrategy": "fallback_to_groq"
+        },
+        {
+            "type": "code",
+            "description": "Frontend UI (React/Vue/plain HTML)",
+            "brain": "google",
+            "model": "gemini-2.5-flash",
+            "priority": "normal",
+            "dependencies": [
+                "t2"
+            ],
+            "estimatedCost": 0.00,
+            "estimatedTime": 15,
+            "retryStrategy": "fallback_to_groq"
+        },
+        {
+            "type": "documentation",
+            "description": "API documentation and usage examples",
+            "brain": "local",
+            "model": "llama3:8b",
+            "priority": "low",
+            "dependencies": [
+                "t2"
+            ],
+            "estimatedCost": 0.00,
+            "estimatedTime": 8,
+            "retryStrategy": "none"
+        },
+        {
+            "type": "documentation",
+            "description": "Deployment guide (Docker/VPS setup)",
+            "brain": "local",
+            "model": "llama3:8b",
+            "priority": "low",
+            "dependencies": [],
+            "estimatedCost": 0.00,
+            "estimatedTime": 5,
+            "retryStrategy": "none"
+        }
+    ]
+}

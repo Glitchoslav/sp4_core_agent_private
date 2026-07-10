@@ -1,0 +1,148 @@
+{
+  "mission": {
+    "type": "code",
+    "goal": "Vytvor Python skript na generovanie náhodných hesiel s možnosťou nastavenia dĺžky a komplexnosti",
+    "template": "Code Project Mission",
+    "id": "m_20251125_162546",
+    "createdAt": "2025-11-25T14:49:22.546Z",
+    "context": {
+      "userInput": "Vytvor Python skript na generovanie náhodných hesiel s možnosťou nastavenia dĺžky a komplexnosti",
+      "detectedLanguage": "sk",
+      "urgency": "normal",
+      "budget": "balanced"
+    }
+  },
+  "plan": {
+    "estimatedCost": 0.5,
+    "estimatedTime": 50,
+    "confidence": 0.85,
+    "risks": [
+      "Complex algorithms may require iterative refinement",
+      "Testing coverage depends on project scope"
+    ],
+    "tasks": [
+      {
+        "id": "t1",
+        "type": "code",
+        "description": "Architecture design and module breakdown",
+        "brain": "groq",
+        "model": "llama-3.3-70b-versatile",
+        "priority": "high",
+        "dependencies": [],
+        "estimatedCost": 0.08,
+        "estimatedTime": 8,
+        "retryStrategy": "fallback_to_local"
+      },
+      {
+        "id": "t2",
+        "type": "code",
+        "description": "Core implementation (main logic + modules)",
+        "brain": "groq",
+        "model": "llama-3.3-70b-versatile",
+        "priority": "high",
+        "dependencies": [
+          "t1"
+        ],
+        "estimatedCost": 0.25,
+        "estimatedTime": 25,
+        "retryStrategy": "increase_tokens_retry"
+      },
+      {
+        "id": "t3",
+        "type": "code",
+        "description": "Unit tests and error handling",
+        "brain": "google",
+        "model": "gemini-2.5-flash",
+        "priority": "normal",
+        "dependencies": [
+          "t2"
+        ],
+        "estimatedCost": 0,
+        "estimatedTime": 10,
+        "retryStrategy": "fallback_to_groq"
+      },
+      {
+        "id": "t4",
+        "type": "documentation",
+        "description": "README, API docs, usage examples",
+        "brain": "local",
+        "model": "llama3:8b",
+        "priority": "low",
+        "dependencies": [
+          "t2"
+        ],
+        "estimatedCost": 0,
+        "estimatedTime": 7,
+        "retryStrategy": "none"
+      }
+    ]
+  },
+  "execution": {
+    "status": "completed",
+    "startedAt": "2025-11-25T14:49:22.549Z",
+    "completedAt": "2025-11-25T14:50:40.176Z",
+    "currentTask": "t4",
+    "results": [
+      {
+        "taskId": "t1",
+        "status": "completed",
+        "output": {
+          "text": "Ako prvý krok, rozdelíme náš Python skript na několik modulov, ktoré budú zodpovedné za rôzne časti funkcionality. Toto rozdelenie nám pomôže udržať kód organizovaný a ľahko údržbu.\n\n1. **Modul `heslo_generator`**: Tento modul bude obsahovať funkcie, ktoré generujú náhodné hesla. Bude mať nasledovné funkcie:\n\t* `generuj_heslo(dlzka, komplexnost)`: Funkcia, ktorá generuje náhodné heslo s danou dĺžkou a komplexnosťou.\n\t* `vygeneruj_znaky(typ)`: Funkcia, ktorá vygeneruje náhodný znak (číslo, písmeno, špeciálny znak) podľa daného typu.\n2. **Modul `nastavenia`**: Tento modul bude obsahovať funkcie, ktoré sa starajú o nastavenie parametrov generovania hesiel. Bude mať nasledovné funkcie:\n\t* `nastav_dlzku()`: Funkcia, ktorá nastaví dĺžku hesla.\n\t* `nastav_komplexnost()`: Funkcia, ktorá nastaví komplexnosť hesla.\n3. **Modul `main`**: Tento modul bude obsahovať hlavnú funkčnosť skriptu. Bude mať nasledovné funkcie:\n\t* `main()`: Funkcia, ktorá spustí skript a vygeneruje heslo.\n\nTeraz, keď máme moduly rozdelené, môžeme začať implementovať funkcie v každom module. V ďalšom kroku budeme implementovať funkcie v moduloch `heslo_generator` a `nastavenia`.",
+          "provider": "groq",
+          "model": "llama-3.3-70b-versatile",
+          "cost": 0.00041092000000000006,
+          "latency": 2510
+        },
+        "qualityScore": 0.8,
+        "actualCost": 0.08,
+        "actualTime": 0,
+        "retries": 0,
+        "completedAt": "2025-11-25T14:49:25.063Z"
+      },
+      {
+        "taskId": "t2",
+        "status": "completed",
+        "output": {
+          "text": "Aby sme mohli vytvoriť Python skript na generovanie náhodných hesiel, budeme potrebovať nasledovné moduly:\n\n* `random` pre generovanie náhodných čísel a znakov\n* `string` pre prístup k rôznych typom znakov (veľké a malé písmená, číslice, špeciálne znaky)\n\nNásledne môžeme definovať funkciu, ktorá bude generovať náhodné heslo na základe zadaných parametrov.\n\n```python\nimport random\nimport string\n\ndef generuj_heslo(dlzka, komplexnost):\n    \"\"\"\n    Generuje náhodné heslo s zadanou dĺžkou a komplexnosťou.\n\n    Args:\n        dlzka (int): Dĺžka hesla\n        komplexnost (int): Úroveň komplexnosti hesla (1-3)\n\n    Returns:\n        str: Generované heslo\n    \"\"\"\n\n    # Definícia znakov pre rôzne úrovne komplexnosti\n    znaky = {\n        1: string.ascii_lowercase,\n        2: string.ascii_letters,\n        3: string.ascii_letters + string.digits + string.punctuation\n    }\n\n    # Skontrolujeme, či je zadaná komplexnosť validná\n    if komplexnost < 1 or komplexnost > 3:\n        raise ValueError(\"Komplexnosť musí byť v rozsahu 1-3\")\n\n    # Vyberieme si sadu znakov na základe komplexnosti\n    sad_znakov = znaky[komplexnost]\n\n    # Generujeme náhodné heslo\n    heslo = ''.join(random.choice(sad_znakov) for _ in range(dlzka))\n\n    return heslo\n\n# Testovanie funkcie\nprint(generuj_heslo(10, 2))\n```\n\nTento skript definuje funkciu `generuj_heslo`, ktorá berie dve argumenty: `dlzka` a `komplexnost`. Funkcia generuje náhodné heslo s zadanou dĺžkou a komplexnosťou a vráti ho ako string. Komplexnosť sa definuje ako úroveň 1-3, kde:\n\n* Úroveň 1: len malé písmená\n* Úroveň 2: malé a veľké písmená\n* Úroveň 3: malé a veľké písmená, číslice a špeciálne znaky\n\nFunkcia skontroluje, či je zadaná komplexnosť validná, a ak nie, vyhodí výnimku `ValueError`. Inak vyberie si sadu znakov na základe komplexnosti a generuje náhodné heslo s zadanou dĺžkou.",
+          "provider": "groq",
+          "model": "llama-3.3-70b-versatile",
+          "cost": 0.00056848,
+          "latency": 2802
+        },
+        "qualityScore": 0.8,
+        "actualCost": 0.25,
+        "actualTime": 0,
+        "retries": 0,
+        "completedAt": "2025-11-25T14:49:27.868Z"
+      },
+      {
+        "taskId": "t3",
+        "status": "completed",
+        "output": {
+          "text": "",
+          "provider": "google",
+          "model": "gemini-2.5-flash",
+          "cost": 0,
+          "latency": 9929
+        },
+        "qualityScore": 0.8,
+        "actualCost": 0,
+        "actualTime": 0.2,
+        "retries": 0,
+        "completedAt": "2025-11-25T14:49:37.801Z"
+      },
+      {
+        "taskId": "t4",
+        "status": "completed",
+        "output": "README Welcome to the SP4 Password Generator! This script is designed to generate random passwords with adjustable length and complexity.",
+        "qualityScore": 1,
+        "actualCost": 0,
+        "actualTime": 1,
+        "retries": 0,
+        "completedAt": "2025-11-25T14:50:40.175Z"
+      }
+    ],
+    "totalCost": 0.33,
+    "totalTime": 1.2
+  }
+}

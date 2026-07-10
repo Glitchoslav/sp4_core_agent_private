@@ -1,0 +1,45 @@
+{
+  "mission": {
+    "type": "custom",
+    "goal": "Vysvetli mi blockchain technológiu jednoducho",
+    "id": "m_20251125_907302",
+    "createdAt": "2025-11-25T00:35:07.302Z",
+    "context": {
+      "userInput": "Vysvetli mi blockchain technológiu jednoducho",
+      "detectedLanguage": "sk",
+      "urgency": "normal",
+      "budget": "balanced"
+    }
+  },
+  "plan": {
+    "estimatedCost": 0.1,
+    "estimatedTime": 15,
+    "confidence": 0.6,
+    "risks": [
+      "Custom mission - may need adjustment"
+    ],
+    "tasks": [
+      {
+        "id": "t1",
+        "type": "general",
+        "description": "Vysvetli mi blockchain technológiu jednoducho",
+        "brain": "groq",
+        "model": "llama-3.3-70b-versatile",
+        "priority": "normal",
+        "dependencies": [],
+        "estimatedCost": 0.1,
+        "estimatedTime": 15,
+        "retryStrategy": "fallback_to_local"
+      }
+    ]
+  },
+  "execution": {
+    "status": "pending",
+    "startedAt": null,
+    "completedAt": null,
+    "currentTask": null,
+    "results": [],
+    "totalCost": 0,
+    "totalTime": 0
+  }
+}

@@ -1,0 +1,61 @@
+{
+    "name": "Code Project Mission",
+    "avgCost": 0.50,
+    "avgTime": 50,
+    "commonRisks": [
+        "Complex algorithms may require iterative refinement",
+        "Testing coverage depends on project scope"
+    ],
+    "tasks": [
+        {
+            "type": "code",
+            "description": "Architecture design and module breakdown",
+            "brain": "groq",
+            "model": "llama-3.3-70b-versatile",
+            "priority": "high",
+            "dependencies": [],
+            "estimatedCost": 0.08,
+            "estimatedTime": 8,
+            "retryStrategy": "fallback_to_local"
+        },
+        {
+            "type": "code",
+            "description": "Core implementation (main logic + modules)",
+            "brain": "groq",
+            "model": "llama-3.3-70b-versatile",
+            "priority": "high",
+            "dependencies": [
+                "t1"
+            ],
+            "estimatedCost": 0.25,
+            "estimatedTime": 25,
+            "retryStrategy": "increase_tokens_retry"
+        },
+        {
+            "type": "code",
+            "description": "Unit tests and error handling",
+            "brain": "google",
+            "model": "gemini-2.5-flash",
+            "priority": "normal",
+            "dependencies": [
+                "t2"
+            ],
+            "estimatedCost": 0.00,
+            "estimatedTime": 10,
+            "retryStrategy": "fallback_to_groq"
+        },
+        {
+            "type": "documentation",
+            "description": "README, API docs, usage examples",
+            "brain": "local",
+            "model": "llama3:8b",
+            "priority": "low",
+            "dependencies": [
+                "t2"
+            ],
+            "estimatedCost": 0.00,
+            "estimatedTime": 7,
+            "retryStrategy": "none"
+        }
+    ]
+}

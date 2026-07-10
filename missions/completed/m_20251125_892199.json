@@ -1,0 +1,130 @@
+{
+  "mission": {
+    "type": "code",
+    "goal": "Vytvor mi jednoduchý Python calculator",
+    "template": "Code Project Mission",
+    "id": "m_20251125_892199",
+    "createdAt": "2025-11-25T00:51:32.199Z",
+    "context": {
+      "userInput": "Vytvor mi jednoduchý Python calculator",
+      "detectedLanguage": "sk",
+      "urgency": "normal",
+      "budget": "balanced"
+    }
+  },
+  "plan": {
+    "estimatedCost": 0.5,
+    "estimatedTime": 50,
+    "confidence": 0.85,
+    "risks": [
+      "Complex algorithms may require iterative refinement",
+      "Testing coverage depends on project scope"
+    ],
+    "tasks": [
+      {
+        "id": "t1",
+        "type": "code",
+        "description": "Architecture design and module breakdown",
+        "brain": "groq",
+        "model": "llama-3.3-70b-versatile",
+        "priority": "high",
+        "dependencies": [],
+        "estimatedCost": 0.08,
+        "estimatedTime": 8,
+        "retryStrategy": "fallback_to_local"
+      },
+      {
+        "id": "t2",
+        "type": "code",
+        "description": "Core implementation (main logic + modules)",
+        "brain": "groq",
+        "model": "llama-3.3-70b-versatile",
+        "priority": "high",
+        "dependencies": [
+          "t1"
+        ],
+        "estimatedCost": 0.25,
+        "estimatedTime": 25,
+        "retryStrategy": "increase_tokens_retry"
+      },
+      {
+        "id": "t3",
+        "type": "code",
+        "description": "Unit tests and error handling",
+        "brain": "google",
+        "model": "gemini-2.5-flash",
+        "priority": "normal",
+        "dependencies": [
+          "t2"
+        ],
+        "estimatedCost": 0,
+        "estimatedTime": 10,
+        "retryStrategy": "fallback_to_groq"
+      },
+      {
+        "id": "t4",
+        "type": "documentation",
+        "description": "README, API docs, usage examples",
+        "brain": "local",
+        "model": "llama3:8b",
+        "priority": "low",
+        "dependencies": [
+          "t2"
+        ],
+        "estimatedCost": 0,
+        "estimatedTime": 7,
+        "retryStrategy": "none"
+      }
+    ]
+  },
+  "execution": {
+    "status": "completed",
+    "startedAt": "2025-11-25T00:51:32.205Z",
+    "completedAt": "2025-11-25T00:51:49.492Z",
+    "currentTask": "t4",
+    "results": [
+      {
+        "taskId": "t1",
+        "status": "completed",
+        "output": "Pre jednoduchý Python kalkulátor môžeme navrhnúť nasledujúcu architektúru a rozdelenie modulov:\n\n1. **Main** (hlavný modul): Tento modul bude obsahovať hlavnú funkčnosť programu, ako je napríklad čítanie vstupných údajov od užívateľa a volanie funkcii pre výpočet výsledku.\n2. **Calculator** (modul pre výpočet): Tento modul bude obsahovať všetky funkcie pre základné aritmetické operácie, ako je sčítanie, odčítanie, násobenie a delenie.\n3. **Validator** (modul pre overenie vstupných údajov): Tento modul bude zodpovedný za overenie vstupných údajov od užívateľa, aby sa zabezpečilo, že sú platné a správne formátované.\n4. **UI** (modul pre užívateľské rozhranie): Tento modul bude obsahovať funkcie pre komunikáciu s užívateľom, ako je napríklad výpis výsledku alebo chybové hlásenia.\n\nTento modulárny dizajn umožňuje jednoduché rozšírenie funkcionality programu a zjednodušuje údržbu a aktualizáciu kódu.\n\nNapríklad, modul **Calculator** môže obsahovať funkcie ako:\n```python\ndef add(x, y):\n    return x + y\n\ndef subtract(x, y):\n    return x - y\n\ndef multiply(x, y):\n    return x * y\n\ndef divide(x, y):\n    if y == 0:\n        raise ValueError(\"Nemožno deliť nulou\")\n    return x / y\n```\nModul **Validator** môže obsahovať funkcie ako:\n```python\ndef validate_input(x):\n    try:\n        float(x)\n        return True\n    except ValueError:\n        return False\n```\nModul **UI** môže obsahovať funkcie ako:\n```python\ndef print_result(result):\n    print(f\"Výsledok: {result}\")\n\ndef print_error(message):\n    print(f\"Chyba: {message}\")\n```\nModul **Main** môže obsahovať kód ako:\n```python\ndef main():\n    while True:\n        try:\n            x = input(\"Zadajte prvú hodnotu: \")\n            y = input(\"Zadajte druhú hodnotu: \")\n            operator = input(\"Zadajte operátor (+, -, *, /): \")\n            if validate_input(x) and validate_input(y):\n                x = float(x)\n                y = float(y)\n                if operator == \"+\":\n                    result = add(x, y)\n                elif operator == \"-\":\n                    result = subtract(x, y)\n                elif operator == \"*\":\n                    result = multiply(x, y)\n                elif operator == \"/\":\n                    result = divide(x, y)\n                else:\n                    print_error(\"Neplatný operátor\")\n                    continue\n                print_result(result)\n            else:\n                print_error(\"Neplatný vstup\")\n        except ValueError as e:\n            print_error(str(e))\n```\nTento dizajn umožňuje jednoduché pridávanie nových funkcii a operátorov, ako aj zjednodušuje údržbu a aktualizáciu kódu.",
+        "qualityScore": 1,
+        "actualCost": 0.08,
+        "actualTime": 0,
+        "retries": 0,
+        "completedAt": "2025-11-25T00:51:34.673Z"
+      },
+      {
+        "taskId": "t2",
+        "status": "completed",
+        "output": "Jednoduchý Python kalkulátor môžeme implementovať pomocou nasledujúceho kódu:\n\n**calculator.py**\n```python\n# Modul pre výpočet\ndef add(x, y):\n    \"\"\"Sčítanie dvoch čísel\"\"\"\n    return x + y\n\ndef subtract(x, y):\n    \"\"\"Odčítanie dvoch čísel\"\"\"\n    return x - y\n\ndef multiply(x, y):\n    \"\"\"Násobenie dvoch čísel\"\"\"\n    return x * y\n\ndef divide(x, y):\n    \"\"\"Delenie dvoch čísel\"\"\"\n    if y == 0:\n        raise ValueError(\"Nemožno deliť nulou\")\n    return x / y\n```\n\n**validator.py**\n```python\n# Modul pre overenie vstupných údajov\ndef validate_input(x):\n    \"\"\"Overenie, či vstupné údaje sú platné čísla\"\"\"\n    try:\n        float(x)\n        return True\n    except ValueError:\n        return False\n```\n\n**ui.py**\n```python\n# Modul pre užívateľské rozhranie\ndef print_result(result):\n    \"\"\"Vypísanie výsledku\"\"\"\n    print(f\"Výsledok: {result}\")\n\ndef print_error(message):\n    \"\"\"Vypísanie chybového hlásenia\"\"\"\n    print(f\"Chyba: {message}\")\n```\n\n**main.py**\n```python\n# Hlavný modul\nfrom calculator import add, subtract, multiply, divide\nfrom validator import validate_input\nfrom ui import print_result, print_error\n\ndef main():\n    while True:\n        try:\n            x = input(\"Zadajte prvú hodnotu: \")\n            y = input(\"Zadajte druhú hodnotu: \")\n            operator = input(\"Zadajte operátor (+, -, *, /): \")\n            if validate_input(x) and validate_input(y):\n                x = float(x)\n                y = float(y)\n                if operator == \"+\":\n                    result = add(x, y)\n                elif operator == \"-\":\n                    result = subtract(x, y)\n                elif operator == \"*\":\n                    result = multiply(x, y)\n                elif operator == \"/\":\n                    result = divide(x, y)\n                else:\n                    print_error(\"Neplatný operátor\")\n                    continue\n                print_result(result)\n            else:\n                print_error(\"Neplatný vstup\")\n        except ValueError as e:\n            print_error(str(e))\n\nif __name__ == \"__main__\":\n    main()\n```\n\nTento kód implementuje jednoduchý Python kalkulátor, ktorý umožňuje užívateľom vykonávať základné aritmetické operácie. Kalkulátor používa modulárny dizajn, ktorý umožňuje jednoduché pridávanie nových funkcii a operátorov, ako aj zjednodušuje údržbu a aktualizáciu kódu.",
+        "qualityScore": 1,
+        "actualCost": 0.25,
+        "actualTime": 0,
+        "retries": 0,
+        "completedAt": "2025-11-25T00:51:35.994Z"
+      },
+      {
+        "taskId": "t3",
+        "status": "completed",
+        "output": "V poriadku! Pridajme jednotkové testy pre náš kalkulátor a prejdime si existujúce spracovanie chýb.\n\n### 1. Unit Tests\n\nVytvoríme dva testovacie súbory: `test_calculator.py` a `test_validator.py`. Použijeme štandardný modul `unittest` v Pythone.\n\n**`test_calculator.py`**\nTento súbor bude testovať funkcie sčítania, odčítania, násobenia a delenia z modulu `calculator.py`.\n\n```python\n# test_calculator.py\nimport unittest\nfrom calculator import add, subtract, multiply, divide\n\nclass TestCalculatorFunctions(unittest.TestCase):\n\n    def test_add(self):\n        self.assertEqual(add(1, 2), 3)\n        self.assertEqual(add(-1, 1), 0)\n        self.assertEqual(add(-1, -1), -2)\n        self.assertEqual(add(0, 0), 0)\n        self.assertEqual(add(10.5, 2.5), 13.0)\n\n    def test_subtract(self):\n        self.assertEqual(subtract(5, 3), 2)\n        self.assertEqual(subtract(3, 5), -2)\n        self.assertEqual(subtract(0, 0), 0)\n        self.assertEqual(subtract(10, -5), 15)\n        self.assertEqual(subtract(5.5, 2.5), 3.0)\n\n    def test_multiply(self):\n        self.assertEqual(multiply(2, 3), 6)\n        self.assertEqual(multiply(-2, 3), -6)\n        self.assertEqual(multiply(-2, -3), 6)\n        self.assertEqual(multiply(0, 5), 0)\n        self.assertEqual(multiply(2.5, 2), 5.0)\n\n    def test_divide(self):\n        self.assertEqual(divide(6, 3), 2.0)\n        self.assertEqual(divide(5, 2), 2.5)\n        self.assertEqual(divide(-6, 3), -2.0)\n        self.assertEqual(divide(-6, -3), 2.0)\n        self.assertEqual(divide(0, 5), 0.0)\n\n    def test_divide_by_zero(self):\n        with self.assertRaises(ValueError) as cm:\n            divide(10, 0)\n        self.assertEqual(str(cm.exception), \"Nemožno deliť nulou\")\n\nif __name__ == '__main__':\n    unittest.main()\n```\n\n**`test_validator.py`**\nTento súbor bude testovať funkciu `validate_input` z modulu `validator.py`.\n\n```python\n# test_validator.py\nimport unittest\nfrom validator import validate_input\n\nclass TestValidatorFunctions(unittest.TestCase):\n\n    def test_valid_input(self):\n        self.assertTrue(validate_input(\"123\"))\n        self.assertTrue(validate_input(\"123.45\"))\n        self.assertTrue(validate_input(\"-10\"))\n        self.assertTrue(validate_input(\"0\"))\n        self.assertTrue(validate_input(\"-0.5\"))\n        self.assertTrue(validate_input(\"  100  \")) # Test with leading/trailing spaces\n\n    def test_invalid_input(self):\n        self.assertFalse(validate_input(\"abc\"))\n        self.assertFalse(validate_input(\"\"))\n        self.assertFalse(validate_input(\"123a\"))\n        self.assertFalse(validate_input(\".\"))\n        self.assertFalse(validate_input(\" \"))\n        self.assertFalse(validate_input(\"None\"))\n\nif __name__ == '__main__':\n    unittest.main()\n```\n\n---\n\n",
+        "qualityScore": 1,
+        "actualCost": 0,
+        "actualTime": 0.2,
+        "retries": 0,
+        "completedAt": "2025-11-25T00:51:45.105Z"
+      },
+      {
+        "taskId": "t4",
+        "status": "completed",
+        "output": "# README Tento projekt predstavuje jednoduchý Python kalkulátor, ktorý umožňuje užívateľom vykonávať základné aritmetické operácie. Kalkulátor používa modulárny dizajn, ktorý umožňuje jednoduché pridávanie nových funkcii a operátorov, ako aj zjednodušuje údržbu a aktualizáciu kódu.",
+        "qualityScore": 1,
+        "actualCost": 0,
+        "actualTime": 0.1,
+        "retries": 0,
+        "completedAt": "2025-11-25T00:51:49.491Z"
+      }
+    ],
+    "totalCost": 0.33,
+    "totalTime": 0.30000000000000004
+  }
+}

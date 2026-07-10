@@ -1,0 +1,106 @@
+{
+  "mission": {
+    "type": "campaign",
+    "goal": "Potrebujem 2 IG posty o AI a budúcnosti práce",
+    "template": "Marketing Campaign Mission",
+    "id": "m_20251125_222844",
+    "createdAt": "2025-11-25T00:40:22.844Z",
+    "context": {
+      "userInput": "Potrebujem 2 IG posty o AI a budúcnosti práce",
+      "detectedLanguage": "sk",
+      "urgency": "normal",
+      "budget": "balanced"
+    }
+  },
+  "plan": {
+    "estimatedCost": 0.2,
+    "estimatedTime": 25,
+    "confidence": 0.85,
+    "risks": [
+      "Audience targeting may need refinement",
+      "Visual briefs require human designer input"
+    ],
+    "tasks": [
+      {
+        "id": "t1",
+        "type": "research",
+        "description": "Audience research and pain points analysis",
+        "brain": "groq",
+        "model": "llama-3.3-70b-versatile",
+        "priority": "high",
+        "dependencies": [],
+        "estimatedCost": 0.08,
+        "estimatedTime": 8,
+        "retryStrategy": "fallback_to_local"
+      },
+      {
+        "id": "t2",
+        "type": "content",
+        "description": "Copywriting (3x IG posts + 1 email + landing text)",
+        "brain": "groq",
+        "model": "llama-3.3-70b-versatile",
+        "priority": "high",
+        "dependencies": [
+          "t1"
+        ],
+        "estimatedCost": 0.12,
+        "estimatedTime": 12,
+        "retryStrategy": "increase_creativity"
+      },
+      {
+        "id": "t3",
+        "type": "content",
+        "description": "Visual concept briefs (for designer)",
+        "brain": "google",
+        "model": "gemini-2.5-flash",
+        "priority": "normal",
+        "dependencies": [
+          "t2"
+        ],
+        "estimatedCost": 0,
+        "estimatedTime": 5,
+        "retryStrategy": "none"
+      }
+    ]
+  },
+  "execution": {
+    "status": "completed",
+    "startedAt": "2025-11-25T00:40:22.847Z",
+    "completedAt": "2025-11-25T00:40:38.349Z",
+    "currentTask": "t3",
+    "results": [
+      {
+        "taskId": "t1",
+        "status": "completed",
+        "output": "Ako prvý krok, musím pochopit, kto je naša cieľová skupina a čo ich bolí, keď sa snaží zoznamiect sa s umělou inteligenciou (AI) a jej vplyvom na budúcnosť práce.\n\n**Cieľová skupina:**\nPredpokladám, že naša cieľová skupina sú ľudia, ktorí sa zaujímajú o technológie, inovácie a budúcnosť práce. Táto skupina môže pozostávať z:\n\n* Mladých profesionálov, ktorí sa chcú vzdelávať o nových trendoch v oblasti AI\n* Podnikateľov a manažérov, ktorí sa chcú dozvedieť, ako môžu využiť AI na zlepšenie svojich podnikov\n* Študentov a akademikov, ktorí sa zaujímajú o výskum a vývoj v oblasti AI\n\n**Pain points:**\nKeď sa snažíme zoznamiect sa s AI a jej vplyvom na budúcnosť práce, môžeme stretnúť sa s nasledujúcimi problémami:\n\n* Nedostatočná informovanosť o AI a jej možných aplikáciách\n* Strach z toho, že AI nahradí ľudí v pracovných pozíciách\n* Neistota, ako sa ľudia môžu prispôsobiť novým technologickým trendom\n* Potreba vzdelania a školenia v oblasti AI a jej aplikáciách\n\n**Kľúčové otázky:**\nNa základe týchto pain points môžeme formulovať nasledujúce kľúčové otázky, ktoré by sme mali zodpovedať v našich IG postoch:\n\n* Ako môžeme využiť AI na zlepšenie našej práce a života?\n* Aké sú najväčšie výzvy, ktoré môžeme stretnúť pri implementácii AI v našich podnikoch a pracovných procesoch?\n* Ako môžeme sa vzdelávať a pripravovať na novú éru práce s AI?\n\nTeraz, keď máme lepšie pochopenie našej cieľovej skupiny a ich pain points, môžeme začať tvoriť obsah pre naše IG posty, ktorý bude relevantný a užitočný pre našich sledovateľov.",
+        "qualityScore": 1,
+        "actualCost": 0.08,
+        "actualTime": 0,
+        "retries": 0,
+        "completedAt": "2025-11-25T00:40:25.320Z"
+      },
+      {
+        "taskId": "t2",
+        "status": "completed",
+        "output": "**IG Post 1:**\n\"Nová éra práce: Ako môžeme využiť AI na zlepšenie našej práce a života?\nČasto sa strachejme, že AI nahradí ľudí v pracovných pozíciách, ale pravda je, že AI môže byť našim partnerom a pomôcť nám zvýšiť produktivitu a efektívnosť.\nZaoberajte sa s nami, ako môžeme využiť AI na zlepšenie našej práce a života! #AI #BudúcnosťPráce #Inovácie\"\n\n**IG Post 2:**\n\"Vyzyvy pri implementácii AI v podnikoch\nAké sú najväčšie výzvy, ktoré môžeme stretnúť pri implementácii AI v našich podnikoch a pracovných procesoch? \nJe to nedostatok kvalifikovaného personálu, vysoká cena implementácie alebo neistota, ako sa ľudia môžu prispôsobiť novým technologickým trendom? \nZdieľajte s nami svoje skúsenosti a názory! #AI #Implementácia #Podniky\"\n\n**IG Post 3:**\n\"Vzdelávanie a príprava na novú éru práce s AI\nAko môžeme sa vzdelávať a pripravovať na novú éru práce s AI? \nJe to potreba nových školení a vzdelávacích programov, alebo môžeme využiť aj online zdroje a kurzov? \nZaoberajte sa s nami, ako môžeme sa pripraviť na budúcnosť práce! #AI #Vzdelávanie #BudúcnosťPráce\"\n\n**Email:**\nSubject: Nové možnosti s AI - Získajte informácie a začnite sa vzdelávať!\nDobrý deň,\nchcete sa dozvedieť viac o tom, ako môžete využiť AI na zlepšenie svojej práce a života? \nChcete sa vzdelávať a pripravovať na novú éru práce s AI? \nKliknite na tento odkaz a získajte informácie o našich kurzoch a školeniach: [odkaz]\nS pozdravom,\n[Váš meno]\n\n**Landing Text:**\n\"Vitajte na našej stránke!\nChcete sa dozvedieť viac o tom, ako môžete využiť AI na zlepšenie svojej práce a života? \nChcete sa vzdelávať a pripravovať na novú éru práce s AI? \nNaša stránka Vám ponúka informácie o AI, jej aplikáciách a možnostiach, ako môžete využiť AI na zlepšenie svojej práce a života. \nKliknite na tlačidlo \"Získajte informácie\" a začnite sa vzdelávať! \n[Tlačidlo \"Získajte informácie\"]\"",
+        "qualityScore": 1,
+        "actualCost": 0.12,
+        "actualTime": 0,
+        "retries": 0,
+        "completedAt": "2025-11-25T00:40:27.488Z"
+      },
+      {
+        "taskId": "t3",
+        "status": "completed",
+        "output": "Here are the visual concept briefs for your two Instagram posts, designed to guide a graphic designer:\n\n---\n\n## Visual Concept Brief 1: IG Post 1 - AI ako Partner\n\n**Post Title/Theme:** \"Nová éra práce: Ako môžeme využiť AI na zlepšenie našej práce a života?\" (New era of work: How can we use AI to improve our work and life?)\n\n**Key Message:** AI is a powerful partner that enhances human capabilities, increases productivity, and improves quality of life. The visual should convey a positive, collaborative, and empowering outlook on AI's role in the future of work.\n\n**Visual Style/Mood:** Modern, optimistic, forward-thinking, clean, and professional yet approachable. It should inspire hope and confidence rather than fear or complexity.\n\n*   **Color Palette:** Bright, uplifting, and harmonious. Think soft blues, greens, whites, light grays, with subtle glowing accents (e.g., teal, soft purple, or golden yellow) to represent innovation and data flow. Avoid dark, dystopian, or overly stark imagery.\n*   **Overall Feeling:** Synergy, growth, efficiency, innovation, human-centric technology.\n\n**Specific Visual Elements/Ideas:**\n\n1.  **Human-AI Collaboration:**\n    *   **Concept 1:** A diverse individual (e.g., a professional, creative, or student) confidently interacting with a digital interface (tablet, laptop, or holographic projection). Abstract, flowing lines, data streams, or subtle geometric patterns emanate from the screen or around their hands, symbolizing AI's supportive presence and enhancement of their work.\n    *   **Concept 2:** A stylized visual of two hands – one clearly human, the other subtly robotic/digital (e.g., transparent, glowing, or wireframe) – gently touching or working together on a shared task or a glowing data sphere. This emphasizes partnership.\n    *   **Concept 3:** A person looking towards a bright, slightly blurred future horizon,",
+        "qualityScore": 1,
+        "actualCost": 0,
+        "actualTime": 0.2,
+        "retries": 0,
+        "completedAt": "2025-11-25T00:40:38.349Z"
+      }
+    ],
+    "totalCost": 0.2,
+    "totalTime": 0.2
+  }
+}

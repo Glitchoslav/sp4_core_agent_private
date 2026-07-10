@@ -1,0 +1,56 @@
+{
+  "mission": {
+    "type": "custom",
+    "goal": "Potrebujem 2 LinkedIn posty o remote work",
+    "id": "m_20251125_909496",
+    "createdAt": "2025-11-25T00:51:49.497Z",
+    "context": {
+      "userInput": "Potrebujem 2 LinkedIn posty o remote work",
+      "detectedLanguage": "en",
+      "urgency": "normal",
+      "budget": "balanced"
+    }
+  },
+  "plan": {
+    "estimatedCost": 0.1,
+    "estimatedTime": 15,
+    "confidence": 0.6,
+    "risks": [
+      "Custom mission - may need adjustment"
+    ],
+    "tasks": [
+      {
+        "id": "t1",
+        "type": "general",
+        "description": "Potrebujem 2 LinkedIn posty o remote work",
+        "brain": "groq",
+        "model": "llama-3.3-70b-versatile",
+        "priority": "normal",
+        "dependencies": [],
+        "estimatedCost": 0.1,
+        "estimatedTime": 15,
+        "retryStrategy": "fallback_to_local"
+      }
+    ]
+  },
+  "execution": {
+    "status": "completed",
+    "startedAt": "2025-11-25T00:51:49.501Z",
+    "completedAt": "2025-11-25T00:51:51.125Z",
+    "currentTask": "t1",
+    "results": [
+      {
+        "taskId": "t1",
+        "status": "completed",
+        "output": "Post 1:\nRemote work je budúcnosť! \nSom presvedčený, že práca na diaľku nie je už len trend, ale skutočná nutnosť pre mnoho z nás. Nielenže môžeme zostať v pohodlí vlastného domova, ale aj znížiť stres a zvýšiť produktivitu. \nČo je tvoje najväčšie prekážka pri remote work? Je to komunikácia s kolegami, technické problémy alebo niečo úplne iné? Zdieľaj svoje skúsenosti v komentároch!\n\nPost 2:\nFlexibilita a autonómia - to sú dve veci, ktoré mi na remote work najviac chýbajú, keď som v kancelárii. \nPri remote work môžem pracovať odkiaľkoľvek, kedykoľvek a ako chcem. To mi umožňuje lepšie vyvážiť pracovný a súkromný život. \nAko vy používate flexibilitu a autonómiu pri remote work? Máte nejaké tipy, ako efektívne pracovať na diaľku? Zdieľajte svoje skúsenosti a pomôžte mi a ostatným zlepšiť našu remote work skúsenosť!",
+        "qualityScore": 1,
+        "actualCost": 0.1,
+        "actualTime": 0,
+        "retries": 0,
+        "completedAt": "2025-11-25T00:51:51.124Z"
+      }
+    ],
+    "totalCost": 0.1,
+    "totalTime": 0
+  }
+}

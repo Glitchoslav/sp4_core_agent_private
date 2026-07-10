@@ -1,0 +1,101 @@
+{
+  "mission": {
+    "type": "web",
+    "goal": "Sprav mi web pre kaviareň s objednávkovým systémom",
+    "template": "Web Development Mission",
+    "id": "m_20251125_907292",
+    "createdAt": "2025-11-25T00:35:07.293Z",
+    "context": {
+      "userInput": "Sprav mi web pre kaviareň s objednávkovým systémom",
+      "detectedLanguage": "sk",
+      "urgency": "normal",
+      "budget": "balanced"
+    }
+  },
+  "plan": {
+    "estimatedCost": 0.45,
+    "estimatedTime": 45,
+    "confidence": 0.85,
+    "risks": [
+      "Frontend may need retry (Gemini inconsistent on React)",
+      "Database schema complexity depends on requirements"
+    ],
+    "tasks": [
+      {
+        "id": "t1",
+        "type": "code",
+        "description": "Database schema design (PostgreSQL/MySQL)",
+        "brain": "groq",
+        "model": "llama-3.3-70b-versatile",
+        "priority": "high",
+        "dependencies": [],
+        "estimatedCost": 0.05,
+        "estimatedTime": 5,
+        "retryStrategy": "increase_tokens_retry"
+      },
+      {
+        "id": "t2",
+        "type": "code",
+        "description": "Backend API (Node.js + Express/Fastify)",
+        "brain": "groq",
+        "model": "llama-3.3-70b-versatile",
+        "priority": "high",
+        "dependencies": [
+          "t1"
+        ],
+        "estimatedCost": 0.15,
+        "estimatedTime": 12,
+        "retryStrategy": "fallback_to_groq"
+      },
+      {
+        "id": "t3",
+        "type": "code",
+        "description": "Frontend UI (React/Vue/plain HTML)",
+        "brain": "google",
+        "model": "gemini-2.5-flash",
+        "priority": "normal",
+        "dependencies": [
+          "t2"
+        ],
+        "estimatedCost": 0,
+        "estimatedTime": 15,
+        "retryStrategy": "fallback_to_groq"
+      },
+      {
+        "id": "t4",
+        "type": "documentation",
+        "description": "API documentation and usage examples",
+        "brain": "local",
+        "model": "llama3:8b",
+        "priority": "low",
+        "dependencies": [
+          "t2"
+        ],
+        "estimatedCost": 0,
+        "estimatedTime": 8,
+        "retryStrategy": "none"
+      },
+      {
+        "id": "t5",
+        "type": "documentation",
+        "description": "Deployment guide (Docker/VPS setup)",
+        "brain": "local",
+        "model": "llama3:8b",
+        "priority": "low",
+        "dependencies": [],
+        "estimatedCost": 0,
+        "estimatedTime": 5,
+        "retryStrategy": "none"
+      }
+    ]
+  },
+  "execution": {
+    "status": "pending",
+    "startedAt": null,
+    "completedAt": null,
+    "currentTask": null,
+    "results": [],
+    "totalCost": 0,
+    "totalTime": 0
+  }
+}

@@ -1,0 +1,48 @@
+{
+    "name": "Marketing Campaign Mission",
+    "avgCost": 0.20,
+    "avgTime": 25,
+    "commonRisks": [
+        "Audience targeting may need refinement",
+        "Visual briefs require human designer input"
+    ],
+    "tasks": [
+        {
+            "type": "research",
+            "description": "Audience research and pain points analysis",
+            "brain": "groq",
+            "model": "llama-3.3-70b-versatile",
+            "priority": "high",
+            "dependencies": [],
+            "estimatedCost": 0.08,
+            "estimatedTime": 8,
+            "retryStrategy": "fallback_to_local"
+        },
+        {
+            "type": "content",
+            "description": "Copywriting (3x IG posts + 1 email + landing text)",
+            "brain": "groq",
+            "model": "llama-3.3-70b-versatile",
+            "priority": "high",
+            "dependencies": [
+                "t1"
+            ],
+            "estimatedCost": 0.12,
+            "estimatedTime": 12,
+            "retryStrategy": "increase_creativity"
+        },
+        {
+            "type": "content",
+            "description": "Visual concept briefs (for designer)",
+            "brain": "google",
+            "model": "gemini-2.5-flash",
+            "priority": "normal",
+            "dependencies": [
+                "t2"
+            ],
+            "estimatedCost": 0.00,
+            "estimatedTime": 5,
+            "retryStrategy": "none"
+        }
+    ]
+}

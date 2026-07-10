@@ -1,0 +1,148 @@
+{
+  "mission": {
+    "type": "code",
+    "goal": "Implementovať základný modul SP4_EPOCH Keeper, ktorý bude zapisovať všetky dôležité zmeny v systéme ako epochy a umožní zobraziť posledné záznamy.",
+    "template": "Code Project Mission",
+    "id": "m_20251125_625066",
+    "createdAt": "2025-11-25T14:23:45.066Z",
+    "context": {
+      "userInput": "Implementovať základný modul SP4_EPOCH Keeper, ktorý bude zapisovať všetky dôležité zmeny v systéme ako epochy a umožní zobraziť posledné záznamy.",
+      "detectedLanguage": "sk",
+      "urgency": "normal",
+      "budget": "balanced"
+    }
+  },
+  "plan": {
+    "estimatedCost": 0.5,
+    "estimatedTime": 50,
+    "confidence": 0.85,
+    "risks": [
+      "Complex algorithms may require iterative refinement",
+      "Testing coverage depends on project scope"
+    ],
+    "tasks": [
+      {
+        "id": "t1",
+        "type": "code",
+        "description": "Architecture design and module breakdown",
+        "brain": "groq",
+        "model": "llama-3.3-70b-versatile",
+        "priority": "high",
+        "dependencies": [],
+        "estimatedCost": 0.08,
+        "estimatedTime": 8,
+        "retryStrategy": "fallback_to_local"
+      },
+      {
+        "id": "t2",
+        "type": "code",
+        "description": "Core implementation (main logic + modules)",
+        "brain": "groq",
+        "model": "llama-3.3-70b-versatile",
+        "priority": "high",
+        "dependencies": [
+          "t1"
+        ],
+        "estimatedCost": 0.25,
+        "estimatedTime": 25,
+        "retryStrategy": "increase_tokens_retry"
+      },
+      {
+        "id": "t3",
+        "type": "code",
+        "description": "Unit tests and error handling",
+        "brain": "google",
+        "model": "gemini-2.5-flash",
+        "priority": "normal",
+        "dependencies": [
+          "t2"
+        ],
+        "estimatedCost": 0,
+        "estimatedTime": 10,
+        "retryStrategy": "fallback_to_groq"
+      },
+      {
+        "id": "t4",
+        "type": "documentation",
+        "description": "README, API docs, usage examples",
+        "brain": "local",
+        "model": "llama3:8b",
+        "priority": "low",
+        "dependencies": [
+          "t2"
+        ],
+        "estimatedCost": 0,
+        "estimatedTime": 7,
+        "retryStrategy": "none"
+      }
+    ]
+  },
+  "execution": {
+    "status": "completed",
+    "startedAt": "2025-11-25T14:23:45.070Z",
+    "completedAt": "2025-11-25T14:24:03.708Z",
+    "currentTask": "t4",
+    "results": [
+      {
+        "taskId": "t1",
+        "status": "completed",
+        "output": {
+          "text": "Ako prvý krok, definujme celkovú architektúru a rozloženie modulu SP4_EPOCH Keeper.\n\n**Modul SP4_EPOCH Keeper**\n\nCieľom tohto modulu je zapisovať všetky dôležité zmeny v systéme ako epochy a umožniť zobraziť posledné záznamy. To znamená, že modul bude musieť:\n\n1. **Zapisovať epochy**: Modul bude zapisovať všetky dôležité zmeny v systéme do databázy alebo iného úložiska.\n2. **Ukladať epochy**: Modul bude uchovávať záznamy o epochách, aby bolo možné ich neskôr zobraziť.\n3. **Zobraziť posledné záznamy**: Modul bude umožňovať zobraziť posledné záznamy o epochách.\n\n**Rozloženie modulu**\n\nModul SP4_EPOCH Keeper môžeme rozložiť na nasledovné komponenty:\n\n1. **Epoch Manager**: Tento komponent bude zodpovedný za zapisovanie a ukladanie epoch.\n2. **Epoch Storage**: Tento komponent bude uchovávať záznamy o epochách.\n3. **Epoch Viewer**: Tento komponent bude zodpovedný za zobrazenie posledných záznamov o epochách.\n4. **API**: Tento komponent bude poskytovať rozhranie pre komunikáciu s inými modulmi alebo aplikáciami.\n\n**Vzťahy medzi komponentami**\n\n* Epoch Manager bude komunikovať s Epoch Storage, aby zapisoval a ukladal epochy.\n* Epoch Viewer bude komunikovať s Epoch Storage, aby získal posledné záznamy o epochách.\n* API bude komunikovať s Epoch Manager a Epoch Viewer, aby poskytoval rozhranie pre iné moduly alebo aplikácie.\n\nToto rozloženie modulu SP4_EPOCH Keeper umožní efektívne zapisovať a ukladať epochy, ako aj zobraziť posledné záznamy. Ďalším krokom bude detailnejšie definovanie každého komponentu a ich vzťahov.",
+          "provider": "groq",
+          "model": "llama-3.3-70b-versatile",
+          "cost": 0.00046597999999999995,
+          "latency": 2602
+        },
+        "qualityScore": 0.8,
+        "actualCost": 0.08,
+        "actualTime": 0,
+        "retries": 0,
+        "completedAt": "2025-11-25T14:23:47.682Z"
+      },
+      {
+        "taskId": "t2",
+        "status": "completed",
+        "output": {
+          "text": "Implementácia základného modulu SP4_EPOCH Keeper bude pozostávať z dvoch základných častí: \n\n1. **Core Logic**: Táto časť bude zodpovedná za spracovanie a ukladanie epoch. Bude obsahovať funkcie pre pridávanie nových epoch, čítanie posledných záznamov a spravovanie údajov.\n\n2. **Moduly**: Táto časť bude pozostávať z modulov, ktoré budú komunikovať s core logikou a umožnia rozširovanie funkcionality modulu SP4_EPOCH Keeper.\n\n**Core Logic**\n\nCore logika bude implementovaná v JavaScripte a bude využívať objektový model pre reprezentáciu epoch. Každá epocha bude reprezentovaná objektom, ktorý bude obsahovať informácie o zmene, ako je čas, popis zmeny a ďalšie relevantné údaje.\n\n```javascript\nclass Epoch {\n  constructor(timestamp, description, data) {\n    this.timestamp = timestamp;\n    this.description = description;\n    this.data = data;\n  }\n}\n\nclass EpochKeeper {\n  constructor() {\n    this.epochs = [];\n  }\n\n  addEpoch(epoch) {\n    this.epochs.push(epoch);\n  }\n\n  getLatestEpochs(count) {\n    return this.epochs.slice(-count);\n  }\n}\n```\n\n**Moduly**\n\nModuly budú samostatné funkcie, ktoré budú komunikovať s core logikou. Príkladom môže byť modul pre ukladanie epoch do databázy, modul pre zaslanie notifikácií pri nových epochách alebo modul pre zobrazenie posledných epoch v uživatelskom rozhraní.\n\n```javascript\nclass DatabaseModule {\n  constructor(epochKeeper) {\n    this.epochKeeper = epochKeeper;\n  }\n\n  saveEpochs() {\n    // Implementácia ukladania epoch do databázy\n  }\n}\n\nclass NotificationModule {\n  constructor(epochKeeper) {\n    this.epochKeeper = epochKeeper;\n  }\n\n  sendNotifications() {\n    // Implementácia zaslanie notifikácií pri nových epochách\n  }\n}\n```\n\n**Inštanciácia a použité**\n\nInštanciácia modulu SP4_EPOCH Keeper a jeho modulov môže vyzerať takto:\n\n```javascript\nconst epochKeeper = new EpochKeeper();\nconst databaseModule = new DatabaseModule(epochKeeper);\nconst notificationModule = new NotificationModule(epochKeeper);\n\n// Pridanie novej epochy\nconst newEpoch = new Epoch(Date.now(), 'Nová epocha', { /* údaje */ });\nepochKeeper.addEpoch(newEpoch);\n\n// Ukladanie epoch do databázy\ndatabaseModule.saveEpochs();\n\n// Zaslanie notifikácií\nnotificationModule.sendNotifications();\n```\n\nTáto implementácia poskytuje základný rámec pre modul SP4_EPOCH Keeper a umožňuje ľahko rozširovať jeho funkcionality pomocou modulov.",
+          "provider": "groq",
+          "model": "llama-3.3-70b-versatile",
+          "cost": 0.0006109,
+          "latency": 2794
+        },
+        "qualityScore": 0.8,
+        "actualCost": 0.25,
+        "actualTime": 0,
+        "retries": 0,
+        "completedAt": "2025-11-25T14:23:50.488Z"
+      },
+      {
+        "taskId": "t3",
+        "status": "completed",
+        "output": {
+          "text": "",
+          "provider": "google",
+          "model": "gemini-2.5-flash",
+          "cost": 0,
+          "latency": 10536
+        },
+        "qualityScore": 0.8,
+        "actualCost": 0,
+        "actualTime": 0.2,
+        "retries": 0,
+        "completedAt": "2025-11-25T14:24:01.031Z"
+      },
+      {
+        "taskId": "t4",
+        "status": "completed",
+        "output": "README -------- SP4_EPOCH Keeper je základný modul, ktorý slúži na zapisovanie všetkých dôležitých zmien v systéme ako epochy. Tento modul umožňuje zobraziť posledné záznamy, čo umožňuje efektívne sledovať a analyzovať históriu zmien v systéme.",
+        "qualityScore": 1,
+        "actualCost": 0,
+        "actualTime": 0,
+        "retries": 0,
+        "completedAt": "2025-11-25T14:24:03.707Z"
+      }
+    ],
+    "totalCost": 0.33,
+    "totalTime": 0.2
+  }
+}

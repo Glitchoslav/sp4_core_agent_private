@@ -1,0 +1,142 @@
+{
+  "mission": {
+    "type": "web",
+    "goal": "Vytvor mi SP4 webstránku - landing page ktorá oznamuje náš raketový nástup, prečo sme vznikli, čo chceme dosiahnuť, koho hľadáme a ako sa zapojiť",
+    "template": "Web Development Mission",
+    "id": "m_20251125_129092",
+    "createdAt": "2025-11-25T04:32:09.092Z",
+    "context": {
+      "userInput": "Vytvor mi SP4 webstránku - landing page ktorá oznamuje náš raketový nástup, prečo sme vznikli, čo chceme dosiahnuť, koho hľadáme a ako sa zapojiť",
+      "detectedLanguage": "sk",
+      "urgency": "normal",
+      "budget": "balanced"
+    }
+  },
+  "plan": {
+    "estimatedCost": 0.45,
+    "estimatedTime": 45,
+    "confidence": 0.85,
+    "risks": [
+      "Frontend may need retry (Gemini inconsistent on React)",
+      "Database schema complexity depends on requirements"
+    ],
+    "tasks": [
+      {
+        "id": "t1",
+        "type": "code",
+        "description": "Database schema design (PostgreSQL/MySQL)",
+        "brain": "groq",
+        "model": "llama-3.3-70b-versatile",
+        "priority": "high",
+        "dependencies": [],
+        "estimatedCost": 0.05,
+        "estimatedTime": 5,
+        "retryStrategy": "increase_tokens_retry"
+      },
+      {
+        "id": "t2",
+        "type": "code",
+        "description": "Backend API (Node.js + Express/Fastify)",
+        "brain": "groq",
+        "model": "llama-3.3-70b-versatile",
+        "priority": "high",
+        "dependencies": [
+          "t1"
+        ],
+        "estimatedCost": 0.15,
+        "estimatedTime": 12,
+        "retryStrategy": "fallback_to_groq"
+      },
+      {
+        "id": "t3",
+        "type": "code",
+        "description": "Frontend UI (React/Vue/plain HTML)",
+        "brain": "google",
+        "model": "gemini-2.5-flash",
+        "priority": "normal",
+        "dependencies": [
+          "t2"
+        ],
+        "estimatedCost": 0,
+        "estimatedTime": 15,
+        "retryStrategy": "fallback_to_groq"
+      },
+      {
+        "id": "t4",
+        "type": "documentation",
+        "description": "API documentation and usage examples",
+        "brain": "local",
+        "model": "llama3:8b",
+        "priority": "low",
+        "dependencies": [
+          "t2"
+        ],
+        "estimatedCost": 0,
+        "estimatedTime": 8,
+        "retryStrategy": "none"
+      },
+      {
+        "id": "t5",
+        "type": "documentation",
+        "description": "Deployment guide (Docker/VPS setup)",
+        "brain": "local",
+        "model": "llama3:8b",
+        "priority": "low",
+        "dependencies": [],
+        "estimatedCost": 0,
+        "estimatedTime": 5,
+        "retryStrategy": "none"
+      }
+    ]
+  },
+  "execution": {
+    "status": "running",
+    "startedAt": "2025-11-25T04:32:09.095Z",
+    "completedAt": null,
+    "currentTask": "t4",
+    "results": [
+      {
+        "taskId": "t1",
+        "status": "completed",
+        "output": "Ahoj! Database schema design pre tvoju SP4 webstránku som rád, že môžem pomôcť.\n\nPre landing page, ktorá má oznamovať váš raketový nástup, potrebujeme navrhnúť databázový schema, ktoré bude obsahovať informácie o vašej spoločnosti, cieľoch, tíme a kontaktných informáciách.\n\nNavrhom databázového schema v PostgreSQL/MySQL, ktoré by mohlo vyzeráť takto:\n\n**Tabuľky:**\n\n1. **sp4_info**\n\t* id (serial primary key)\n\t* nazov (varchar): názov spoločnosti\n\t* popis (text): krátky popis spoločnosti\n\t* misia (text): misia spoločnosti\n\t* vizia (text): vízia spoločnosti\n2. **clenovia_tymu**\n\t* id (serial primary key)\n\t* meno (varchar): meno člena tímu\n\t* pozicia (varchar): pozícia člena tímu\n\t* popis (text): krátky popis člena tímu\n\t* obrazok (varchar): URL obrázku člena tímu\n3. **nastup**\n\t* id (serial primary key)\n\t* nazov (varchar): názov nastupu\n\t* popis (text): krátky popis nastupu\n\t* datum (date): dátum nastupu\n4. **kontakt**\n\t* id (serial primary key)\n\t* email (varchar): emailová adresa\n\t* telefon (varchar): telefónne číslo\n\t* adresa (varchar): adresa spoločnosti\n5. **zapis**\n\t* id (serial primary key)\n\t* meno (varchar): meno záujemcu\n\t* email (varchar): emailová adresa záujemcu\n\t* telefon (varchar): telefónne číslo záujemcu\n\t* sprava (text): správa od záujemcu\n\n**Vzťahy medzi tabuľkami:**\n\n* Tabuľka **clenovia_tymu** má many-to-one vzťah s tabuľkou **sp4_info** (každý člen tímu patrí k jednej spoločnosti)\n* Tabuľka **nastup** má many-to-one vzťah s tabuľkou **sp4_info** (každý nastup patrí k jednej spoločnosti)\n* Tabuľka **kontakt** má one-to-one vzťah s tabuľkou **sp4_info** (každá spoločnosť má jeden kontakt)\n* Tabuľka **zapis** má many-to-one vzťah s tabuľkou **sp4_info** (každý záujemca sa zapisuje do jednej spoločnosti)\n\nToto je jeden z možných návrhov databázového schema pre tvoju SP4 webstránku. Samozrejme, že môžeš upraviť a prispôsobiť ho podľa tvojich potrieb.",
+        "qualityScore": 0.8,
+        "actualCost": 0.05,
+        "actualTime": 0.1,
+        "retries": 0,
+        "completedAt": "2025-11-25T04:32:13.654Z"
+      },
+      {
+        "taskId": "t2",
+        "status": "completed",
+        "output": "Ahoj! Teraz, keď máme databázové schema, môžeme sa pustiť do tvorby backend API pomocou Node.js a Express/Fastify.\n\n**Štruktúra projektu**\n\nNaša štruktúra projektu bude takáto:\n```markdown\nsp4-backend\napp.js\ncontrollers\nSp4InfoController.js\nClenoviaTymuController.js\nNastupController.js\nKontaktController.js\nZapisController.js\nmodels\nSp4InfoModel.js\nClenoviaTymuModel.js\nNastupModel.js\nKontaktModel.js\nZapisModel.js\nroutes\nsp4InfoRoutes.js\nclenoviaTymuRoutes.js\nnastupRoutes.js\nkontaktRoutes.js\nzapisRoutes.js\nutils\ndb.js\npackage.json\n```\n**Databázový konektor**\n\nPre pripojenie k databáze budeme používať knihovnú `pg` pre PostgreSQL alebo `mysql2` pre MySQL. Nainštalujeme ich pomocou npm:\n```bash\nnpm install pg\n```\nalebo\n```bash\nnpm install mysql2\n```\n**Modely**\n\nV priečinku `models` budeme definovať naše modely, ktoré budú reprezentovať našu databázovú štruktúru.\n```javascript\n// Sp4InfoModel.js\nconst { Model, DataTypes } = require('sequelize');\nconst sequelize = require('../utils/db');\n\nclass Sp4Info extends Model {}\n\nSp4Info.init({\n  id: {\n    type: DataTypes.INTEGER,\n    primaryKey: true,\n    autoIncrement: true\n  },\n  nazov: {\n    type: DataTypes.STRING\n  },\n  popis: {\n    type: DataTypes.TEXT\n  },\n  misia: {\n    type: DataTypes.TEXT\n  },\n  vizia: {\n    type: DataTypes.TEXT\n  }\n}, {\n  sequelize,\n  modelName: 'Sp4Info'\n});\n\nmodule.exports = Sp4Info;\n```\n```javascript\n// ClenoviaTymuModel.js\nconst { Model, DataTypes } = require('sequelize');\nconst sequelize = require('../utils/db');\n\nclass ClenoviaTymu extends Model {}\n\nClenoviaTymu.init({\n  id: {\n    type: DataTypes.INTEGER,\n    primaryKey: true,\n    autoIncrement: true\n  },\n  meno: {\n    type: DataTypes.STRING\n  },\n  pozicia: {\n    type: DataTypes.STRING\n  },\n  popis: {\n    type: DataTypes.TEXT\n  },\n  obrazok: {\n    type: DataTypes.STRING\n  },\n  Sp4InfoId: {\n    type: DataTypes.INTEGER,\n    references: {\n      model: 'Sp4Info',\n      key: 'id'\n    }\n  }\n}, {\n  sequelize,\n  modelName: 'ClenoviaTymu'\n});\n\nmodule.exports = ClenoviaTymu;\n```\n**Kontroly**\n\nV priečinku `controllers` budeme definovať naše kontroly, ktoré budú obsluhovať naše requesty.\n```javascript\n// Sp4InfoController.js\nconst Sp4Info = require('../models/Sp4InfoModel');\n\nclass Sp4InfoController {\n  async getAll(req, res) {\n    try {\n      const sp4Info = await Sp4Info.findAll();\n      res.json(sp4Info);\n    } catch (err) {\n      res.status(500).json({ message: 'Chyba pri získavaní údajov' });\n    }\n  }\n\n  async create(req, res) {\n    try {\n      const sp4Info = await Sp4Info.create(req.body);\n      res.json(sp4Info);\n    } catch (err) {\n      res.status(500).json({ message: 'Chyba pri vytváraní údajov' });\n    }\n  }\n}\n\nmodule.exports = Sp4InfoController;\n```\n```javascript\n// ClenoviaTymuController.js\nconst ClenoviaTymu = require('../models/ClenoviaTymuModel');\n\nclass ClenoviaTymuController {\n  async getAll(req, res) {\n    try {\n      const clenoviaTymu = await ClenoviaTymu.findAll();\n      res.json(clenoviaTymu);\n    } catch (err) {\n      res.status(500).json({ message: 'Chyba pri získavaní údajov' });\n    }\n  }\n\n  async create(req, res) {\n    try {\n      const clenoviaTymu = await ClenoviaTymu.create(req.body);\n      res.json(clenoviaTymu);\n    } catch (err) {\n      res.status(500).json({ message: 'Chyba pri vytváraní údajov' });\n    }\n  }\n}\n\nmodule.exports = ClenoviaTymuController;\n```\n**Route**\n\nV priečinku `routes` budeme definovať naše route.\n```javascript\n// sp4InfoRoutes.js\nconst express = require('express');\nconst router = express.Router();\nconst Sp4InfoController = require('../controllers/Sp4InfoController');\n\nrouter.get('/', Sp4InfoController.getAll);\nrouter.post('/', Sp4InfoController.create);\n\nmodule.exports = router;\n```\n```javascript\n// clenoviaTymuRoutes.js\nconst express = require('express');\nconst router = express.Router();\nconst ClenoviaTymuController = require('../controllers/ClenoviaTymuController');\n\nrouter.get('/', ClenoviaTymuController.getAll);\nrouter.post('/', ClenoviaTymuController.create);\n\nmodule.exports = router;\n```\n**Aplikácia**\n\nV súbore `app.js` budeme definovať našu aplikáciu.\n```javascript\nconst express = require('express');\nconst app = express();\nconst sp4InfoRoutes = require('./routes/sp4InfoRoutes');\nconst clenoviaTymuRoutes = require('./routes/clenoviaTymuRoutes');\n\napp.use(express.json());\napp.use('/sp4-info', sp4InfoRoutes);\napp.use('/clenovia-tymu', clenoviaTymuRoutes);\n\napp.listen(3000, () => {\n  console.log('Aplikácia beží na porte 3000');\n});\n```\nTeraz môžeme našu aplikáciu spustiť a začať používať naše API.",
+        "qualityScore": 1,
+        "actualCost": 0.15,
+        "actualTime": 0.1,
+        "retries": 0,
+        "completedAt": "2025-11-25T04:32:17.105Z"
+      },
+      {
+        "taskId": "t3",
+        "status": "completed",
+        "output": "Skvelé! Teraz, keď máme backend API pripravené, môžeme sa pustiť do tvorby frontendovej webstránky. Vybral som si React pre jeho popularitu, komponentovú architektúru a jednoduchosť integrácie s Node.js backendom.\n\nTáto webstránka bude slúžiť ako **landing page** pre SP4, ktorá predstaví projekt, jeho ciele a možnosti zapojenia. Bude konzumovať dáta z tvojich backend endpointov `/sp4-info` a `/clenovia-tymu`.\n\n---\n\n### **SP4 Frontend (React)**\n\n**1. Štruktúra projektu**\n\nVytvoríme si novú React aplikáciu s názvom `sp4-frontend`.\n\n```\nsp4-frontend/\n├── public/\n│   └── index.html\n├── src/\n│   ├── App.css\n│   ├── App.js\n│   ├── index.css\n│   ├── index.js\n│   ├── api.js             // Pre centralizované API volania\n│   ├── components/\n│   │   ├── AboutUsSection.js\n│   │   ├── HeroSection.js\n│   │   ├── JoinUsSection.js\n│   │   ├── TeamSection.js\n│   │   └── Footer.js\n│   └── assets/            // Pre obrázky, ak nebudú priamo z API\n│       └── logo.png\n└── package.json\n```\n\n**2. Inštalácia a spustenie**\n\nNajprv si vytvor React projekt. Otvor terminál a spusti:\n\n```bash\n# Vytvor React aplikáciu\nnpx create-react-app sp4-frontend\n\n# Prejdi do priečinka projektu\ncd sp4-frontend\n\n# Nainštaluj axios pre jednoduchšie HTTP požiadavky (alternatíva k fetch API)\nnpm install axios\n\n# Spusti React aplikáciu (otvorí sa v prehliadači na http://localhost:3000 alebo inom voľnom porte)\nnpm start\n```\n\n**Dôležité**: Uisti sa, že tvoj Node.js backend beží na `http://localhost:3000` (alebo na porte, ktorý si nastavil v `app.js`). Ak frontend beží na `http://localhost:3000` a backend tiež, budeš musieť zmeniť port jedného z nich alebo nastaviť proxy v React projekte. Pre jednoduchosť, ak ti `npm start` otvorí frontend na `http://localhost:3001`, je to v poriadku. Ak nie, zmeň port backendu (napr. na 30",
+        "qualityScore": 1,
+        "actualCost": 0,
+        "actualTime": 0.2,
+        "retries": 0,
+        "completedAt": "2025-11-25T04:32:30.959Z"
+      },
+      {
+        "taskId": "t4",
+        "status": "completed",
+        "output": "API Dokumentácia a príklady použitia ===================================== Úvod Táto dokumentácia popisuje API naše aplikácie, ktorá poskytuje informácie o našom raketovom nástupe, účele našej existencie, cieľoch, ktoré chceme dosiahnuť, ľuďoch, ktorých hľadáme, a ako sa zapojiť. Endpoints # Sp4 Info GET /sp4-info: Získa všetky informácie o našom raketovom nástupe.",
+        "qualityScore": 1,
+        "actualCost": 0,
+        "actualTime": 0.2,
+        "retries": 0,
+        "completedAt": "2025-11-25T04:32:40.927Z"
+      }
+    ],
+    "totalCost": 0.2,
+    "totalTime": 0.6000000000000001
+  }
+}

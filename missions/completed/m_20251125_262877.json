@@ -1,0 +1,130 @@
+{
+  "mission": {
+    "type": "code",
+    "goal": "Vytvor mi Python funkciu na sčítanie dvoch čísel",
+    "template": "Code Project Mission",
+    "id": "m_20251125_262877",
+    "createdAt": "2025-11-25T00:41:02.877Z",
+    "context": {
+      "userInput": "Vytvor mi Python funkciu na sčítanie dvoch čísel",
+      "detectedLanguage": "sk",
+      "urgency": "normal",
+      "budget": "balanced"
+    }
+  },
+  "plan": {
+    "estimatedCost": 0.5,
+    "estimatedTime": 50,
+    "confidence": 0.85,
+    "risks": [
+      "Complex algorithms may require iterative refinement",
+      "Testing coverage depends on project scope"
+    ],
+    "tasks": [
+      {
+        "id": "t1",
+        "type": "code",
+        "description": "Architecture design and module breakdown",
+        "brain": "groq",
+        "model": "llama-3.3-70b-versatile",
+        "priority": "high",
+        "dependencies": [],
+        "estimatedCost": 0.08,
+        "estimatedTime": 8,
+        "retryStrategy": "fallback_to_local"
+      },
+      {
+        "id": "t2",
+        "type": "code",
+        "description": "Core implementation (main logic + modules)",
+        "brain": "groq",
+        "model": "llama-3.3-70b-versatile",
+        "priority": "high",
+        "dependencies": [
+          "t1"
+        ],
+        "estimatedCost": 0.25,
+        "estimatedTime": 25,
+        "retryStrategy": "increase_tokens_retry"
+      },
+      {
+        "id": "t3",
+        "type": "code",
+        "description": "Unit tests and error handling",
+        "brain": "google",
+        "model": "gemini-2.5-flash",
+        "priority": "normal",
+        "dependencies": [
+          "t2"
+        ],
+        "estimatedCost": 0,
+        "estimatedTime": 10,
+        "retryStrategy": "fallback_to_groq"
+      },
+      {
+        "id": "t4",
+        "type": "documentation",
+        "description": "README, API docs, usage examples",
+        "brain": "local",
+        "model": "llama3:8b",
+        "priority": "low",
+        "dependencies": [
+          "t2"
+        ],
+        "estimatedCost": 0,
+        "estimatedTime": 7,
+        "retryStrategy": "none"
+      }
+    ]
+  },
+  "execution": {
+    "status": "completed",
+    "startedAt": "2025-11-25T00:41:02.882Z",
+    "completedAt": "2025-11-25T00:41:19.475Z",
+    "currentTask": "t4",
+    "results": [
+      {
+        "taskId": "t1",
+        "status": "completed",
+        "output": "Dobrý, takže chceme vytvoriť Python funkciu na sčítanie dvoch čísel. Znamená to, že budeme potrebovať nasledovnú architektúru a rozdelenie modulov:\n\n1. **Funkčný modul**:\n\t* Názov modulu: `scitanie.py`\n\t* Obsah modulu:\n\t\t+ Funkcia `scitaj(a, b)`, ktorá berie dva čísla ako vstup a vráti ich súčinu.\n2. **Hlavný modul**:\n\t* Názov modulu: `main.py`\n\t* Obsah modulu:\n\t\t+ Import funkcie `scitaj` z modulu `scitanie.py`\n\t\t+ Vstupné údaje (dvaja čísla) od používateľa\n\t\t+ Volanie funkcie `scitaj` s vstupnými údajmi\n\t\t+ Vypísanie výsledku\n3. **Testovací modul** (nepovinný):\n\t* Názov modulu: `test_scitanie.py`\n\t* Obsah modulu:\n\t\t+ Import funkcie `scitaj` z modulu `scitanie.py`\n\t\t+ Testovacie prípady (napr. `scitaj(2, 3)`, `scitaj(-1, 1)` atď.)\n\nToto je základný návrh architektúry a rozdelenie modulov. Funkcia `scitaj` bude obsahovať len jednoduchý kód na sčítanie dvoch čísel. Hlavný modul bude zodpovedný za vstupné údaje a vypísanie výsledku. Testovací modul (ak ho vytvoríme) bude slúžiť na overenie funkčnosti funkcie `scitaj`.",
+        "qualityScore": 0.8,
+        "actualCost": 0.08,
+        "actualTime": 0,
+        "retries": 0,
+        "completedAt": "2025-11-25T00:41:05.202Z"
+      },
+      {
+        "taskId": "t2",
+        "status": "completed",
+        "output": "Budem sa snažiť vytvoriť túto funkcionalitu pomocou Pythonu. \n\nPrvý krok je vytvorenie funkčného modulu `scitanie.py`. V tomto modulu budeme mať jednu funkciu `scitaj(a, b)`, ktorá berie dve čísla ako vstup a vráti ich súčet.\n\n```python\n# scitanie.py\ndef scitaj(a, b):\n    \"\"\"\n    Funkcia na sčítanie dvoch čísel.\n    \n    Parameters:\n    a (int): Prvé číslo\n    b (int): Druhé číslo\n    \n    Returns:\n    int: Súčet dvoch čísel\n    \"\"\"\n    return a + b\n```\n\nĎalší krok je vytvorenie hlavného modulu `main.py`. V tomto modulu budeme importovať funkciu `scitaj` z modulu `scitanie.py`, čítať vstupné údaje od používateľa, volať funkciu `scitaj` s týmito údajmi a vypisovať výsledok.\n\n```python\n# main.py\nimport scitanie\n\ndef main():\n    # Vstupné údaje od používateľa\n    a = float(input(\"Zadajte prvé číslo: \"))\n    b = float(input(\"Zadajte druhé číslo: \"))\n\n    # Volanie funkcie scitaj\n    vysledok = scitanie.scitaj(a, b)\n\n    # Vypísanie výsledku\n    print(f\"Súčet {a} a {b} je: {vysledok}\")\n\nif __name__ == \"__main__\":\n    main()\n```\n\nNakoniec môžeme vytvoriť testovací modul `test_scitanie.py`, ktorý bude slúžiť na overenie funkčnosti funkcie `scitaj`.\n\n```python\n# test_scitanie.py\nimport unittest\nimport scitanie\n\nclass TestScitanie(unittest.TestCase):\n    def test_scitaj(self):\n        self.assertEqual(scitanie.scitaj(2, 3), 5)\n        self.assertEqual(scitanie.scitaj(-1, 1), 0)\n        self.assertEqual(scitanie.scitaj(0, 0), 0)\n\nif __name__ == \"__main__\":\n    unittest.main()\n```\n\nTeraz môžeme spustiť `main.py` a otestovať funkciu `scitaj` pomocou `test_scitanie.py`.",
+        "qualityScore": 1,
+        "actualCost": 0.25,
+        "actualTime": 0,
+        "retries": 0,
+        "completedAt": "2025-11-25T00:41:06.676Z"
+      },
+      {
+        "taskId": "t3",
+        "status": "completed",
+        "output": "",
+        "qualityScore": 0.49999999999999994,
+        "actualCost": 0,
+        "actualTime": 0.1,
+        "retries": 2,
+        "completedAt": "2025-11-25T00:41:15.187Z"
+      },
+      {
+        "taskId": "t4",
+        "status": "completed",
+        "output": "README ----------- Tento projekt obsahuje jednoduchú Python funkciu na sčítanie dvoch čísel. Funkcia `scitaj` je definovaná v modulu `scitanie.py` a môže byť použitá v iných projektoch.",
+        "qualityScore": 1,
+        "actualCost": 0,
+        "actualTime": 0.1,
+        "retries": 0,
+        "completedAt": "2025-11-25T00:41:19.475Z"
+      }
+    ],
+    "totalCost": 0.33,
+    "totalTime": 0.2
+  }
+}

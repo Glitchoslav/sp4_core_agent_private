@@ -1,0 +1,138 @@
+{
+  "mission": {
+    "type": "code",
+    "goal": "Vytvor jednoduchy Python skript, ktory vypise hello world",
+    "template": "Code Project Mission",
+    "id": "m_20251125_357815",
+    "createdAt": "2025-11-25T14:19:17.815Z",
+    "context": {
+      "userInput": "Vytvor jednoduchy Python skript, ktory vypise hello world",
+      "detectedLanguage": "en",
+      "urgency": "normal",
+      "budget": "balanced"
+    }
+  },
+  "plan": {
+    "estimatedCost": 0.5,
+    "estimatedTime": 50,
+    "confidence": 0.85,
+    "risks": [
+      "Complex algorithms may require iterative refinement",
+      "Testing coverage depends on project scope"
+    ],
+    "tasks": [
+      {
+        "id": "t1",
+        "type": "code",
+        "description": "Architecture design and module breakdown",
+        "brain": "groq",
+        "model": "llama-3.3-70b-versatile",
+        "priority": "high",
+        "dependencies": [],
+        "estimatedCost": 0.08,
+        "estimatedTime": 8,
+        "retryStrategy": "fallback_to_local"
+      },
+      {
+        "id": "t2",
+        "type": "code",
+        "description": "Core implementation (main logic + modules)",
+        "brain": "groq",
+        "model": "llama-3.3-70b-versatile",
+        "priority": "high",
+        "dependencies": [
+          "t1"
+        ],
+        "estimatedCost": 0.25,
+        "estimatedTime": 25,
+        "retryStrategy": "increase_tokens_retry"
+      },
+      {
+        "id": "t3",
+        "type": "code",
+        "description": "Unit tests and error handling",
+        "brain": "google",
+        "model": "gemini-2.5-flash",
+        "priority": "normal",
+        "dependencies": [
+          "t2"
+        ],
+        "estimatedCost": 0,
+        "estimatedTime": 10,
+        "retryStrategy": "fallback_to_groq"
+      },
+      {
+        "id": "t4",
+        "type": "documentation",
+        "description": "README, API docs, usage examples",
+        "brain": "local",
+        "model": "llama3:8b",
+        "priority": "low",
+        "dependencies": [
+          "t2"
+        ],
+        "estimatedCost": 0,
+        "estimatedTime": 7,
+        "retryStrategy": "none"
+      }
+    ]
+  },
+  "execution": {
+    "status": "running",
+    "startedAt": "2025-11-25T14:19:17.818Z",
+    "completedAt": null,
+    "currentTask": "t3",
+    "results": [
+      {
+        "taskId": "t1",
+        "status": "completed",
+        "output": {
+          "text": "Pre jednoduchý Python skript, ktorý vypíše \"Hello World\", môžeme navrhnúť nasledovnú architektúru a rozdelenie modulov:\n\n1. **Hlavný modul (main.py)**: Tento modul bude obsahovať hlavný kód programu, ktorý zavolá funkcie z iných modulov.\n2. **Modul pre výpis textu (print_module.py)**: Tento modul bude obsahovať funkciu, ktorá vypíše žiaduci text, v tomto prípade \"Hello World\".\n\nModulová štruktúra by mohla vyzerať takto:\n```markdown\nproject/\nmain.py\nprint_module.py\n```\nV **main.py** môžeme mať nasledovný kód:\n```python\nfrom print_module import vypis_text\n\ndef main():\n    vypis_text(\"Hello World\")\n\nif __name__ == \"__main__\":\n    main()\n```\nV **print_module.py** môžeme mať nasledovný kód:\n```python\ndef vypis_text(text):\n    print(text)\n```\nTento dizajn je veľmi jednoduchý, ale umožňuje nám rozdeliť kód do samostatných modulov, čo môže byť užitočné v případě, že chceme pridať ďalšie funkcie alebo rozšíriť existujúci kód.",
+          "provider": "groq",
+          "model": "llama-3.3-70b-versatile",
+          "cost": 0.00030707,
+          "latency": 1316
+        },
+        "qualityScore": 0.8,
+        "actualCost": 0.08,
+        "actualTime": 0,
+        "retries": 0,
+        "completedAt": "2025-11-25T14:19:19.141Z"
+      },
+      {
+        "taskId": "t2",
+        "status": "completed",
+        "output": {
+          "text": "Pre vytvorenie jednoduchého Python skriptu, ktorý vypíše \"hello world\", budeme potrebovať len jeden prostý modul, a to samotný Python interpreter.\n\nV tomto prípade môžeme skript napísať pomocou základných Python konštrukcií. Nemusíme importovať žiadne ďalšie moduly, pretože funkcia `print()` je súčasťou základného Python syntaxu.\n\nNásledujúci kód predstavuje core implementáciu našej aplikácie:\n```python\ndef main():\n    print(\"hello world\")\n\nif __name__ == \"__main__\":\n    main()\n```\nTento kód definuje funkciu `main()`, ktorá obsahuje jeden riadok kódu, a to `print(\"hello world\")`. Funkcia `main()` sa volá v prípade, keď skript beží priamo (nie je importovaný ako modul do iného skriptu).\n\nKeď spustíme tento skript, vypíše sa \"hello world\" do konzoly.",
+          "provider": "groq",
+          "model": "llama-3.3-70b-versatile",
+          "cost": 0.00026318,
+          "latency": 1247
+        },
+        "qualityScore": 0.8,
+        "actualCost": 0.25,
+        "actualTime": 0,
+        "retries": 0,
+        "completedAt": "2025-11-25T14:19:20.393Z"
+      },
+      {
+        "taskId": "t3",
+        "status": "completed",
+        "output": {
+          "text": "Skvelé! Teraz sa pozrieme na to, ako pridať unit testy a základné spracovanie chýb k nášmu \"Hello World\" skriptu.\n\nPre jednoduchý \"Hello World\" skript, ktorý iba vypisuje text, je spracovanie chýb a unit testy trochu nadbytočné, pretože tam nie je veľa priestoru na chyby alebo rôzne scenáre. Avšak, pre demonštračné účely rozšírime náš skript tak, aby bol trochu flexibilnejší a tým pádom aj testovateľnejší a náchylnejší na chyby.\n\n**Rozšírený Python skript (hello_script.py):**\n\nPredstavme si, že náš \"Hello World\" skript by mohol pozdraviť buď \"World\" (predvolené) alebo konkrétne meno, ak mu ho poskytneme.\n\n```python\n# hello_script.py\n\ndef get_greeting(name=None):\n    \"\"\"\n    Vráti pozdrav pre dané meno alebo \"Hello World!\" ak meno nie je zadané.\n\n    Args:\n        name (str, optional): Meno, ktoré sa má použiť v pozdrave. Predvolené je None.\n\n    Returns:\n        str: Pozdravný reťazec.\n\n    Raises:\n        TypeError: Ak 'name' nie je reťazec alebo None.\n        ValueError: Ak 'name'",
+          "provider": "google",
+          "model": "gemini-2.5-flash",
+          "cost": 0,
+          "latency": 11775
+        },
+        "qualityScore": 0.8,
+        "actualCost": 0,
+        "actualTime": 0.2,
+        "retries": 0,
+        "completedAt": "2025-11-25T14:19:32.170Z"
+      }
+    ],
+    "totalCost": 0.33,
+    "totalTime": 0.2
+  }
+}

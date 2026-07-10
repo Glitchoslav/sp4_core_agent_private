@@ -1,0 +1,130 @@
+{
+  "mission": {
+    "type": "code",
+    "goal": "Vytvor jednoduchú Python funkciu na násobenie",
+    "template": "Code Project Mission",
+    "id": "m_20251125_662698",
+    "createdAt": "2025-11-25T01:04:22.698Z",
+    "context": {
+      "userInput": "Vytvor jednoduchú Python funkciu na násobenie",
+      "detectedLanguage": "sk",
+      "urgency": "normal",
+      "budget": "balanced"
+    }
+  },
+  "plan": {
+    "estimatedCost": 0.5,
+    "estimatedTime": 50,
+    "confidence": 0.85,
+    "risks": [
+      "Complex algorithms may require iterative refinement",
+      "Testing coverage depends on project scope"
+    ],
+    "tasks": [
+      {
+        "id": "t1",
+        "type": "code",
+        "description": "Architecture design and module breakdown",
+        "brain": "groq",
+        "model": "llama-3.3-70b-versatile",
+        "priority": "high",
+        "dependencies": [],
+        "estimatedCost": 0.08,
+        "estimatedTime": 8,
+        "retryStrategy": "fallback_to_local"
+      },
+      {
+        "id": "t2",
+        "type": "code",
+        "description": "Core implementation (main logic + modules)",
+        "brain": "groq",
+        "model": "llama-3.3-70b-versatile",
+        "priority": "high",
+        "dependencies": [
+          "t1"
+        ],
+        "estimatedCost": 0.25,
+        "estimatedTime": 25,
+        "retryStrategy": "increase_tokens_retry"
+      },
+      {
+        "id": "t3",
+        "type": "code",
+        "description": "Unit tests and error handling",
+        "brain": "google",
+        "model": "gemini-2.5-flash",
+        "priority": "normal",
+        "dependencies": [
+          "t2"
+        ],
+        "estimatedCost": 0,
+        "estimatedTime": 10,
+        "retryStrategy": "fallback_to_groq"
+      },
+      {
+        "id": "t4",
+        "type": "documentation",
+        "description": "README, API docs, usage examples",
+        "brain": "local",
+        "model": "llama3:8b",
+        "priority": "low",
+        "dependencies": [
+          "t2"
+        ],
+        "estimatedCost": 0,
+        "estimatedTime": 7,
+        "retryStrategy": "none"
+      }
+    ]
+  },
+  "execution": {
+    "status": "completed",
+    "startedAt": "2025-11-25T01:04:22.703Z",
+    "completedAt": "2025-11-25T01:04:41.503Z",
+    "currentTask": "t4",
+    "results": [
+      {
+        "taskId": "t1",
+        "status": "completed",
+        "output": "Pre jednoduchú Python funkciu na násobenie môžeme navrhnúť nasledovnú architektúru a rozdelenie modulov:\n\n1. **Hlavný modul** (`main.py`): Tento modul bude obsahovať funkciu `násobenie`, ktorá bude prijímať dva číselné argumenty a vraciať ich súčin.\n2. **Modul na zpracování vstupných dát** (`input_processor.py`): Tento modul bude zodpovedný za spracovanie vstupných dát, ako napríklad kontrolu, či sú vstupné údaje číslami.\n3. **Modul na výpočet** (`calculator.py`): Tento modul bude obsahovať samotnú funkciu na násobenie, ktorá bude volaná z hlavného modulu.\n4. **Modul na testovanie** (`tester.py`): Tento modul bude obsahovať testy pre funkciu `násobenie`, aby sa zistilo, či funguje správne.\n\nTento modulárny dizajn umožňuje ľahko rozširovať a upravovať funkciu `násobenie` bez toho, aby sa museli meniť ostatné časti kódu.\n\nPríklad kódu:\n```python\n# main.py\nfrom calculator import nasobenie\n\ndef main():\n    cislo1 = 5\n    cislo2 = 3\n    vysledok = nasobenie(cislo1, cislo2)\n    print(vysledok)\n\nif __name__ == \"__main__\":\n    main()\n```\n\n```python\n# calculator.py\ndef nasobenie(cislo1, cislo2):\n    return cislo1 * cislo2\n```\n\n```python\n# input_processor.py\ndef kontrola_vstupu(cislo1, cislo2):\n    if not isinstance(cislo1, (int, float)) or not isinstance(cislo2, (int, float)):\n        raise ValueError(\"Vstupné údaje musia byť číslami\")\n    return cislo1, cislo2\n```\n\n```python\n# tester.py\nimport unittest\nfrom calculator import nasobenie\n\nclass TestNasobenie(unittest.TestCase):\n    def test_nasobenie(self):\n        self.assertEqual(nasobenie(5, 3), 15)\n        self.assertEqual(nasobenie(0, 5), 0)\n        self.assertEqual(nasobenie(-5, 3), -15)\n\nif __name__ == \"__main__\":\n    unittest.main()\n```\nTento príklad ukazuje, ako môžeme navrhnúť a implementovať jednoduchú Python funkciu na násobenie pomocou modulárneho dizajnu.",
+        "qualityScore": 1,
+        "actualCost": 0.08,
+        "actualTime": 0,
+        "retries": 0,
+        "completedAt": "2025-11-25T01:04:24.733Z"
+      },
+      {
+        "taskId": "t2",
+        "status": "completed",
+        "output": "**Core Implementácia**\n\nV tejto časti sa bude venovať implementácii jadra našej funkcie na násobenie. Jadro funkcie bude obsahovať hlavnú logiku a moduly, ktoré boli navrhnuté v predchádzajúcom zadaniu.\n\n### Hlavný Modul (`main.py`)\n\nHlavný modul bude obsahovať funkciu `main`, ktorá bude volať funkciu `násobenie` a tlačiť výsledok.\n\n```python\n# main.py\nfrom calculator import nasobenie\nfrom input_processor import kontrola_vstupu\n\ndef main():\n    cislo1 = 5\n    cislo2 = 3\n    \n    # Kontrola vstupných dát\n    cislo1, cislo2 = kontrola_vstupu(cislo1, cislo2)\n    \n    # Výpočet násobenia\n    vysledok = nasobenie(cislo1, cislo2)\n    \n    print(vysledok)\n\nif __name__ == \"__main__\":\n    main()\n```\n\n### Modul na Zásobenie Vstupných Dát (`input_processor.py`)\n\nModul na zásobenie vstupných dát bude obsahovať funkciu `kontrola_vstupu`, ktorá bude kontrolovať, či vstupné údaje sú číslami.\n\n```python\n# input_processor.py\ndef kontrola_vstupu(cislo1, cislo2):\n    if not isinstance(cislo1, (int, float)) or not isinstance(cislo2, (int, float)):\n        raise ValueError(\"Vstupné údaje musia byť číslami\")\n    return cislo1, cislo2\n```\n\n### Modul na Výpočet (`calculator.py`)\n\nModul na výpočet bude obsahovať funkciu `násobenie`, ktorá bude vykonávať samotné násobenie.\n\n```python\n# calculator.py\ndef nasobenie(cislo1, cislo2):\n    return cislo1 * cislo2\n```\n\n### Modul na Testovanie (`tester.py`)\n\nModul na testovanie bude obsahovať testy pre funkciu `násobenie`, aby sa zistilo, či funguje správne.\n\n```python\n# tester.py\nimport unittest\nfrom calculator import nasobenie\n\nclass TestNasobenie(unittest.TestCase):\n    def test_nasobenie(self):\n        self.assertEqual(nasobenie(5, 3), 15)\n        self.assertEqual(nasobenie(0, 5), 0)\n        self.assertEqual(nasobenie(-5, 3), -15)\n\nif __name__ == \"__main__\":\n    unittest.main()\n```\n\nTáto implementácia obsahuje všetky moduly a funkcie, ktoré boli navrhnuté v predchádzajúcom zadaniu. Funkcia `násobenie` je teraz modulárna a umožňuje ľahko rozširovať a upravovať bez toho, aby sa museli meniť ostatné časti kódu.",
+        "qualityScore": 1,
+        "actualCost": 0.25,
+        "actualTime": 0,
+        "retries": 0,
+        "completedAt": "2025-11-25T01:04:26.340Z"
+      },
+      {
+        "taskId": "t3",
+        "status": "completed",
+        "output": "",
+        "qualityScore": 0.49999999999999994,
+        "actualCost": 0,
+        "actualTime": 0.2,
+        "retries": 2,
+        "completedAt": "2025-11-25T01:04:36.101Z"
+      },
+      {
+        "taskId": "t4",
+        "status": "completed",
+        "output": "# README Tento projekt obsahuje jednoduchú Python funkciu na násobenie dvoch čísel. Funkcia je modulárna a umožňuje ľahko rozširovať a upravovať bez toho, aby sa museli meniť ostatné časti kódu.",
+        "qualityScore": 1,
+        "actualCost": 0,
+        "actualTime": 0.1,
+        "retries": 0,
+        "completedAt": "2025-11-25T01:04:41.502Z"
+      }
+    ],
+    "totalCost": 0.33,
+    "totalTime": 0.30000000000000004
+  }
+}

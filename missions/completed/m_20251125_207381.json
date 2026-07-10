@@ -1,0 +1,130 @@
+{
+  "mission": {
+    "type": "code",
+    "goal": "Vytvor mi Python funkciu na sčítanie dvoch čísel",
+    "template": "Code Project Mission",
+    "id": "m_20251125_207381",
+    "createdAt": "2025-11-25T00:40:07.381Z",
+    "context": {
+      "userInput": "Vytvor mi Python funkciu na sčítanie dvoch čísel",
+      "detectedLanguage": "sk",
+      "urgency": "normal",
+      "budget": "balanced"
+    }
+  },
+  "plan": {
+    "estimatedCost": 0.5,
+    "estimatedTime": 50,
+    "confidence": 0.85,
+    "risks": [
+      "Complex algorithms may require iterative refinement",
+      "Testing coverage depends on project scope"
+    ],
+    "tasks": [
+      {
+        "id": "t1",
+        "type": "code",
+        "description": "Architecture design and module breakdown",
+        "brain": "groq",
+        "model": "llama-3.3-70b-versatile",
+        "priority": "high",
+        "dependencies": [],
+        "estimatedCost": 0.08,
+        "estimatedTime": 8,
+        "retryStrategy": "fallback_to_local"
+      },
+      {
+        "id": "t2",
+        "type": "code",
+        "description": "Core implementation (main logic + modules)",
+        "brain": "groq",
+        "model": "llama-3.3-70b-versatile",
+        "priority": "high",
+        "dependencies": [
+          "t1"
+        ],
+        "estimatedCost": 0.25,
+        "estimatedTime": 25,
+        "retryStrategy": "increase_tokens_retry"
+      },
+      {
+        "id": "t3",
+        "type": "code",
+        "description": "Unit tests and error handling",
+        "brain": "google",
+        "model": "gemini-2.5-flash",
+        "priority": "normal",
+        "dependencies": [
+          "t2"
+        ],
+        "estimatedCost": 0,
+        "estimatedTime": 10,
+        "retryStrategy": "fallback_to_groq"
+      },
+      {
+        "id": "t4",
+        "type": "documentation",
+        "description": "README, API docs, usage examples",
+        "brain": "local",
+        "model": "llama3:8b",
+        "priority": "low",
+        "dependencies": [
+          "t2"
+        ],
+        "estimatedCost": 0,
+        "estimatedTime": 7,
+        "retryStrategy": "none"
+      }
+    ]
+  },
+  "execution": {
+    "status": "completed",
+    "startedAt": "2025-11-25T00:40:07.385Z",
+    "completedAt": "2025-11-25T00:40:22.837Z",
+    "currentTask": "t4",
+    "results": [
+      {
+        "taskId": "t1",
+        "status": "completed",
+        "output": "Funkcia na sčítanie dvoch čísel môže byť veľmi jednoduchá. Tu je návrh architektúry a rozbor modulov:\n\n**Názov modulu:** `math_operations`\n\n**Funkcia:** `add_numbers`\n\n**Popis:** Funkcia `add_numbers` berie dva čísla ako vstup a vracia ich súčtu.\n\n**Architektúra:**\n\n* **Vstup:** Dva čísla, ktoré chceme sčítať\n* **Proces:** Sčítanie dvoch čísel pomocou operátora `+`\n* **Výstup:** Súčtu dvoch čísel\n\n**Kód:**\n```python\ndef add_numbers(a, b):\n    \"\"\"\n    Sčítanie dvoch čísel.\n    \n    Parameters:\n    a (int): Prvé číslo\n    b (int): Druhé číslo\n    \n    Returns:\n    int: Súčtu dvoch čísel\n    \"\"\"\n    return a + b\n```\n**Modulová štruktúra:**\n\n* `math_operations` (modul)\n\t+ `add_numbers` (funkcia)\n\n**Testovanie:**\n\n* `print(add_numbers(2, 3))` → `5`\n* `print(add_numbers(5, 7))` → `12`\n\nTento návrh je veľmi jednoduchý, ale efektívny. Funkcia `add_numbers` je samostatná a môže byť použité v iných moduloch alebo programu.",
+        "qualityScore": 1,
+        "actualCost": 0.08,
+        "actualTime": 0,
+        "retries": 0,
+        "completedAt": "2025-11-25T00:40:08.650Z"
+      },
+      {
+        "taskId": "t2",
+        "status": "completed",
+        "output": "Funkcia na sčítanie dvoch čísel môže byť implementovaná pomocou jednoduchej funkcie v Pythone. Tu je návrh implementácie:\n\n```python\n# math_operations.py\n\ndef add_numbers(a, b):\n    \"\"\"\n    Sčítanie dvoch čísel.\n    \n    Parameters:\n    a (int): Prvé číslo\n    b (int): Druhé číslo\n    \n    Returns:\n    int: Súčtu dvoch čísel\n    \"\"\"\n    return a + b\n```\n\nTáto funkcia berie dva čísla ako vstup a vracia ich súčtu. Môže byť použité v iných moduloch alebo programe.\n\n**Modulová štruktúra:**\n\n* `math_operations` (modul)\n\t+ `add_numbers` (funkcia)\n\n**Testovanie:**\n\n* `print(add_numbers(2, 3))` → `5`\n* `print(add_numbers(5, 7))` → `12`\n\nTento návrh je veľmi jednoduchý, ale efektívny. Funkcia `add_numbers` je samostatná a môže byť použité v iných moduloch alebo programu.\n\n**Použitie:**\n\n```python\n# main.py\nimport math_operations\n\nresult = math_operations.add_numbers(10, 20)\nprint(result)  # → 30\n```\n\nV tomto príklade sa funkcia `add_numbers` volá z modulu `math_operations` a výsledok sa tlačí na konzolu.",
+        "qualityScore": 1,
+        "actualCost": 0.25,
+        "actualTime": 0,
+        "retries": 0,
+        "completedAt": "2025-11-25T00:40:09.565Z"
+      },
+      {
+        "taskId": "t3",
+        "status": "completed",
+        "output": "Výborne! Pridanie unit testov a robustného spracovania chýb je kľúčové pre spoľahlivosť a udržiavateľnosť kódu.\n\nAktualizujeme funkciu `add_numbers` tak, aby kontrolovala typy vstupných argumentov a vyvolala chybu, ak nie sú číselné. Následne vytvoríme sadu unit testov pomocou modulu `unittest`, aby sme overili správnu funkčnosť a správne spracovanie chýb.\n\n---\n\n### 1. Aktualizovaný modul `math_operations.py` (s ošetrením chýb)\n\nUpravíme súbor `math_operations.py` tak, aby funkcia `add_numbers` kontrolovala, či sú vstupy `a` a `b` inštancie `int` alebo `float`. Ak nie sú, vyvolá `TypeError`.\n\n```python\n# math_operations.py\n\ndef add_numbers(a, b):\n    \"\"\"\n    Sčítanie dvoch čísel.\n\n    Táto funkcia sčíta dve čísla (celé čísla alebo čísla s desatinnou čiarkou).\n    Ak vstupné argumenty nie sú číselné, funkcia vyvolá TypeError.\n\n    Parameters:\n    a (int | float): Prvé číslo\n    b (int | float): Druhé číslo\n\n    Returns:\n    int | float: Súčet dvoch čísel\n\n    Raises:\n    TypeError: Ak 'a' alebo 'b' nie je int alebo float.\n    \"\"\"\n    # Kontrola typu vstupných argumentov\n    if not isinstance(a, (int, float)):\n        raise TypeError(f\"Argument 'a' musí byť int alebo float, ale dostal sa typ {type(a).__name__}.\")\n    if not isinstance(b, (int, float)):\n        raise TypeError(f\"Argument 'b' musí byť int alebo float, ale dostal sa typ {type(b).__name__}.\")\n\n    return a + b\n\n```\n\n**Zmeny oproti pôvodnej verzii:**\n*   Pridaná kontrola typu pomocou `isinstance(variable, (int, float))`.\n*   Ak typ nie je správny, vyvolá sa `TypeError` s popisnou správou. Toto je štandardný spôsob, ako signalizovať chyby nekompatibilných typov v Pythone.\n*   Docstring bol aktualizovaný, aby odrážal nové správanie ohľadom vyvolávania `TypeError`.\n\n---\n\n### 2. Súbor s unit testami `test_math_operations.py`\n\nVytvoríme nový súbor `test_math_operations.py`, ktorý bude obsahovať testovaciu triedu pre funkciu `add_numbers`.\n\n```python\n# test_math_operations.py\nimport unittest\nfrom math_operations import add_numbers\n\nclass TestAddNumbers(unittest.TestCase):\n    \"\"\"\n    Testovacia trieda pre funkciu add_numbers z modulu math_operations.\n    \"\"\"\n\n    def test_add_positive_integers(self):\n        \"\"\"Testuje sčítanie dvoch kladných celých čísel.\"\"\"\n        self.assertEqual(add_numbers(2, 3), 5)\n        self.assertEqual(add_numbers(100, 200), 300)\n\n    def test_add_negative_integers(self):\n        \"\"\"Testuje sčítanie dvoch záporných celých čísel.\"\"\"\n        self.assertEqual(add_numbers(-2, -3), -5)\n        self.assertEqual(add_numbers(-10, -5), -15)\n\n    def test_add_mixed_integers(self):\n        \"\"\"Testuje sčítanie kladného a záporného celého čísla.\"\"\"\n        self.assertEqual(add_numbers(5, -3), 2)\n        self.assertEqual(add_numbers(-8, 3), -5)\n        self.assertEqual(add_numbers(10, -10), 0)\n\n    def test_add_zeros(self):\n        \"\"\"Testuje sčítanie s nulou.\"\"\"\n        self.assertEqual(add_numbers(0, 0), 0)\n        self.assertEqual(add_numbers(5, 0), 5)\n        self.assertEqual(add_numbers(0, -7), -7)\n\n    def test_add_float_numbers(self):\n        \"\"\"Testuje sčítanie dvoch čísel s desatinnou čiarkou.\"\"\"\n        self.assertAlmostEqual(add_numbers(2.5, 3.5), 6.0)\n        self.assertAlmostEqual(add_numbers(0.1, 0.2), 0.3) # Používame assertAlmostEqual pre float porovnania\n\n    def test_add_mixed_int_float(self):\n        \"\"\"Testuje sčítanie celého čísla a čísla s desatinnou čiarkou.\"\"\"\n        self.assertAlmostEqual(add_numbers(2, 3.5), 5.5)\n        self.assertAlmostEqual(add_numbers(-1.5, 4), 2.5)\n\n    def test_type_error_with_strings(self):\n        \"\"\"Testuje, či funkcia vyvolá TypeError pre reťazcové vstupy.\"\"\"\n        with self.assertRaises(TypeError) as cm:\n            add_numbers(\"a\", \"b\")\n        self.assertIn(\"Argument 'a' musí byť int alebo float\", str(cm.exception))\n\n        with self.assertRaises(TypeError) as cm:\n            add_numbers(1, \"b\")\n        self.assertIn(\"Argument 'b' musí byť int alebo float\", str(cm.exception))\n\n    def test_type_error_with_none(self):\n        \"\"\"Testuje, či funkcia vyvolá TypeError pre vstup None.\"\"\"\n        with self.assertRaises(TypeError) as cm:\n            add_numbers(None, 5)\n        self.assertIn(\"Argument 'a' musí byť int alebo float\", str(cm.exception))\n\n        with self.assertRaises(TypeError) as cm:\n            add_numbers(5, None)\n        self.assertIn(\"Argument 'b' musí byť int alebo float\", str(cm.exception))\n\n    def test_type",
+        "qualityScore": 1,
+        "actualCost": 0,
+        "actualTime": 0.2,
+        "retries": 0,
+        "completedAt": "2025-11-25T00:40:18.652Z"
+      },
+      {
+        "taskId": "t4",
+        "status": "completed",
+        "output": "# README Tento projekt obsahuje jednoduchú Python funkciu na sčítanie dvoch čísel. Funkcia je implementovaná v moduli `math_operations` a môže byť použité v iných moduloch alebo programe.",
+        "qualityScore": 1,
+        "actualCost": 0,
+        "actualTime": 0.1,
+        "retries": 0,
+        "completedAt": "2025-11-25T00:40:22.836Z"
+      }
+    ],
+    "totalCost": 0.33,
+    "totalTime": 0.30000000000000004
+  }
+}

@@ -1,0 +1,130 @@
+{
+  "mission": {
+    "type": "code",
+    "goal": "Vytvor mi Python funkciu na výpočet faktoriálu",
+    "template": "Code Project Mission",
+    "id": "m_20251125_596695",
+    "createdAt": "2025-11-25T01:03:16.695Z",
+    "context": {
+      "userInput": "Vytvor mi Python funkciu na výpočet faktoriálu",
+      "detectedLanguage": "sk",
+      "urgency": "normal",
+      "budget": "balanced"
+    }
+  },
+  "plan": {
+    "estimatedCost": 0.5,
+    "estimatedTime": 50,
+    "confidence": 0.85,
+    "risks": [
+      "Complex algorithms may require iterative refinement",
+      "Testing coverage depends on project scope"
+    ],
+    "tasks": [
+      {
+        "id": "t1",
+        "type": "code",
+        "description": "Architecture design and module breakdown",
+        "brain": "groq",
+        "model": "llama-3.3-70b-versatile",
+        "priority": "high",
+        "dependencies": [],
+        "estimatedCost": 0.08,
+        "estimatedTime": 8,
+        "retryStrategy": "fallback_to_local"
+      },
+      {
+        "id": "t2",
+        "type": "code",
+        "description": "Core implementation (main logic + modules)",
+        "brain": "groq",
+        "model": "llama-3.3-70b-versatile",
+        "priority": "high",
+        "dependencies": [
+          "t1"
+        ],
+        "estimatedCost": 0.25,
+        "estimatedTime": 25,
+        "retryStrategy": "increase_tokens_retry"
+      },
+      {
+        "id": "t3",
+        "type": "code",
+        "description": "Unit tests and error handling",
+        "brain": "google",
+        "model": "gemini-2.5-flash",
+        "priority": "normal",
+        "dependencies": [
+          "t2"
+        ],
+        "estimatedCost": 0,
+        "estimatedTime": 10,
+        "retryStrategy": "fallback_to_groq"
+      },
+      {
+        "id": "t4",
+        "type": "documentation",
+        "description": "README, API docs, usage examples",
+        "brain": "local",
+        "model": "llama3:8b",
+        "priority": "low",
+        "dependencies": [
+          "t2"
+        ],
+        "estimatedCost": 0,
+        "estimatedTime": 7,
+        "retryStrategy": "none"
+      }
+    ]
+  },
+  "execution": {
+    "status": "completed",
+    "startedAt": "2025-11-25T01:03:16.703Z",
+    "completedAt": "2025-11-25T01:03:34.191Z",
+    "currentTask": "t4",
+    "results": [
+      {
+        "taskId": "t1",
+        "status": "completed",
+        "output": "Pre výpočet faktoriálu môžeme navrhnúť nasledovnú architektúru a rozdelenie modulov:\n\n1. **Hlavný modul (main.py)**: Tento modul bude obsahovať hlavnú funkciu programu, ktorá bude volať funkciu na výpočet faktoriálu a vypisovať výsledok.\n\n2. **Modul pre výpočet faktoriálu (factorial.py)**: Tento modul bude obsahovať funkciu `factorial(n)`, ktorá bude počítať faktoriál čísla `n`.\n\n3. **Modul pre testovanie (test.py)**: Tento modul bude obsahovať testy pre funkciu `factorial(n)`, aby sa zabezpečilo, že funkcia funguje správne.\n\nŠtruktúra projektu by mohla vyzerať takto:\n```\nproject/\nmain.py\nfactorial.py\ntest.py\n```\nFunkcia `factorial(n)` môže byť implementovaná pomocou rekurzie alebo iterácie. Napríklad:\n```python\n# factorial.py\ndef factorial(n):\n    if n == 0:\n        return 1\n    else:\n        return n * factorial(n-1)\n```\nAlebo:\n```python\n# factorial.py\ndef factorial(n):\n    výsledok = 1\n    for i in range(1, n+1):\n        výsledok *= i\n    return výsledok\n```\nV hlavnom module (`main.py`) môžeme volať funkciu `factorial(n)` a vypisovať výsledok:\n```python\n# main.py\nfrom factorial import factorial\n\nn = int(input(\"Zadaj číslo: \"))\nvýsledok = factorial(n)\nprint(f\"Faktoriál čísla {n} je: {výsledok}\")\n```\nV module pre testovanie (`test.py`) môžeme definovať testy pre funkciu `factorial(n)`:\n```python\n# test.py\nfrom factorial import factorial\nimport unittest\n\nclass TestFactorial(unittest.TestCase):\n    def test_factorial_0(self):\n        self.assertEqual(factorial(0), 1)\n\n    def test_factorial_1(self):\n        self.assertEqual(factorial(1), 1)\n\n    def test_factorial_2(self):\n        self.assertEqual(factorial(2), 2)\n\n    def test_factorial_3(self):\n        self.assertEqual(factorial(3), 6)\n\nif __name__ == '__main__':\n    unittest.main()\n```",
+        "qualityScore": 1,
+        "actualCost": 0.08,
+        "actualTime": 0,
+        "retries": 0,
+        "completedAt": "2025-11-25T01:03:18.897Z"
+      },
+      {
+        "taskId": "t2",
+        "status": "completed",
+        "output": "Implementácia jadra (hlavná logika + moduly) pre výpočet faktoriálu môže vyzerať nasledovne:\n\n**Štruktúra projektu:**\n```\nproject/\nmain.py\nfactorial.py\ntest.py\n```\n\n**Modul pre výpočet faktoriálu (factorial.py):**\n```python\n# factorial.py\ndef factorial(n):\n    \"\"\"\n    Funkcia pre výpočet faktoriálu čísla n.\n    \n    Args:\n        n (int): Číslo, pre ktoré sa má výpočet faktoriálu.\n    \n    Returns:\n        int: Faktoriál čísla n.\n    \"\"\"\n    if n == 0:\n        return 1\n    else:\n        return n * factorial(n-1)\n```\n\n**Hlavný modul (main.py):**\n```python\n# main.py\nfrom factorial import factorial\n\ndef main():\n    \"\"\"\n    Hlavná funkcia programu, ktorá volá funkciu na výpočet faktoriálu a vypisuje výsledok.\n    \"\"\"\n    n = int(input(\"Zadaj číslo: \"))\n    výsledok = factorial(n)\n    print(f\"Faktoriál čísla {n} je: {výsledok}\")\n\nif __name__ == '__main__':\n    main()\n```\n\n**Modul pre testovanie (test.py):**\n```python\n# test.py\nfrom factorial import factorial\nimport unittest\n\nclass TestFactorial(unittest.TestCase):\n    \"\"\"\n    Trieda pre testovanie funkcie na výpočet faktoriálu.\n    \"\"\"\n    def test_factorial_0(self):\n        \"\"\"\n        Test funkcie pre faktoriál čísla 0.\n        \"\"\"\n        self.assertEqual(factorial(0), 1)\n\n    def test_factorial_1(self):\n        \"\"\"\n        Test funkcie pre faktoriál čísla 1.\n        \"\"\"\n        self.assertEqual(factorial(1), 1)\n\n    def test_factorial_2(self):\n        \"\"\"\n        Test funkcie pre faktoriál čísla 2.\n        \"\"\"\n        self.assertEqual(factorial(2), 2)\n\n    def test_factorial_3(self):\n        \"\"\"\n        Test funkcie pre faktoriál čísla 3.\n        \"\"\"\n        self.assertEqual(factorial(3), 6)\n\nif __name__ == '__main__':\n    unittest.main()\n```\n\nTáto implementácia poskytuje základnú štruktúru pre výpočet faktoriálu, vrátane hlavnej funkcie, modulu pre výpočet faktoriálu a modulu pre testovanie. Funkcia `factorial(n)` môže byť ďalej optimalizovaná a rozšírená podľa potreby.",
+        "qualityScore": 1,
+        "actualCost": 0.25,
+        "actualTime": 0,
+        "retries": 0,
+        "completedAt": "2025-11-25T01:03:20.267Z"
+      },
+      {
+        "taskId": "t3",
+        "status": "completed",
+        "output": "",
+        "qualityScore": 0.49999999999999994,
+        "actualCost": 0,
+        "actualTime": 0.1,
+        "retries": 2,
+        "completedAt": "2025-11-25T01:03:28.847Z"
+      },
+      {
+        "taskId": "t4",
+        "status": "completed",
+        "output": "# README Tento projekt poskytuje implementáciu funkcie pre výpočet faktoriálu čísla. Projekt je štruktúrovaný do troch modulov: `main.py`, `factorial.py` a `test.py`.",
+        "qualityScore": 1,
+        "actualCost": 0,
+        "actualTime": 0.1,
+        "retries": 0,
+        "completedAt": "2025-11-25T01:03:34.190Z"
+      }
+    ],
+    "totalCost": 0.33,
+    "totalTime": 0.2
+  }
+}

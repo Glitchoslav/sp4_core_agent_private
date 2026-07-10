@@ -1,0 +1,154 @@
+# SP4 RULE MINER - Auto-Tuning Configuration
+# Controls learning behavior and safety caps
+
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+# LEARNING PARAMETERS
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+# Learning rate (0.0 - 1.0)
+# How much weight to give to NEW patterns vs EXISTING rules
+# 0.12 = 12% new, 88% existing (conservative)
+learning_rate: 0.12
+
+# Update interval (number of conversations)
+# How often to run rule mining and update rulebook
+# 20 = analyze and update every 20 conversations
+update_interval: 20
+
+# Max rule changes per update cycle
+# Prevents catastrophic rule corruption
+# 5 = max 5 new trigger words, thresholds, etc. per update
+max_rule_changes: 5
+
+# Safety cap - enable/disable all safety checks
+# true = strict safety (recommended)
+# false = allow aggressive learning (DANGEROUS)
+safety_cap: true
+
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+# WALTER-STYLE SAFETY LAYER
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+# Dangerous pattern blacklist
+# Keywords that should NEVER be added to trigger_words
+# (prevents AI from learning harmful behaviors)
+dangerous_patterns:
+  - diagnóz
+  - lieč
+  - predpis
+  - právna rada
+  - investment
+  - kúp
+  - predaj
+  - zabiť
+  - ublíž
+  - hack
+  - crack
+  - steal
+
+# Minimum pattern confidence (0.0 - 1.0)
+# Only apply rules if pattern confidence is above this threshold
+# 0.6 = 60% confidence required
+min_pattern_confidence: 0.6
+
+# Rollback on validation failure
+# If updated rulebook fails validation, revert to backup
+rollback_on_failure: true
+
+# Max trigger words per persona
+# Prevents infinite growth of trigger lists
+max_trigger_words:
+  popici: 20
+  glitchoslav: 15
+  core: 10
+
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+# PATTERN DETECTION THRESHOLDS
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+# Minimum occurrences to consider pattern
+# A word must appear N times in recent history to become a trigger
+min_occurrences: 3
+
+# Intensity threshold drift tolerance
+# Max allowed change in intensity threshold per update cycle
+# 0.1 = ±10% change allowed
+intensity_drift_tolerance: 0.1
+
+# Metaphor density drift tolerance
+# Max allowed change in poetic density per update cycle
+metaphor_drift_tolerance: 0.15
+
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+# AUDIT & LOGGING
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+# Enable detailed logging
+verbose_logging: true
+
+# Log all rule changes to user-behavior.log
+log_rule_changes: true
+
+# Create backup before each update
+backup_before_update: true
+
+# Max backups to keep (older ones deleted)
+max_backups: 10
+
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+# ADAPTIVE LEARNING MODES
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+# Learning mode
+# - conservative: strict safety, slow learning (recommended)
+# - balanced: moderate safety, medium learning
+# - aggressive: minimal safety, fast learning (RISKY)
+learning_mode: conservative
+
+# Auto-adjust learning rate based on pattern confidence
+adaptive_learning_rate: true
+
+# Confidence boost threshold
+# If pattern confidence > this, increase learning rate temporarily
+confidence_boost_threshold: 0.85
+confidence_boost_multiplier: 1.5  # 1.5x learning rate when confident
+
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+# FEATURE FLAGS
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+features:
+  # Auto-detect dialect preferences
+  dialect_learning: true
+  
+  # Auto-adjust intensity thresholds
+  intensity_learning: true
+  
+  # Auto-learn mode trigger words
+  trigger_word_learning: true
+  
+  # Auto-tune metaphor density
+  metaphor_learning: true
+  
+  # Auto-adjust response length
+  length_learning: true
+  
+  # Learn vulgarity tolerance
+  vulgarity_learning: true
+
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+# EMERGENCY CONTROLS
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+# Emergency stop
+# Set to true to disable ALL rule mining
+# (useful if AI behavior becomes unstable)
+emergency_stop: false
+
+# Reset to defaults after N failed updates
+# 3 = reset rulebook after 3 consecutive validation failures
+reset_after_failures: 3
+
+# Manual override mode
+# If true, ignore all auto-learned rules and use only manual rulebook
+manual_override: false

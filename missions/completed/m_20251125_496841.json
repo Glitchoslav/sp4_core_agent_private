@@ -1,0 +1,56 @@
+{
+  "mission": {
+    "type": "custom",
+    "goal": "Potrebujem 2 LinkedIn posty o remote work",
+    "id": "m_20251125_496841",
+    "createdAt": "2025-11-25T01:01:36.841Z",
+    "context": {
+      "userInput": "Potrebujem 2 LinkedIn posty o remote work",
+      "detectedLanguage": "en",
+      "urgency": "normal",
+      "budget": "balanced"
+    }
+  },
+  "plan": {
+    "estimatedCost": 0.1,
+    "estimatedTime": 15,
+    "confidence": 0.6,
+    "risks": [
+      "Custom mission - may need adjustment"
+    ],
+    "tasks": [
+      {
+        "id": "t1",
+        "type": "general",
+        "description": "Potrebujem 2 LinkedIn posty o remote work",
+        "brain": "groq",
+        "model": "llama-3.3-70b-versatile",
+        "priority": "normal",
+        "dependencies": [],
+        "estimatedCost": 0.1,
+        "estimatedTime": 15,
+        "retryStrategy": "fallback_to_local"
+      }
+    ]
+  },
+  "execution": {
+    "status": "completed",
+    "startedAt": "2025-11-25T01:01:36.844Z",
+    "completedAt": "2025-11-25T01:01:38.663Z",
+    "currentTask": "t1",
+    "results": [
+      {
+        "taskId": "t1",
+        "status": "completed",
+        "output": "Post 1:\n Remote práce - nový štandard?\nV posledných rokoch sa remote práce stala novým štandardom. Viaceré spoločnosti už prestali pochybovať o efektívnosti práce z domova a začali umožňovať svojim zamestnancom flexibilnejšie pracovné prostredie. A čo si o tom myslíte vy? Máte skúsenosti s remote prácou? Zdieľajte svoje názory a skúsenosti v komentároch!\n\n#remotework #pracazdomu #flexibilita\n\nPost 2:\n 5 výhod remote práce\nČo je najväčšou výhodou remote práce? Je to flexibilita, možnosť práce z ktokoľvek miesta, alebo môžete pracovať v čase, keď ste najproduktívnejší? Tu sú 5 výhod remote práce:\n Flexibilita a autonómia\n Možnosť práce z ktokoľvek miesta\n Zlepšenie produktivity\n Zniženie stresu\n Lepšia životná rovnováha\n Čo si o remote práci myslíte vy? Zdieľajte svoje myšlienky v komentároch!\n\n#remotework #pracazdomu #flexibilita #produktivita",
+        "qualityScore": 1,
+        "actualCost": 0.1,
+        "actualTime": 0,
+        "retries": 0,
+        "completedAt": "2025-11-25T01:01:38.662Z"
+      }
+    ],
+    "totalCost": 0.1,
+    "totalTime": 0
+  }
+}
