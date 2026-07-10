@@ -60,3 +60,8 @@ node
 
 # === Railway (nepouzivas) ===
 .railwayignore
+
+# === Legacy/marketing artefakty ===
+/archive/
+/LAUNCH_PACK/
+/SOCIAL_MEDIA/
