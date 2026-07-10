@@ -1,0 +1,47 @@
+# SP4_CORE_AGENT - Git ignore
+
+# Dependencies
+node_modules/
+package-lock.json
+
+# Data & Memory (súkromné)
+data/
+logs/
+backups/
+
+# Environment
+.env
+.env.local
+
+# OS
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Test artifacts
+test-output/
+coverage/
+
+# Rule miner runtime artifacts
+rules/pattern-history.json
+
+# Build
+dist/
+build/
+*.log
+
+# Environment variables
+.env
+.env.local
+.env.*.local
+
+# Agent config so secrets
+.claude/settings.json
+.claude/settings.local.json
