@@ -1,0 +1,73 @@
+{
+    "manifest_metadata": {
+        "version": "0.1.1",
+        "mode": "first_aid",
+        "description": "SP4 First Aid - Offline deterministický gate pre núdzové situácie",
+        "created": "2025-01-31",
+        "updated": "2025-01-31"
+    },
+    "config": {
+        "enable_audit_log": true,
+        "max_template_lines": 20,
+        "prefer_short_templates": false
+    },
+    "states": {
+        "cpr_adult": {
+            "id": "FA_001",
+            "name": "Kardiopulmonálna resuscitácia - dospelý",
+            "detect_keywords": [
+                "bezvedom",
+                "nereaguje",
+                "nedýcha",
+                "nedycha",
+                "zástava",
+                "zastava",
+                "kolaboval",
+                "leží",
+                "lezi",
+                "lapá po dychu",
+                "lapa po dychu",
+                "nehýbe sa",
+                "nehybe sa",
+                "nepulzuje",
+                "bez pulzu",
+                "zrážka",
+                "zrazka",
+                "mdloba",
+                "kolaps"
+            ],
+            "forbidden": [
+                "čakať",
+                "cakať",
+                "počkať",
+                "pockat",
+                "naliať vodu",
+                "naliat vodu",
+                "fackať",
+                "fackat",
+                "sadnúť",
+                "sadnut",
+                "transportovať",
+                "transportovat",
+                "odviezť",
+                "odviezt",
+                "preniesť",
+                "preniest",
+                "dať jesť",
+                "dat jest",
+                "dať piť",
+                "dat pit"
+            ],
+            "mandatory": [
+                "volať 112",
+                "volat 112",
+                "stláčanie",
+                "stlacanie",
+                "hrudník",
+                "hrudnik"
+            ],
+            "fallback_template": "cpr_adult.txt",
+            "short_template": "cpr_adult_short.txt"
+        }
+    }
+}
