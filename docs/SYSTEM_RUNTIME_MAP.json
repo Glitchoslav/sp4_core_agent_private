@@ -1,0 +1,412 @@
+{
+  "meta": {
+    "version": "1.1",
+    "generated_by": "GitHub Copilot runtime verification",
+    "confidence": "medium",
+    "source_of_truth": "runtime code, import graph, call sites a explicitne vetvy v runtime; nie dokumentacia",
+    "note": "Mapa nie je linear flow diagram. Zachytava realne runtime vetvy, early exits, local/cloud decision body a split authority rizika.",
+    "runtime_probe": {
+      "boot_cli_reached": true,
+      "ollama_running": false,
+      "probe_note": "node sp4.js start doslo do CLI stavu, ale lokalny LLM backend nebol dostupny"
+    }
+  },
+  "entrypoints": [
+    {
+      "name": "launcher",
+      "file": "sp4_core_agent/sp4.js",
+      "calls": [
+        "sp4_core_agent/index_v07.js"
+      ],
+      "role": "system start",
+      "call_context": "node sp4.js start deleguje cez runNodeScript na START_ENTRY=index_v07.js",
+      "activation": "primarny operator launcher pri prikaze start",
+      "confidence": "high"
+    },
+    {
+      "name": "cli_entry",
+      "file": "sp4_core_agent/index_v07.js",
+      "calls": [
+        "sp4_core_agent/integration.js"
+      ],
+      "role": "runtime entrypoint",
+      "call_context": "boot sequence, onboarding, scheduler init, agent.initialize() a chat runtime cez SP4IntegratedAgent.processMessage",
+      "activation": "defaultny interaktivny runtime po launcheri",
+      "confidence": "high"
+    }
+  ],
+  "core_runtime": {
+    "integration": {
+      "file": "sp4_core_agent/integration.js",
+      "role": "hlavna runtime pipeline",
+      "call_context": "SP4IntegratedAgent.processMessage -> _processMessageCore",
+      "activation": "kazda sprava, ktora prejde cez inicializovany SP4IntegratedAgent",
+      "responsibilities": [
+        "dialog state write-in/write-out",
+        "policy resolution",
+        "early deterministic a safety exits",
+        "emotion and degradation handling",
+        "intent and mode preselection",
+        "prompt assembly",
+        "local/cloud decision",
+        "local orchestration alebo cloud execution",
+        "post-processing",
+        "persona validation",
+        "language enforcement",
+        "diagnostic layer validation",
+        "immune evaluation and optional soft retry",
+        "post-immune response control and safe replacement",
+        "metadata assembly",
+        "writeback tail"
+      ],
+      "confidence": "high"
+    }
+  },
+  "early_return_guards_before_emotion": [
+    {
+      "name": "runSPG",
+      "file": "sp4_core_agent/sp4_first_aid/spg.js",
+      "role": "emergency override",
+      "call_context": "integration vola runSPG na zaciatku _processMessageCore a pri zhode vracia okamzity emergency template bez LLM",
+      "activation": "conditional early return",
+      "confidence": "high"
+    },
+    {
+      "name": "punctuation_only_guard",
+      "file": "sp4_core_agent/integration.js",
+      "role": "micro input guard",
+      "call_context": "punctuation-only vstup vracia buildGuardResult bez dalsieho spracovania",
+      "activation": "conditional early return",
+      "confidence": "high"
+    },
+    {
+      "name": "short_meaningful_guard",
+      "file": "sp4_core_agent/integration.js",
+      "role": "short greeting/confirmation guard",
+      "call_context": "znamy kratky meaningful input vracia priamu odpoved bez emotional processing",
+      "activation": "conditional early return",
+      "confidence": "high"
+    },
+    {
+      "name": "gibberish_guard",
+      "file": "sp4_core_agent/integration.js",
+      "role": "deterministic nonsense filter",
+      "call_context": "isLikelyGibberishInput vracia deterministic response pred emotional processing",
+      "activation": "conditional early return",
+      "confidence": "high"
+    },
+    {
+      "name": "mode_command_handler",
+      "file": "sp4_core_agent/integration.js",
+      "role": "runtime mode command",
+      "call_context": "spravy zacinajuce /mode vracaju command response bez emotional processing",
+      "activation": "conditional early return",
+      "confidence": "high"
+    },
+    {
+      "name": "very_short_greeting_shortcut",
+      "file": "sp4_core_agent/integration.js",
+      "role": "ultra-short greeting shortcut",
+      "call_context": "isVeryShortGreeting vracia shortcut response pred hlavnym try blokom s emotional analysis",
+      "activation": "conditional early return",
+      "confidence": "high"
+    },
+    {
+      "name": "mission_command_handler",
+      "file": "sp4_core_agent/integration.js",
+      "role": "full autonomy mission branch",
+      "call_context": "spravy zacinajuce /mission idu do planner/execution path a vracaju vysledok bez emotional processing branch pre bezny chat",
+      "activation": "conditional early return",
+      "confidence": "high"
+    },
+    {
+      "name": "bot_block_or_challenge",
+      "file": "sp4_core_agent/integration.js",
+      "role": "bot protection gate",
+      "call_context": "detectBot bezi pred emotional analysis; action=block alebo challenge vracia okamzity response",
+      "activation": "conditional early return",
+      "confidence": "high"
+    }
+  ],
+  "critical_nodes": [
+    {
+      "name": "EmotionalProcessor",
+      "file": "sp4_core_agent/emotionalProcessor.js",
+      "role": "emotional analysis and grounding support",
+      "call_context": "integration vola analyzeEmotionalContent az po vyssie uvedenych early exits a po bot monitoringu",
+      "activation": "post-guard branch; nebezi na kazdu spravu",
+      "confidence": "high"
+    },
+    {
+      "name": "AutonomousController",
+      "file": "sp4_core_agent/autonomousController.js",
+      "role": "brain routing local vs cloud",
+      "call_context": "integration vola autonomousController.decide len ked flow neostal vo vision shortcut, testMode direct local ani forceLocal bypass",
+      "activation": "conditional branch pred cloud/local execution",
+      "confidence": "high"
+    },
+    {
+      "name": "orchestrate",
+      "file": "sp4_core_agent/orchestration/glitchOrchestrator.js",
+      "role": "final local routing orchestration",
+      "call_context": "integration vola orchestrate vo forced-local path, v autonomous local path a v cloud-fallback path po chybe cloud execution",
+      "activation": "defaultny local execution path, nie universal path",
+      "confidence": "high"
+    },
+    {
+      "name": "runImmuneCheck",
+      "file": "sp4_core_agent/src/immune/outputImmuneCheck.js",
+      "role": "post-response immune verdict",
+      "call_context": "integration vola runImmuneCheck po metadata assembly; verdict sa uklada do metadata a az downstream logika moze menit output",
+      "activation": "final response evaluation branch",
+      "confidence": "high"
+    },
+    {
+      "name": "responseControl",
+      "file": "sp4_core_agent/src/runtime/responseControl.js",
+      "role": "pre-LLM hard guard a post-immune safe replacement",
+      "call_context": "integration vola detectPreLlmGuard pred buildPrompt a applyPostImmuneResponseControl po immune verdicte",
+      "activation": "conditional blocking/replacement branch",
+      "confidence": "high"
+    },
+    {
+      "name": "runWritebackTail",
+      "file": "sp4_core_agent/src/runtime/writebackTail.js",
+      "role": "success-tail side effects",
+      "call_context": "integration vola runWritebackTail po immune bloku a pred final return result",
+      "activation": "final successful processing path",
+      "confidence": "high"
+    }
+  ],
+  "known_non_default_paths": [
+    {
+      "name": "deliberate",
+      "file": "sp4_core_agent/agentManager.js",
+      "role": "multi-agent council",
+      "call_context": "v integration existuje council branch, ale useCouncil je lokalne nastavene na false; default nie je council production path",
+      "activation": "conditional branch only when explicitly enabled",
+      "confidence": "high"
+    },
+    {
+      "name": "cloud_execution",
+      "file": "sp4_core_agent/integration.js",
+      "role": "cloud provider execution via SP4AIOS bridge",
+      "call_context": "spusta sa len ked autonomous controller vrati brain=cloud a policy cloud povoli; pri chybe pada do local orchestrate fallbacku",
+      "activation": "conditional branch",
+      "confidence": "high"
+    },
+    {
+      "name": "test_mode_direct_local",
+      "file": "sp4_core_agent/integration.js",
+      "role": "minimal test pipeline",
+      "call_context": "testMode && forceLocal preskoci orchestrator a vola askLocalLLM priamo s jednoduchym test promptom",
+      "activation": "test-only branch",
+      "confidence": "high"
+    },
+    {
+      "name": "vision_shortcut",
+      "file": "sp4_core_agent/multiVoice.js",
+      "role": "prompt shortcut without normal LLM orchestration",
+      "call_context": "buildPrompt moze vratit mode=shortcut a shortAnswer; integration potom preskoci normalnu orchestration/local-cloud cestu",
+      "activation": "conditional branch",
+      "confidence": "medium",
+      "note": "Call site je explicitny, ale sirku aktivacie bez runtime testu neviem potvrdit na 100 percent"
+    },
+    {
+      "name": "orchestrator_bypass_and_manual_lock",
+      "file": "sp4_core_agent/orchestration/glitchOrchestrator.js",
+      "role": "direct persona bypass",
+      "call_context": "bypassOrchestrator+forcedPersona, modeLocked+currentMode alebo manualOverride+lockedMode idu rovno do handlePersonaDirect",
+      "activation": "conditional branch podla contextu",
+      "confidence": "high"
+    }
+  ],
+  "routing_stack": [
+    {
+      "name": "intentExtractor",
+      "file": "sp4_core_agent/src/routing/intentExtractor.js",
+      "role": "intent detection",
+      "call_context": "integration extrahuje intent pred prompt assembly; glitchOrchestrator intent znovu pouziva pre entity-aware routing",
+      "activation": "bezi v standardnej non-early-exit chat path",
+      "confidence": "high"
+    },
+    {
+      "name": "entityResolver",
+      "file": "sp4_core_agent/src/routing/entityResolver.js",
+      "role": "intent to entity and handler hint mapping",
+      "call_context": "glitchOrchestrator vola resolveEntity a checkGuardRules pred analyzeAndDecide",
+      "activation": "local orchestration path",
+      "confidence": "high"
+    },
+    {
+      "name": "modeCompass",
+      "file": "sp4_core_agent/src/core/modeCompass.js",
+      "role": "persona preselection and lock logic",
+      "call_context": "CLI a integration ho pouzivaju na preselection alebo mode command flow; final routing potom stale robi direct branch alebo glitchOrchestrator",
+      "activation": "auto-mode, mode prefix alebo mode lock logic",
+      "confidence": "high"
+    },
+    {
+      "name": "glitchOrchestrator",
+      "file": "sp4_core_agent/orchestration/glitchOrchestrator.js",
+      "role": "local final orchestration",
+      "call_context": "po intent/entity/context analyzuje a rozhoduje elevate, delegate alebo deterministic reply",
+      "activation": "local orchestration path",
+      "confidence": "high"
+    }
+  ],
+  "validation_layers": [
+    {
+      "name": "layerValidator",
+      "file": "sp4_core_agent/src/validators/layerValidator.js",
+      "role": "diagnostic only",
+      "call_context": "integration vola validateLayerDistinction a logLayerValidation po language enforcement",
+      "activation": "post-processing path",
+      "blocks_flow": false,
+      "modifies_output": false,
+      "confidence": "high"
+    },
+    {
+      "name": "personaRegistry.validatePersonaOutput",
+      "file": "sp4_core_agent/src/core/personaRegistry.js",
+      "role": "persona enforcement",
+      "call_context": "integration vola validatePersonaOutput; pri failu CORE moze nasledovat sanitizeCoreOutput a getCoreFallback",
+      "activation": "post-processing validation path",
+      "blocks_flow": true,
+      "modifies_output": "indirectly via sanitize/fallback logic in integration",
+      "confidence": "high"
+    },
+    {
+      "name": "outputImmuneCheck",
+      "file": "sp4_core_agent/src/immune/outputImmuneCheck.js",
+      "role": "immune verdict generator",
+      "call_context": "integration cita severity, reason_codes a immune_confidence; samotny modul priamo neprepisuje output",
+      "activation": "post-response evaluation path",
+      "blocks_flow": false,
+      "modifies_output": false,
+      "confidence": "high"
+    },
+    {
+      "name": "responseControl",
+      "file": "sp4_core_agent/src/runtime/responseControl.js",
+      "role": "safe replacement executor",
+      "call_context": "pre-LLM detectPreLlmGuard vie request zastavit; post-immune applyPostImmuneResponseControl vie nahradit result.response",
+      "activation": "conditional guard/replacement path",
+      "blocks_flow": true,
+      "modifies_output": true,
+      "confidence": "high"
+    }
+  ],
+  "fallback_system": {
+    "modules": [
+      "sp4_core_agent/supervisor.js",
+      "sp4_core_agent/gracefulDegradation.js",
+      "sp4_core_agent/src/core/coreFallbacks.js",
+      "sp4_core_agent/src/routing/deterministicRegistry.js",
+      "sp4_core_agent/src/runtime/responseControl.js",
+      "sp4_core_agent/src/runtime/writebackTail.js"
+    ],
+    "note": "Fallback nie je jedna vrstva. Vznika z deterministic guards, empty response handling, grounded fallbackov, soft retry/replacement logiky a degradation managera.",
+    "confidence": "high"
+  },
+  "identity_system": {
+    "canonical_sources": [
+      {
+        "name": "workspace_identity_personas",
+        "file": "identity/personas/*",
+        "role": "workspace-level persona definitions and validators used by live registry and prompt builder imports",
+        "call_context": "multiVoice a personaRegistry importuju odtialto persona data a validators",
+        "activation": "live runtime imports",
+        "confidence": "high"
+      },
+      {
+        "name": "identity_kernel",
+        "file": "sp4_core_agent/src/identity/IDENTITY_KERNEL.js",
+        "role": "central runtime identity kernel block for prompt assembly",
+        "call_context": "multiVoice.buildSystemPrompt vola buildIdentityKernelBlock ako prvu identity vrstvu",
+        "activation": "live prompt assembly",
+        "confidence": "high"
+      }
+    ],
+    "runtime_registry": {
+      "file": "sp4_core_agent/src/core/personaRegistry.js",
+      "role": "runtime validator and persona registry authority",
+      "call_context": "validatePersonaOutput v integration pouziva registry, ktora importuje z identity/personas, nie zo src/personas persona copies",
+      "activation": "live validation path",
+      "confidence": "high"
+    },
+    "wrapper": {
+      "file": "sp4_core_agent/multiVoice.js",
+      "role": "prompt wrapper and composition layer",
+      "call_context": "kombinuje kernel vrstvu zo src/identity s persona data importmi z identity/personas",
+      "activation": "live prompt assembly",
+      "confidence": "high"
+    },
+    "active_runtime_helpers": [
+      {
+        "file": "sp4_core_agent/src/personas/personas.js",
+        "role": "persona normalization helper",
+        "call_context": "integration importuje normalizePersona priamo z tohto suboru",
+        "activation": "live runtime helper",
+        "confidence": "high"
+      },
+      {
+        "file": "sp4_core_agent/src/personas/core/scrubber.core.js",
+        "role": "CORE politeness scrubber helper",
+        "call_context": "integration importuje scrubCorePoliteness priamo z tohto suboru",
+        "activation": "live runtime helper",
+        "confidence": "high"
+      }
+    ],
+    "shadow_risk": {
+      "status": true,
+      "note": "Authority nie je v jednom subore. Live prompt a validation tahaju z identity/personas plus IDENTITY_KERNEL, zatial co src/personas ma potvrdene helper importy. src/personas persona-definition copies sa nemaju bez dalsieho dokazoveho call site oznacit ani za canonical source, ani za dead code.",
+      "confidence": "medium"
+    }
+  },
+  "final_writeback_tail": {
+    "file": "sp4_core_agent/src/runtime/writebackTail.js",
+    "role": "success-tail side effects",
+    "call_context": "po final response integration vola runWritebackTail s memory, actions, triggers, relationship a rule-mining dependencies",
+    "activation": "final successful processing path",
+    "contains": [
+      "memory writeback step",
+      "action router execution",
+      "trigger engine evaluation",
+      "periodic identity audit",
+      "periodic relationship progression",
+      "rule mining pipeline processing"
+    ],
+    "confidence": "high"
+  },
+  "flow_characteristics": {
+    "shape": "branched_runtime_topology",
+    "not_linear": true,
+    "notes": [
+      "existuje viac early-exit guardov pred emotional processing",
+      "mode preselection nie je final router",
+      "local orchestration nie je jedina execution branch",
+      "immune layer sama neprepisuje output; replacement robi downstream logic",
+      "writeback tail je side-effect success tail, nie router"
+    ]
+  },
+  "known_risks": [
+    "linear flow assumption",
+    "council mistaken as default production path",
+    "identity authority over-simplified into one file",
+    "mode preselection confused with final routing orchestration",
+    "immune verdict confused with output replacement layer",
+    "src/personas shadow/helper copies overclaimed without call-site proof"
+  ],
+  "summary": {
+    "entrypoints": "OK",
+    "integration_verified": "YES",
+    "routing_stack_verified": "YES",
+    "local_orchestration_verified": "YES",
+    "cloud_branch_verified": "YES",
+    "validation_layers_verified": "YES",
+    "writeback_tail_verified": "YES",
+    "shadow_risk": "YES",
+    "overall_confidence": "MEDIUM"
+  }
+}

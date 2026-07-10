@@ -1,0 +1,122 @@
+{
+    "version": "1.0.0",
+    "description": "SP4AIOS Bridge Configuration - Secure API key management",
+    "providers": {
+        "openai": {
+            "enabled": true,
+            "apiKeyEnvVar": "OPENAI_API_KEY",
+            "defaultModel": "gpt-4o-mini",
+            "maxRetries": 3,
+            "timeout": 60000,
+            "rateLimits": {
+                "requestsPerMinute": 60,
+                "tokensPerMinute": 90000
+            }
+        },
+        "anthropic": {
+            "enabled": true,
+            "apiKeyEnvVar": "ANTHROPIC_API_KEY",
+            "defaultModel": "claude-sonnet-4-6",
+            "maxRetries": 3,
+            "timeout": 60000,
+            "rateLimits": {
+                "requestsPerMinute": 50,
+                "tokensPerMinute": 80000
+            }
+        },
+        "google": {
+            "enabled": true,
+            "apiKeyEnvVar": "GOOGLE_API_KEY",
+            "defaultModel": "gemini-1.5-flash",
+            "maxRetries": 3,
+            "timeout": 60000,
+            "rateLimits": {
+                "requestsPerMinute": 60,
+                "tokensPerMinute": 100000
+            }
+        },
+        "mistral": {
+            "enabled": false,
+            "apiKeyEnvVar": "MISTRAL_API_KEY",
+            "defaultModel": "mistral-small-latest",
+            "maxRetries": 3,
+            "timeout": 60000,
+            "rateLimits": {
+                "requestsPerMinute": 50,
+                "tokensPerMinute": 60000
+            }
+        }
+    },
+    "routing": {
+        "strategy": "intelligent",
+        "fallbackToLocal": true,
+        "localTimeout": 90000,
+        "rules": {
+            "simple": {
+                "maxPromptLength": 500,
+                "preferLocal": true,
+                "cloudFallback": false
+            },
+            "medium": {
+                "maxPromptLength": 2000,
+                "preferredProvider": "openai",
+                "preferredModel": "gpt-4o-mini"
+            },
+            "complex": {
+                "minPromptLength": 2000,
+                "preferredProvider": "anthropic",
+                "preferredModel": "claude-sonnet-4-6"
+            },
+            "creative": {
+                "temperature": 0.9,
+                "preferredProvider": "openai",
+                "preferredModel": "gpt-4o"
+            },
+            "analytical": {
+                "temperature": 0.3,
+                "preferredProvider": "anthropic",
+                "preferredModel": "claude-sonnet-4-6"
+            }
+        }
+    },
+    "costManagement": {
+        "enableTracking": true,
+        "logPath": "./logs/aios_costs.jsonl",
+        "budgets": {
+            "daily": 10.0,
+            "monthly": 200.0,
+            "perRequest": 0.5
+        },
+        "alerts": {
+            "emailOnBudgetExceeded": false,
+            "warnAtPercentage": 80
+        }
+    },
+    "caching": {
+        "enabled": true,
+        "ttl": 3600000,
+        "maxSize": 1000,
+        "strategy": "lru",
+        "excludePatterns": [
+            "*password*",
+            "*secret*",
+            "*key*"
+        ]
+    },
+    "security": {
+        "encryptApiKeys": false,
+        "rotationDays": 90,
+        "allowedIPs": [],
+        "rateLimit": {
+            "enabled": true,
+            "maxRequestsPerHour": 1000
+        }
+    },
+    "monitoring": {
+        "enableMetrics": true,
+        "metricsPath": "./logs/aios_metrics.json",
+        "logLevel": "info",
+        "trackLatency": true,
+        "trackTokenUsage": true
+    }
+}

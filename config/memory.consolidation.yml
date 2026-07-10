@@ -1,0 +1,44 @@
+# SP4 Memory Consolidation Configuration v1.0
+# Centralizované nastavenia pre hierarchickú konsolidáciu pamäte
+
+consolidation:
+  # DAILY consolidation (00:00 každý deň)
+  daily:
+    enabled: true
+    keep_last_sessions: 5      # Zachovaj posledných 5 konverzačných session
+    max_items_per_layer: 200   # Max položiek v raw log pred kompresiou
+    compression_level: light   # light compression
+    
+  # WEEKLY consolidation (Monday 00:00)
+  weekly:
+    enabled: true
+    promote_important_only: true  # Len dôležité položky idú do chapter
+    importance_threshold: 0.6     # Min. dôležitosť pre promociu
+    compression_level: medium     # medium compression + theme extraction
+    
+  # MONTHLY consolidation (1st day 00:00)
+  monthly:
+    enabled: true
+    archive_to: "data/archives"   # Cesta pre archív
+    compression_level: heavy      # heavy compression + pattern extraction
+    extract_patterns: true        # Extrahuj behavior patterns
+    
+  # QUARTERLY pruning (Jan/Apr/Jul/Oct 1st)
+  quarterly:
+    enabled: true
+    prune_below_importance: 0.3   # Odstráň položky s importance < 0.3
+    prune_unused_months: 6        # Odstráň nepoužívané > 6 mesiacov
+    require_manual_confirm: true  # Vyžaduj admin potvrdenie
+
+# Backup settings
+backup:
+  enabled: true
+  before_every_job: true
+  retention_days: 90
+  path: "data/backups"
+
+# Metadata enrichment
+metadata:
+  auto_tag: true                  # Automatické generovanie tags
+  track_usage: true               # Sledovanie lastUsed
+  importance_auto_adjust: true   # Automatická úprava importance podľa použitia

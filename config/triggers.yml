@@ -1,0 +1,76 @@
+# SP4 Trigger System Configuration v1.0
+# Proaktívne varovania a pattern detection
+
+triggers:
+  # BURNOUT WARNING
+  burnout_warning:
+    conditions:
+      minIntensity: 0.3
+      minSadness: 0.4
+      minOccurrences: 2        # 2x v rámci posledných správ (znížené)
+      withinMessages: 10       # V rámci posledných 10 správ
+    action: "notify_user"
+    persona: "glitchoslav"     # Glitchoslav má empatiký prístup k burnoutu
+    message: "⚠️ Vidím, že už niekoľko dní spomínaš únavu. Možno je čas zvoľniť?"
+    
+  # SELF-ATTACK PATTERN
+  self_attack_pattern:
+    conditions:
+      keywords: 
+        - "som neschopný"
+        - "dojebal som"
+        - "dojebal"
+        - "nemá to zmysel"
+        - "nevládzem"
+        - "som kokot"
+        - "neschopný"
+        - "neviem nič"
+      minOccurrences: 1        # 1x stačí (znížené z 2)
+      withinMessages: 8
+    action: "soft_reflection"
+    persona: "glitchoslav"
+    message: "Vidím, že si tvrdý na seba. Myslíš, že je to fakt pravda, alebo len únava?"
+    
+  # TECH OVERLOAD
+  overload_tech:
+    conditions:
+      techQuestionsInRow: 10   # 10 technických otázok po sebe
+    action: "suggest_break"
+    persona: "core"
+    message: "💡 10 technických otázok v rade. Možno by pomohla prestávka?"
+    
+  # REPETITIVE PROBLEM
+  repetitive_problem:
+    conditions:
+      sameTopicCount: 5
+      withinMessages: 15
+    action: "suggest_alternative"
+    persona: "core"
+    message: "Tento problém sa opakuje. Chceš skúsiť iný prístup?"
+    
+  # FIRE MODE TRIGGER
+  fire_mode_trigger:
+    conditions:
+      keywords:
+        - "do piče"
+        - "kurva"
+        - "!!!!"
+      intensity: 0.7
+    action: "activate_fire_mode"
+    persona: "popici"
+    message: null  # Popici reaguje priamo, nie cez message
+    
+  # LONG SILENCE (user nebol aktívny)
+  long_silence:
+    conditions:
+      daysSinceLastMessage: 7
+    action: "gentle_check_in"
+    persona: "glitchoslav"
+    message: "Dlho nič. Všetko v pohode?"
+
+# Global trigger settings
+settings:
+  enabled: true
+  check_interval_minutes: 30   # Kontroluj triggery každých 30 minút
+  max_triggers_per_session: 3  # Max 3 triggery na session (aby to nebolo otravné)
+  cooldown_hours: 24           # Po trigger nesmie ten istý trigger 24h
