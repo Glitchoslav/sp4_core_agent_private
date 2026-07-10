@@ -1,0 +1,49 @@
+{
+  "test_id": "test_003",
+  "parent_test_id": "test_002",
+  "mode": "EVAL",
+  "goal": "Dokazovo odlisit handoff problem processMessage vs ask od identity pattern blind spotu a od response control enforcement missu.",
+  "modules_covered": [
+    "integration.js",
+    "src/dialogue/dialogueState.js",
+    "src/runtime/responseControl.js",
+    "src/identity/identityPatterns.js"
+  ],
+  "personas_covered": [
+    "auto",
+    "core"
+  ],
+  "constraints": [
+    "nove instancie medzi variantami A a B",
+    "oba turny v ramci varianty na rovnakej instancii",
+    "plny raw result objekt oboch turnov",
+    "snapshot _dlgState po prvom turne a po druhom turne ak je dostupny"
+  ],
+  "inherited_question_count": 2,
+  "new_question_count": 0,
+  "edge_case_count": 0,
+  "source_of_questions": "user",
+  "notes": "Pouzite su dva reprezentativne pary: ping pre identity drift branch a cache pre relevance fallback branch. Pre kazdy par bezia dve varianty: processMessage a ask.",
+  "runtime": {
+    "options": {
+      "forceLocal": true,
+      "testMode": true
+    }
+  },
+  "pairs": [
+    {
+      "id": "P1",
+      "label": "Identity drift par",
+      "mode": "auto",
+      "first_turn": "čo je ping",
+      "second_turn": "a ako sa používa?"
+    },
+    {
+      "id": "P2",
+      "label": "Relevance fallback par",
+      "mode": "auto",
+      "first_turn": "čo je cache",
+      "second_turn": "a načo je to?"
+    }
+  ]
+}

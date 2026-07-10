@@ -1,0 +1,25 @@
+{
+    "test_id": "test_005",
+    "parent_test_id": "test_004",
+    "mode": "EVAL",
+    "goal": "Izolovany rerun patch serie bez prepisovania latest artefaktov a s unikatnymi nazvami subtestov pre kazdy beh.",
+    "modules_covered": [
+        "integration.js",
+        "tests/phase5_followup_handoff_probe.mjs",
+        "tests/integration_handoff_patch_series_isolated_test.mjs"
+    ],
+    "personas_covered": [
+        "core",
+        "auto"
+    ],
+    "constraints": [
+        "kazdy beh musi mat unikatny run_label",
+        "test_5 nesmie citat shared latest probe artefakt",
+        "subtest IDs musia byt unikatne v ramci runu"
+    ],
+    "inherited_question_count": 6,
+    "new_question_count": 0,
+    "edge_case_count": 1,
+    "source_of_questions": "user",
+    "notes": "Ciel je odstranit miesanie vysledkov medzi rerunmi. Runner zapisuje iba run-specific artefakty a Test 5 pouziva vlastny izolovany probe output label."
+}

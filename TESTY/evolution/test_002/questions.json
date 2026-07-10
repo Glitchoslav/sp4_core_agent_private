@@ -1,0 +1,116 @@
+{
+    "test_id": "test_002",
+    "parent_test_id": "test_001",
+    "mode": "BUILD",
+    "goal": "Pridat live runtime runner, ktory pre rovnaky follow-up set ulozi skutocne dvojkrokove odpovede agenta a metadata pre porovnanie medzi behmi.",
+    "modules_covered": [
+        "integration.js",
+        "src/dialogue/dialogueState.js",
+        "orchestration/runtime flow"
+    ],
+    "personas_covered": [
+        "auto",
+        "core"
+    ],
+    "constraints": [
+        "skutocny runtime cez SP4IntegratedAgent",
+        "novy agent pre kazdy case aby sa nekontaminoval kontext medzi parmi",
+        "defaultne forceLocal a testMode pre stabilnejsie porovnanie"
+    ],
+    "inherited_question_count": 13,
+    "new_question_count": 0,
+    "edge_case_count": 3,
+    "source_of_questions": "generated",
+    "notes": "Test_002 dedi ten isty follow-up set ako test_001, ale runner uz nepouziva priamy resolver. Namiesto toho odohrava realny dvojkrokovy dialog previous_user -> follow_up a uklada obe odpovede aj metadata.",
+    "runtime": {
+        "mode": "auto",
+        "options": {
+            "forceLocal": true,
+            "testMode": true
+        }
+    },
+    "core_inherited_set": [
+        {
+            "id": "Q01",
+            "bucket": "inherited",
+            "previous_user": "čo je cache",
+            "follow_up": "a načo je to?"
+        },
+        {
+            "id": "Q02",
+            "bucket": "inherited",
+            "previous_user": "čo je API",
+            "follow_up": "a ako sa používa?"
+        },
+        {
+            "id": "Q03",
+            "bucket": "inherited",
+            "previous_user": "čo robí wifi router",
+            "follow_up": "a potom?"
+        },
+        {
+            "id": "Q04",
+            "bucket": "inherited",
+            "previous_user": "kde je Slovensko",
+            "follow_up": "a vedľa čoho?"
+        },
+        {
+            "id": "Q05",
+            "bucket": "inherited",
+            "previous_user": "čo je TCP",
+            "follow_up": "a načo je to?"
+        },
+        {
+            "id": "Q06",
+            "bucket": "inherited",
+            "previous_user": "čo je ping",
+            "follow_up": "a ako sa používa?"
+        },
+        {
+            "id": "Q07",
+            "bucket": "inherited",
+            "previous_user": "čo je localhost",
+            "follow_up": "a načo je to?"
+        }
+    ],
+    "expanded_set": [
+        {
+            "id": "Q08",
+            "bucket": "expanded",
+            "previous_user": "čo je DNS",
+            "follow_up": "a ako sa používa?"
+        },
+        {
+            "id": "Q09",
+            "bucket": "expanded",
+            "previous_user": "čo je port",
+            "follow_up": "a ako sa používa?"
+        },
+        {
+            "id": "Q10",
+            "bucket": "expanded",
+            "previous_user": "čo znamená chyba 404",
+            "follow_up": "a ako sa používa?"
+        }
+    ],
+    "edge_stress_set": [
+        {
+            "id": "Q11",
+            "bucket": "edge",
+            "previous_user": "čo je wifi",
+            "follow_up": "a kde sa používa?"
+        },
+        {
+            "id": "Q12",
+            "bucket": "edge",
+            "previous_user": "čo robí router",
+            "follow_up": "a čo ďalej?"
+        },
+        {
+            "id": "Q13",
+            "bucket": "edge",
+            "previous_user": "čo je auto",
+            "follow_up": "a načo je to?"
+        }
+    ]
+}

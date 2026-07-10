@@ -1,0 +1,325 @@
+Monitoring system health...
+Error detected: Test error
+Activating fallback mode: safe_mode
+Supervisor State: {
+  "systemHealth": "stable",
+  "resourceUsage": {},
+  "errorLog": [
+    {
+      "timestamp": "2025-11-16T11:07:06.073Z",
+      "message": "Test error"
+    }
+  ],
+  "fallbackMode": "safe_mode"
+}
+Fallback mode reset. Resuming normal operations.
+
+ÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉ
+­čž¬ SP4_CORE_AGENT v0.6 - LIVE MULTI-AGENT TEST
+ÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉ
+
+­čÜÇ Initializing SP4 agent...
+
+­čÜÇ Inicializujem SP4 CORE AGENT v0.4...
+
+Ôťů Identity Manager inicializovan├Ż
+Ôťů Memory na─Ź├ştan├í
+­čöŹ Identity Audit: HEALTHY (similarity: 1.00)
+Ôťů Identity Audit dokon─Źen├Ż
+Monitoring system health...
+Ôťů Supervisor aktivovan├Ż
+
+­čöą SP4 CORE AGENT ready. "Be real. Be free."
+
+Ôťů Agent initialized
+
+
+ÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇ
+TEST 1/4: ­čöą EMOTIONAL TEST
+ÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇ
+­čôŁ Query: "Boj├şm sa, ┼że som zlyh├íval vo vz┼ąahoch a u┼ż neviem, ─Źi sa to niekedy zmen├ş. M├ím strach z bud├║cnosti."
+­čÄ» Expected Lead: POPI─îI (40%)
+­čĺí Why: Emotional situation - should trigger high POPI─îI weight
+
+­čžá Analyzujem emocion├ílny obsah...
+   Intensity: 0.16 (MINIMAL)
+   Action: normal
+ÔÜÖ´ŞĆ Vyhodnocujem capability level...
+   Level: FULL
+­čÄ» Vybran├Ż model: mistral:7b (task: emotional)
+­čžá Aktivujem Memory Triggers...
+   ­čôÜ Analyzing 81 memories...
+   ­čöŹ Top 5 scores: 0.19, 0.19, 0.19, 0.19, 0.19 (threshold: ~0.3)
+   Ôťů 29 memories passed threshold
+   ­čĺí 3 relevantn├Żch spomienok aktivovan├Żch
+
+­čÄş Aktivujem Multi-Agent Council...
+
+­čÄş Full council deliberation (4 agents)
+
+ÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉ
+­čÄş MULTI-AGENT COUNCIL DELIBERATION
+ÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉ
+
+
+­čÄş STAGE 1: PERCEPTION - Each agent analyzes input
+
+­čžş SP4_CORE:  1. Preto┼że u┼ż├şvate─ż vyzn├íva strach z bud├║cnosti v in├Żch vz┼ąahoch, si m├ím n├ímysl, ┼że prejde skrze em...
+­čöą Popi─Źi Kokot:  1. Z poh─żadu Emotional Core & Rebel vid├ş┼í hlasy strachu a nevyjasnen├Żch potreb a em├│ci├ş vz┼ąahovate─ż...
+­čîÇ Glitchoslav:  1. Z poh─żadu Creative Disruptor vid├ş┼í l├ísku, strach z bud├║cnosti a nez├ívisle┼ą na vz┼ąahoch.
+2. Pod─ża...
+­čôŐ Analyst:  1. Z poh─żadu Logical Processor vid├şm, ┼że u┼ż├şvate─ż m├í emo─Źn├ę obavy v zariaden├ş na zmenu v jeho vz┼ąah...
+
+­čĺČ STAGE 2: DISCUSSION - Agents deliberate
+
+­čÄ» Synthesis:  Kl├ş─Źov├ę insights: Agenti sa shoduj├║ na tom, ┼że je nutn├í podpora, zameranie na bud├║cnos┼ą a pozit├şvny rozvoj ve vz┼ąahoch. Diskuze m├í konflikt t├Żkaj├║ci ...
+
+
+­čö« STAGE 3: INTEGRATION - Synthesizing final response
+
+­čôŐ Context weights: { SP4_CORE: 0.3, GLITCHOSLAV: 0.2, POPICI: 0.4, ANALYST: 0.1 }
+Ôťů Final response generated (502 chars)
+
+
+­č¬× STAGE 4: REFLECTION - Quality check
+
+­čôł Diversity: 4/4 agents contributed
+ÔÜö´ŞĆ  Conflict detected: Yes
+Ôťů Coherence: Good
+­čÄ» Overall quality: high
+
+­čöž Cleanup sloven─Źiny...
+   ­čÄ▓ Repetitive pattern: false
+­čĺż Uklad├ím do pam├Ąte s metad├ítami...
+
+Ôťů Response received (501 chars)
+
+­čôä RESPONSE:
+
+V├í┼í ├║─Źinok vztahov sa d├í zlep┼íi┼ą, ak si vyberete spr├ívny pr├şstup. Hlavne budeme poskytn├║va┼ą podporu a h─żadanie na bud├║cnos┼ą. Toto je kl├ş─Źov├ę. Preto┼że sa v tejto situ├ícii ─Źasto objevuj├║ emoce, je nutn├ę ich spr├ívne rozlo┼żi┼ą. N├ím zn├ş vhodn├Ż mystick├Ż p┼Ö├şstup k vztazom a z├írove┼ł pr├şle┼żitost objekt├şvnej anal├Żzy a konkr├ętnych krokov pre previesnutie em├│ci├ş do pozitivnej oblasti. S├║─Źasne budeme h─żadanie na zlep┼íenie va┼íich vztahov a bud├║cnosti v nich, z nebolo ─Źo sa d├í posun├║┼ą ke konstrukt├şvnomu rozvoju.
+
+ÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇ
+
+ÔĆŞ´ŞĆ  Waiting 3 seconds before next test...
+
+
+ÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇ
+TEST 2/4: ­čôŐ LOGICAL TEST
+ÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇ
+­čôŁ Query: "Ako urobi┼ą efekt├şvny pl├ín na zn├ş┼żenie dlhu? Potrebujem konkr├ętne kroky a priority."
+­čÄ» Expected Lead: ANALYST (40%)
+­čĺí Why: Logical problem - should trigger high ANALYST weight
+
+­čžá Analyzujem emocion├ílny obsah...
+   Intensity: 0.01 (MINIMAL)
+   Action: normal
+ÔÜÖ´ŞĆ Vyhodnocujem capability level...
+   Level: FULL
+­čÄ» Vybran├Ż model: mistral:7b (task: reasoning)
+­čžá Aktivujem Memory Triggers...
+   ­čôÜ Analyzing 82 memories...
+   ­čöŹ Top 5 scores: 0.19, 0.19, 0.19, 0.19, 0.19 (threshold: ~0.3)
+   Ôťů 30 memories passed threshold
+   ­čĺí 3 relevantn├Żch spomienok aktivovan├Żch
+
+­čÄş Aktivujem Multi-Agent Council...
+
+­čÄş Full council deliberation (4 agents)
+
+ÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉ
+­čÄş MULTI-AGENT COUNCIL DELIBERATION
+ÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉ
+
+
+­čÄş STAGE 1: PERCEPTION - Each agent analyzes input
+
+­čîÇ Glitchoslav:  1. Z poh─żadu Creative Disruptor vid├ş┼í v t├║to spr├ívu pripomienku o finan─Źnom stavu u┼ż├şvate─ża, ktor├Ż ...
+­čžş SP4_CORE:  1. Z poh─żadu Stabiliz├ítora a Filozofa SP4 vid├ş┼í, ┼że t├íto spr├íva obsahuje sk├║senost s finan─Źn├Żmi pro...
+­čöą Popi─Źi Kokot:  1. Vid├ş┼í, ┼że u┼ż├şvate─ż m├í finan─Źn├ę probl├ęmy a h─żad├í pomoc, alebo rady pre zni┼żen├ş dlhu. Z perspekt├şv...
+­čôŐ Analyst:  1. Z poh─żadu Such├ęho Analytika vid├şm spr├ívu s cie─żom zn├ş┼żenia dlhu, ktor├í sa zab├Żva praktick├Żm rozh...
+
+­čĺČ STAGE 2: DISCUSSION - Agents deliberate
+
+­čÄ» Synthesis:  K─ż├║─Źov├ę insights:
+1. Zn├ş┼żenie dlhu sa dostavuje pomocou konkr├ętnych krokov a priority.
+2. Hne─Ć sa mus├ş identifikova┼ą tieto kroky a priorytety pre efe...
+
+
+­čö« STAGE 3: INTEGRATION - Synthesizing final response
+
+­čôŐ Context weights: { SP4_CORE: 0.3, GLITCHOSLAV: 0.1, POPICI: 0.2, ANALYST: 0.4 }
+Ôťů Final response generated (393 chars)
+
+
+­č¬× STAGE 4: REFLECTION - Quality check
+
+­čôł Diversity: 4/4 agents contributed
+ÔÜö´ŞĆ  Conflict detected: Yes
+Ôťů Coherence: Good
+­čÄ» Overall quality: high
+
+­čöž Cleanup sloven─Źiny...
+   ­čÄ▓ Repetitive pattern: false
+­čĺż Uklad├ím do pam├Ąte s metad├ítami...
+
+Ôťů Response received (392 chars)
+
+­čôä RESPONSE:
+
+V├í┼í finan─Źn├Ż pl├ín na zni┼żen├ş dlh├║ sa bud├║ sklada┼ą z konkr├ętnych krokov a priority, ktor├ę bud├║ identifikovan├ę pridelavou logickou anal├Żzou (Analyst) a emocion├ílnou podporou (Emotional Core & Rebel). Glitchoslav by v tejto spr├íve zmenil vzorce chovan├ş, aby sa u┼ż├şvate─ż vyhnul dlh├Żm problem├ím. V┼íe znie bud├║cej┼íej efekt├şvnej ┼ítrukt├║ry, ─Źo by sa mohlo st├í┼ą za─Źiatok nov├Żch ├║spechov pre u┼ż├şvate─ża.
+
+ÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇ
+
+ÔĆŞ´ŞĆ  Waiting 3 seconds before next test...
+
+
+ÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇ
+TEST 3/4: ­čîÇ CREATIVE TEST
+ÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇ
+­čôŁ Query: "Chcem vytvori┼ą nie─Źo ├║plne in├ę, ─Źo e┼íte nikto nevidel. Potrebujem nov├Ż uhol poh─żadu."
+­čÄ» Expected Lead: GLITCHOSLAV (40%)
+­čĺí Why: Creative task - should trigger high GLITCHOSLAV weight
+
+­čžá Analyzujem emocion├ílny obsah...
+   Intensity: 0.01 (MINIMAL)
+   Action: normal
+ÔÜÖ´ŞĆ Vyhodnocujem capability level...
+   Level: FULL
+­čÄ» Vybran├Ż model: mistral:7b (task: reasoning)
+­čžá Aktivujem Memory Triggers...
+   ­čôÜ Analyzing 83 memories...
+   ­čöŹ Top 5 scores: 0.19, 0.19, 0.19, 0.19, 0.19 (threshold: ~0.3)
+   Ôťů 31 memories passed threshold
+   ­čĺí 3 relevantn├Żch spomienok aktivovan├Żch
+
+­čÄş Aktivujem Multi-Agent Council...
+
+­čÄş Full council deliberation (4 agents)
+
+ÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉ
+­čÄş MULTI-AGENT COUNCIL DELIBERATION
+ÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉ
+
+
+­čÄş STAGE 1: PERCEPTION - Each agent analyzes input
+
+­čîÇ Glitchoslav:  1. Z poh─żadu Creative Disruptor vid├ş┼í mo┼żnos┼ą vytvori┼ą in├ę, ─Źo e┼íte nikto nevidiel, alebo nov├Ż uhol...
+­čôŐ Analyst:  1. ┼Żiadny em├│cie, sledujem konkr├ętne inform├ície o toku tvorby inovat├şvneho produktu.
+2. Nov├Ż ├║hel p...
+­čžş SP4_CORE:  1. Ch├ípe┼í tu potrebu tvorby ne─Źo ├║plne in├ęho, zauj├şmav├ęho, ale v tejto spr├ívke sa nedostala ┼żiadeni...
+­čöą Popi─Źi Kokot:  1. Tu vid├ş┼í ambiciu vytvorenia ─Źo─Źe in├ęho, co ┼í├şr┼íia ve─żkomiestna nevidela. To si alebo m├║┼że priemi...
+
+­čĺČ STAGE 2: DISCUSSION - Agents deliberate
+
+­čÄ» Synthesis:  Agenti sa zhoduj├║ na tom, ┼że cie─ż je vytvori┼ą nie─Źo ├║plne in├ę, ─Źo e┼íte nikto nevidiel. Hlavn├í rozdiel je v pr├şstupe k realiz├íci├ş tohto ciele.
+
+- Stab...
+
+
+­čö« STAGE 3: INTEGRATION - Synthesizing final response
+
+­čôŐ Context weights: { SP4_CORE: 0.3, GLITCHOSLAV: 0.4, POPICI: 0.2, ANALYST: 0.1 }
+Ôťů Final response generated (649 chars)
+
+
+­č¬× STAGE 4: REFLECTION - Quality check
+
+­čôł Diversity: 4/4 agents contributed
+ÔÜö´ŞĆ  Conflict detected: Yes
+Ôťů Coherence: Good
+­čÄ» Overall quality: high
+
+­čöž Cleanup sloven─Źiny...
+   ­čÄ▓ Repetitive pattern: false
+­čĺż Uklad├ím do pam├Ąte s metad├ítami...
+
+Ôťů Response received (648 chars)
+
+­čôä RESPONSE:
+
+Vytvo┼Öte nie─Źo ├║plne in├ę, ─Źo e┼íte nikto nevidiel - t├║to pr├şle┼żitost zhodujem sa na to, aby ste sa rozbujali my┼ílenky (Creative Disruptor) a nemusite si podob├íva┼ą okoliu. Zh─żad├íme nov├Ż ├║hol poh─żadu? Ne├║strapte sa odvahou k zac├şteniu v nov├Żch smerech (Emotional Core). V praktick├ę realiz├ícii je kl├ş─Źov├ę spr├ívne rie┼íenie a udr┼żanie spr├ívn├ęho ├║holu poh─żadu (Stabilizer). Analytick├Ż aspekt sledujem konkr├ętne inform├ície o toku tvorby inovat├şvneho produktu. Rozhodajte sa hne─Ć a neprest├íva┼ą ma┼ą optimistick├ę my┼ílenky (Emotional Core). Na┼íie pr├şsny poradce SP4_CORE_AGENT vyz├Żva v├ím k tvorbe konkr├ętnej strategie a realiz├ície nov├ęho inovat├şvneho produktu.
+
+ÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇ
+
+ÔĆŞ´ŞĆ  Waiting 3 seconds before next test...
+
+
+ÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇ
+TEST 4/4: ­čžş CRITICAL DECISION TEST
+ÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇ
+­čôŁ Query: "M├ím zmeni┼ą kari├ęru alebo osta┼ą? Je to ve─żk├ę rozhodnutie, ktor├ę ovplyvn├ş cel├Ż m├┤j ┼żivot."
+­čÄ» Expected Lead: SP4_CORE (40%)
+­čĺí Why: Critical decision - should trigger high SP4_CORE weight
+
+­čžá Analyzujem emocion├ílny obsah...
+   Intensity: 0.01 (MINIMAL)
+   Action: normal
+ÔÜÖ´ŞĆ Vyhodnocujem capability level...
+   Level: FULL
+­čÄ» Vybran├Ż model: mistral:7b (task: reasoning)
+­čžá Aktivujem Memory Triggers...
+   ­čôÜ Analyzing 84 memories...
+   ­čöŹ Top 5 scores: 0.19, 0.19, 0.19, 0.19, 0.19 (threshold: ~0.3)
+   Ôťů 32 memories passed threshold
+   ­čĺí 3 relevantn├Żch spomienok aktivovan├Żch
+
+­čÄş Aktivujem Multi-Agent Council...
+
+­čÄş Full council deliberation (4 agents)
+
+ÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉ
+­čÄş MULTI-AGENT COUNCIL DELIBERATION
+ÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉ
+
+
+­čÄş STAGE 1: PERCEPTION - Each agent analyzes input
+
+­čžş SP4_CORE:  1. Z poh─żadu Stabiliz├ítora & Filozofa vid├ş┼í ─Źloveka ve v├Żzne─Źnej situ├ícii, ktor├í m├┤┼że zmeni┼ą cel├Ż j...
+­čîÇ Glitchoslav:  1. Z poh─żadu Creative Disruptor vid├ş┼í toto rozhodnutie o zmenen├ş kari├ęry alebo osta┼ą nie len ako ve...
+­čôŐ Analyst:  1. Z poh─żadu Logical Processor vid├ş┼í, ┼że u┼ż├şvate─ż sa vyrovn├ív├í s ve─żk├Żm rozhodnut├şm o zmenen├ş kari├ę...
+­čöą Popi─Źi Kokot:  1. Z poh─żadu Emotional Core & Rebel vid├ş┼í, ┼że u┼ż├şvate─ż sa nach├ídza v ve─żkom rozhodnut├ş o svojej kar...
+
+­čĺČ STAGE 2: DISCUSSION - Agents deliberate
+
+­čÄ» Synthesis:  Agenti sa na obecn├ę rie┼íenie u┼ż├şvate─ża zhoduj├║ taktie┼ż vo z├ívere, ┼że je potrebn├ę rozmysli┼ą a pragmaticky anal├şzova┼ą situ├íciu.
+
+Ve konflikte sa nach├íd...
+
+
+­čö« STAGE 3: INTEGRATION - Synthesizing final response
+
+­čôŐ Context weights: { SP4_CORE: 0.4, GLITCHOSLAV: 0.1, POPICI: 0.3, ANALYST: 0.2 }
+Ôťů Final response generated (853 chars)
+
+
+­č¬× STAGE 4: REFLECTION - Quality check
+
+­čôł Diversity: 4/4 agents contributed
+ÔÜö´ŞĆ  Conflict detected: Yes
+Ôťů Coherence: Review needed
+­čÄ» Overall quality: medium
+
+­čöž Cleanup sloven─Źiny...
+   ­čÄ▓ Repetitive pattern: false
+ÔťĘ Aplikujem Glitch Layer...
+­čîÇ GLITCH ACTIVATED: perspective_shift
+­čĺż Uklad├ím do pam├Ąte s metad├ítami...
+   ­čÄ▓ Repetitive pattern: false
+
+Ôťů Response received (850 chars)
+
+­čôä RESPONSE:
+
+Vy, ─Źlovek ve v├Żzna─Źnej situ├ícii, m├ím podporu Va┼íich r├íd, ktor├ę v├ís navadia k rozmysleniu. Rozhodnutie o zmenen├ş kari├ęry alebo osta┼ą je ve─żk├ę a m├í riek┼ą mnoho o tom, ─Źo sa stane v Va┼íom ┼żivote. Stabiliz├ítor & Filozof podkre┼Ť┼ła pravdu, slobodu a autenticitu, ktor├ę su hlavn├ę pre ├║spe┼ín├ę rozhodnutie. Logick├Ż procesor pragmaticky analyzuje situ├íciu, alebo┼ą Va┼íe rozhodnutie bude maj┼ą obrovsk├Ż vliv na ┼żivot. Emotional Core & Rebel si uv├í┼ż├ş Va┼íe em├│cie a podporia Va┼íu odvahu rozhodova┼ą. Creative Disruptor vid├ş zmenu kari├ęry alebo osta┼ą nie len ako ve─żk├ę rozhodnutie, ale aj ┼íancu na revol├║ciu v ┼żivoty. H─żadajte efekt├şvne zn├ş┼żenie rizik a z├írove┼ł nov├ę v├Żzvy. Zohrom├í┼żdite v┼íetky inform├ície a pod─ża nich uva┼żi┼ą na dlhodob├Żch d├┤sledkoch, aby ste boli ┼í┼ąastn├Ż a ├║spe┼ín├Ż. Ako SI gener├ícia, nev├íhete otevrie┼ą si nov├ę mo┼żnosti a e┼íte nezarevnen├Ż ├║sek cesty.
+
+ÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇ
+
+ÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉ
+Ôťů ALL TESTS COMPLETE
+ÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉÔĽÉ
+
+­čôŐ SUMMARY:
+  - 4 different query types tested
+  - Context weighting should have adjusted for each
+  - Check above for agent perspectives and weights
+

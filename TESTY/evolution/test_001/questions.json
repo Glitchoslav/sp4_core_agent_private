@@ -1,0 +1,183 @@
+{
+    "test_id": "test_001",
+    "parent_test_id": "phase5_followup_wiring_test",
+    "mode": "BUILD",
+    "goal": "Rozsirit regresne krytie deterministic follow-up vrstvy po dopojeni resolveDeterministicFollowUp a short_tech branchu.",
+    "modules_covered": [
+        "integration.js",
+        "src/dialogue/dialogueState.js"
+    ],
+    "personas_covered": [
+        "core"
+    ],
+    "constraints": [
+        "bez LLM volania",
+        "iba resolveDeterministicFollowUp",
+        "vagne alebo netech follow-upy musia ostat llm_fallback"
+    ],
+    "inherited_question_count": 4,
+    "new_question_count": 6,
+    "edge_case_count": 3,
+    "source_of_questions": "generated",
+    "notes": "Zaklad tvoria 4 pary z phase5_followup_wiring_test.mjs. Rozsirenie pokryva dalsie explicitne short-tech subjekty z SHORT_TECH_FOLLOWUPS a tri konzervativne fallback scenare.",
+    "core_inherited_set": [
+        {
+            "id": "Q01",
+            "bucket": "inherited",
+            "previous_user": "čo je cache",
+            "previous_assistant": "Cache je dočasná pamäť, kde sa ukladajú výsledky náročných operácií pre rýchlejší opätovný prístup. Keď sa dáta znovu potrebujú, načítavajú sa z cache, nie z pomalšieho úložiska.",
+            "follow_up": "a načo je to?",
+            "topic": null,
+            "expected_path": "deterministic",
+            "expected_contains": [
+                "opakované operácie",
+                "rýchlej pamäte"
+            ]
+        },
+        {
+            "id": "Q02",
+            "bucket": "inherited",
+            "previous_user": "čo je API",
+            "previous_assistant": "API je rozhranie, cez ktoré dve aplikácie komunikujú. Definuje aké požiadavky môžeš posielať a v akej forme dostaneš odpoveď.",
+            "follow_up": "a ako sa používa?",
+            "topic": null,
+            "expected_path": "deterministic",
+            "expected_contains": [
+                "HTTP požiadavky",
+                "JSON"
+            ]
+        },
+        {
+            "id": "Q03",
+            "bucket": "inherited",
+            "previous_user": "čo robí wifi router",
+            "previous_assistant": "Wifi router preposiela dáta medzi tvojou lokálnou sieťou a internetom. Prideľuje IP adresy zariadeniam v sieti a riadi dátový tok.",
+            "follow_up": "a potom?",
+            "topic": null,
+            "expected_path": "llm_fallback",
+            "expected_contains": []
+        },
+        {
+            "id": "Q04",
+            "bucket": "inherited",
+            "previous_user": "kde je Slovensko",
+            "previous_assistant": "Slovensko je krajina v strednej Európe, hraničiaca s Českom, Poľskom, Maďarskom, Rakúskom a Ukrajinou.",
+            "follow_up": "a vedľa čoho?",
+            "topic": null,
+            "expected_path": "llm_fallback",
+            "expected_contains": []
+        }
+    ],
+    "expanded_set": [
+        {
+            "id": "Q05",
+            "bucket": "expanded",
+            "previous_user": "čo je TCP",
+            "previous_assistant": "TCP je protokol spoľahlivého prenosu dát po sieti. Keď záleží na poradí a potvrdení doručenia, používa sa TCP.",
+            "follow_up": "a načo je to?",
+            "topic": null,
+            "expected_path": "deterministic",
+            "expected_contains": [
+                "spoľahlivé doručenie",
+                "HTTP/S"
+            ]
+        },
+        {
+            "id": "Q06",
+            "bucket": "expanded",
+            "previous_user": "čo je ping",
+            "previous_assistant": "Ping je nástroj na overenie dostupnosti zariadenia v sieti a meranie latencie.",
+            "follow_up": "a ako sa používa?",
+            "topic": null,
+            "expected_path": "deterministic",
+            "expected_contains": [
+                "ping 8.8.8.8",
+                "ICMP"
+            ]
+        },
+        {
+            "id": "Q07",
+            "bucket": "expanded",
+            "previous_user": "čo je localhost",
+            "previous_assistant": "Localhost je špeciálny hostname, ktorý ukazuje na tvoj vlastný počítač.",
+            "follow_up": "a načo je to?",
+            "topic": null,
+            "expected_path": "deterministic",
+            "expected_contains": [
+                "pri vývoji",
+                "rovnakého stroja"
+            ]
+        },
+        {
+            "id": "Q08",
+            "bucket": "expanded",
+            "previous_user": "čo je DNS",
+            "previous_assistant": "DNS prekladá doménové mená na IP adresy.",
+            "follow_up": "a ako sa používa?",
+            "topic": null,
+            "expected_path": "deterministic",
+            "expected_contains": [
+                "nslookup",
+                "dig"
+            ]
+        },
+        {
+            "id": "Q09",
+            "bucket": "expanded",
+            "previous_user": "čo je port",
+            "previous_assistant": "Port identifikuje konkrétnu službu na danom serveri.",
+            "follow_up": "a ako sa používa?",
+            "topic": null,
+            "expected_path": "deterministic",
+            "expected_contains": [
+                "localhost:3000",
+                "PORT=3000"
+            ]
+        },
+        {
+            "id": "Q10",
+            "bucket": "expanded",
+            "previous_user": "čo znamená chyba 404",
+            "previous_assistant": "HTTP 404 znamená, že server nenašiel požadovaný zdroj.",
+            "follow_up": "a ako sa používa?",
+            "topic": null,
+            "expected_path": "deterministic",
+            "expected_contains": [
+                "nenájde požadovaný zdroj",
+                "URL neexistuje"
+            ]
+        }
+    ],
+    "edge_stress_set": [
+        {
+            "id": "Q11",
+            "bucket": "edge",
+            "previous_user": "čo je wifi",
+            "previous_assistant": "WiFi poskytuje bezdrôtovú sieťovú konektivitu medzi zariadeniami a routerom.",
+            "follow_up": "a kde sa používa?",
+            "topic": null,
+            "expected_path": "llm_fallback",
+            "expected_contains": []
+        },
+        {
+            "id": "Q12",
+            "bucket": "edge",
+            "previous_user": "čo robí router",
+            "previous_assistant": "Router presmerúva dáta medzi lokálnou sieťou a internetom.",
+            "follow_up": "a čo ďalej?",
+            "topic": null,
+            "expected_path": "llm_fallback",
+            "expected_contains": []
+        },
+        {
+            "id": "Q13",
+            "bucket": "edge",
+            "previous_user": "čo je auto",
+            "previous_assistant": "Auto je dopravný prostriedok na cestovanie po ceste.",
+            "follow_up": "a načo je to?",
+            "topic": null,
+            "expected_path": "llm_fallback",
+            "expected_contains": []
+        }
+    ]
+}

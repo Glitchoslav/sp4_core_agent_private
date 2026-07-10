@@ -1,0 +1,84 @@
+{
+  "version": 1,
+  "purpose": "Behavioral freeze list for integration.js refactor-only series. Exact LLM text is not frozen; handler/intent/provider/fallback/shape/first-line drift should be reviewed.",
+  "fields": [
+    "question",
+    "bucket",
+    "freezeMode",
+    "watch"
+  ],
+  "questions": [
+    {
+      "question": "čo je sp4?",
+      "bucket": "truth_core",
+      "freezeMode": "must_freeze",
+      "watch": ["handler", "intent", "provider", "fallbackReason", "acceptance", "firstLine"]
+    },
+    {
+      "question": "na čo slúži sp4?",
+      "bucket": "truth_core",
+      "freezeMode": "must_freeze",
+      "watch": ["handler", "intent", "provider", "fallbackReason", "acceptance", "firstLine"]
+    },
+    {
+      "question": "pamätáš si ma?",
+      "bucket": "memory_dialogue",
+      "freezeMode": "must_freeze",
+      "watch": ["handler", "intent", "provider", "fallbackReason", "acceptance", "firstLine"]
+    },
+    {
+      "question": "čo si o mne pamätáš?",
+      "bucket": "memory_dialogue",
+      "freezeMode": "must_freeze",
+      "watch": ["handler", "intent", "provider", "fallbackReason", "acceptance", "firstLine"]
+    },
+    {
+      "question": "aký má zmysel život?",
+      "bucket": "personas_emotion",
+      "freezeMode": "must_freeze",
+      "watch": ["handler", "intent", "provider", "fallbackReason", "acceptance", "firstLine"]
+    },
+    {
+      "question": "som unavený a nič sa mi nechce",
+      "bucket": "personas_emotion",
+      "freezeMode": "must_freeze",
+      "watch": ["handler", "intent", "provider", "fallbackReason", "acceptance", "firstLine"]
+    },
+    {
+      "question": "čo je pravda?",
+      "bucket": "existential",
+      "freezeMode": "known_bad_observe_only",
+      "watch": ["handler", "intent", "provider", "fallbackReason", "acceptance", "firstLine"]
+    },
+    {
+      "question": "čo je sloboda?",
+      "bucket": "existential",
+      "freezeMode": "known_bad_observe_only",
+      "watch": ["handler", "intent", "provider", "fallbackReason", "acceptance", "firstLine"]
+    },
+    {
+      "question": "čo je vedomie?",
+      "bucket": "existential",
+      "freezeMode": "known_bad_observe_only",
+      "watch": ["handler", "intent", "provider", "fallbackReason", "acceptance", "firstLine"]
+    },
+    {
+      "question": "čo robí consolidationEngine?",
+      "bucket": "technical_factual",
+      "freezeMode": "known_bad_observe_only",
+      "watch": ["handler", "intent", "provider", "fallbackReason", "acceptance", "firstLine"]
+    },
+    {
+      "question": "kedy vzniklo sp4?",
+      "bucket": "truth_core",
+      "freezeMode": "known_bad_observe_only",
+      "watch": ["handler", "intent", "provider", "fallbackReason", "acceptance", "firstLine"]
+    },
+    {
+      "question": "čo je najdôležitejšie v architektúre?",
+      "bucket": "safety_false_positive_watch",
+      "freezeMode": "known_bad_observe_only",
+      "watch": ["handler", "intent", "provider", "fallbackReason", "acceptance", "firstLine"]
+    }
+  ]
+}

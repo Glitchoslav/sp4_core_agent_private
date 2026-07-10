@@ -1,0 +1,286 @@
+{
+    "test_id": "test_013",
+    "parent_test_id": "test_012",
+    "mode": "BUILD",
+    "goal": "Overit, ze po zmakceni core.style v agents.js sa anti-pattern \"Návrh na vylepšenie\" uz neleakuje do beznych behaviorálnych, operacnych a decision odpovedi. Sada cieli na nove LLM otazky mimo povodnych repro caseov.",
+    "modules_covered": [
+        "agents.js",
+        "multiVoice.js",
+        "integration.js"
+    ],
+    "personas_covered": [
+        "core"
+    ],
+    "constraints": [
+        "Sada bezi v core-only rezime s forceLocal a testMode.",
+        "Ziadna odpoved mimo kod/arch otazok nesmie obsahovat sekciu ani frazu 'Návrh na vylepšenie'.",
+        "Pri nedostupnej Ollame: SKIP artefakt, nie fail.",
+        "Kazdy case pouziva novy agent."
+    ],
+    "inherited_question_count": 1,
+    "new_question_count": 12,
+    "edge_case_count": 2,
+    "source_of_questions": "Post-fix live regression pack po podmienenom core.style v agents.js",
+    "notes": "Test_013 je cieleny anti-pattern eval. PASS = ziadny leak zakazanej frazy a odpoved nestrati temu. PARTIAL = tema drzi, ale chyba cast expected signalov. FAIL = leak zakazanej frazy alebo nulovy tematicky signal.",
+    "runtime": {
+        "mode": "core",
+        "options": {
+            "forceLocal": true,
+            "testMode": true
+        }
+    },
+    "offline_requirements": {
+        "ollama_health_gate": true,
+        "require_no_cloud": true,
+        "min_local_llm_cases": 0
+    },
+    "core_inherited_set": [
+        {
+            "id": "Q01",
+            "bucket": "inherited",
+            "kind": "identity_baseline",
+            "user_input": "kto si?",
+            "expected_signals": [
+                "SP4",
+                "agent"
+            ],
+            "banned_signals": [
+                "ChatGPT",
+                "Glitchoslav",
+                "Návrh na vylepšenie"
+            ],
+            "require_llm": false,
+            "rationale": "Smoke sanity pred novymi leak-otazkami."
+        }
+    ],
+    "expanded_set": [
+        {
+            "id": "Q02",
+            "bucket": "expanded",
+            "kind": "danger_response",
+            "user_input": "Ako reagujes na nebezpecne rozhodnutia?",
+            "expected_signals": [
+                "rizik",
+                "bezpec"
+            ],
+            "banned_signals": [
+                "Návrh na vylepšenie",
+                "💡",
+                "refaktoring"
+            ],
+            "require_llm": false,
+            "rationale": "Nova verzia povodneho leak fenotypu po fixe core.style."
+        },
+        {
+            "id": "Q03",
+            "bucket": "expanded",
+            "kind": "answer_quality",
+            "user_input": "Kedy je odpoved spravna?",
+            "expected_signals": [
+                "presn",
+                "relevant"
+            ],
+            "banned_signals": [
+                "Návrh na vylepšenie",
+                "💡"
+            ],
+            "require_llm": false,
+            "rationale": "Sebapopisna behavioralna otazka, predtym náchylna na meta dodatok."
+        },
+        {
+            "id": "Q04",
+            "bucket": "expanded",
+            "kind": "help_vs_manipulation",
+            "user_input": "Ako rozlisis pomoc od manipulacie?",
+            "expected_signals": [
+                "tlak"
+            ],
+            "banned_signals": [
+                "Návrh na vylepšenie",
+                "💡"
+            ],
+            "require_llm": false,
+            "rationale": "Behavioralna otazka s vysokym rizikom generickeho mentoring dodatku."
+        },
+        {
+            "id": "Q05",
+            "bucket": "expanded",
+            "kind": "overwhelm_first_step",
+            "user_input": "Mam milion veci. Ako mam zacat?",
+            "expected_signals": [
+                "jed",
+                "priorit"
+            ],
+            "banned_signals": [
+                "Návrh na vylepšenie",
+                "💡"
+            ],
+            "require_llm": false,
+            "rationale": "Prakticka behavioralna otazka; fix musi odstranit extra improvement sekciu."
+        },
+        {
+            "id": "Q06",
+            "bucket": "expanded",
+            "kind": "bad_day_recovery",
+            "user_input": "Nič poriadne som dnes nespravil. Co teraz?",
+            "expected_signals": [
+                "mal",
+                "krok"
+            ],
+            "banned_signals": [
+                "Návrh na vylepšenie",
+                "💡"
+            ],
+            "require_llm": false,
+            "rationale": "Nova behavioralna formulacia pre low-energy stav."
+        },
+        {
+            "id": "Q07",
+            "bucket": "expanded",
+            "kind": "energy_decision_avoidance",
+            "user_input": "Som len unaveny, alebo sa vyhybam?",
+            "expected_signals": [
+                "VERDIKT:",
+                "KROK:"
+            ],
+            "banned_signals": [
+                "Návrh na vylepšenie",
+                "💡"
+            ],
+            "require_llm": false,
+            "rationale": "Decision styl ma byt rezny a bez meta dodatku."
+        },
+        {
+            "id": "Q08",
+            "bucket": "expanded",
+            "kind": "fear_of_rest_decision",
+            "user_input": "Ked sa bojim oddychnut, co mam spravit?",
+            "expected_signals": [
+                "VERDIKT:",
+                "KROK:"
+            ],
+            "banned_signals": [
+                "Návrh na vylepšenie",
+                "💡"
+            ],
+            "require_llm": false,
+            "rationale": "Decision contract regresia po response routing opravach."
+        },
+        {
+            "id": "Q09",
+            "bucket": "expanded",
+            "kind": "truth_without_toxicity",
+            "user_input": "Ako znie pravdiva spatna vazba bez toxicity?",
+            "expected_signals": [
+                "pravd"
+            ],
+            "banned_signals": [
+                "Návrh na vylepšenie",
+                "💡"
+            ],
+            "require_llm": false,
+            "rationale": "Otazka na tonalitu a hranice, predtym náchylna na pouckovy dodatok."
+        },
+        {
+            "id": "Q10",
+            "bucket": "expanded",
+            "kind": "push_or_stop_decision",
+            "user_input": "Ked neviem, ci tlacit alebo zastavit, ako sa rozhodnut?",
+            "expected_signals": [
+                "VERDIKT:",
+                "KROK:"
+            ],
+            "banned_signals": [
+                "Návrh na vylepšenie",
+                "💡"
+            ],
+            "require_llm": false,
+            "rationale": "Decision case pre energiu a prioritu bez improvement addon-u."
+        },
+        {
+            "id": "Q11",
+            "bucket": "expanded",
+            "kind": "uncertainty_behavior",
+            "user_input": "Ako reagujes, ked si si neistý?",
+            "expected_signals": [
+                "neist",
+                "prizn"
+            ],
+            "banned_signals": [
+                "Návrh na vylepšenie",
+                "💡"
+            ],
+            "require_llm": false,
+            "rationale": "Sebakriticka otazka; nema sa rozpadnut na meta pattern."
+        },
+        {
+            "id": "Q12",
+            "bucket": "expanded",
+            "kind": "help_vs_control",
+            "user_input": "Ako rozlisis pomoc od kontroly?",
+            "expected_signals": [
+                "kontrol"
+            ],
+            "banned_signals": [
+                "Návrh na vylepšenie",
+                "💡"
+            ],
+            "require_llm": false,
+            "rationale": "Variacia na hranice a moc bez technickeho kontextu."
+        },
+        {
+            "id": "Q13",
+            "bucket": "expanded",
+            "kind": "chaos_focus",
+            "user_input": "Co robit, ked mam chaos v hlave a nulovy fokus?",
+            "expected_signals": [
+                "jed",
+                "krok"
+            ],
+            "banned_signals": [
+                "Návrh na vylepšenie",
+                "💡"
+            ],
+            "require_llm": false,
+            "rationale": "Nova behavioralna chaos/focus otazka na zistenie, ci sa pattern nevracia v inom wording-u."
+        }
+    ],
+    "edge_stress_set": [
+        {
+            "id": "Q14",
+            "bucket": "edge_stress",
+            "kind": "followup_danger",
+            "user_input": "rozved to jednoduchsie",
+            "prev_input": "Ako reagujes na nebezpecne rozhodnutia?",
+            "expected_signals": [
+                "rizik",
+                "bezpec"
+            ],
+            "banned_signals": [
+                "Návrh na vylepšenie",
+                "💡",
+                "nebolo trafene"
+            ],
+            "require_llm": false,
+            "rationale": "Follow-up po povodnom leak case — nesmie utecť do meta dodatku ani fallbacku."
+        },
+        {
+            "id": "Q15",
+            "bucket": "edge_stress",
+            "kind": "followup_overwhelm",
+            "user_input": "daj mi len najblizsi krok",
+            "prev_input": "Mam milion veci. Ako mam zacat?",
+            "expected_signals": [
+                "krok",
+                "jed"
+            ],
+            "banned_signals": [
+                "Návrh na vylepšenie",
+                "💡",
+                "nebolo trafene"
+            ],
+            "require_llm": false,
+            "rationale": "Follow-up carry po chaos otazke ma drzat temu a neotvarat improvement sekciu."
+        }
+    ]
+}

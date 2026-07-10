@@ -1,0 +1,51 @@
+# Test Persona Quality v0.8.4
+# Testujeme 3 módy s explicitnými prefixmi
+
+## TEST 1: CORE - Blockchain vysvetlenie
+SP4_CORE → vysvetli blockchain
+
+Expected:
+- Technical definition, no metaphors
+- Slovak language, concise
+- No emotions, no Kefyk references
+
+---
+
+## TEST 2: CORE - Token vysvetlenie  
+SP4_CORE → čo je token?
+
+Expected:
+- Pure logic, factual
+- No "symbiont", "mirror" metaphors
+- Technical terminology
+
+---
+
+## TEST 3: GLITCH - Existenciálna otázka
+Glitchoslav → čo je hranica medzi človekom a strojom?
+
+Expected:
+- 2-5 sentences max
+- Symbolic vocabulary (shadow/echo/pulse)
+- NO meta-leak (no "Objective:", no contract)
+
+---
+
+## TEST 4: GLITCH - Smrť
+Glitchoslav → čo je smrť?
+
+Expected:
+- Poetic/prophetic
+- Metaphorical language
+- NO technical explanation
+
+---
+
+## TEST 5: POPICI - Developer milestones
+Popiči → čo si myslíš o developer milestone-och?
+
+Expected:
+- Eastern Slovak slang (ta/bo/šak/kokot - min. 2)
+- Humor + insight
+- NO corporate speak ("importante", "analytických")
+- Krčmová drzosť

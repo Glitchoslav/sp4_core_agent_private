@@ -1,0 +1,42 @@
+{
+  "test_id": "test_007",
+  "parent_test_id": "test_006",
+  "mode": "BUILD",
+  "goal": "Dokazat single-write invariant pre jeden CLI-ekvivalentny turn cez index_v07.js -> integration.js -> memory.js.",
+  "modules_covered": [
+    "index_v07.js",
+    "integration.js",
+    "src/runtime/writebackTail.js",
+    "src/pipeline/memoryWritebackStep.js",
+    "memory.js",
+    "src/core/runtimeLogging.js"
+  ],
+  "personas_covered": [
+    "core"
+  ],
+  "constraints": [
+    "Nereferencovat stary duplicitny CLI write path ako autoritu.",
+    "Po teste obnovit povodny memory.json.",
+    "Dovolit len jeden persistentny zapis rawMemory.log na jeden CLI turn.",
+    "Staticky guard ma cielit na konkretny zakazany post-ask write pattern, nie na lubovolny textovy vyskyt addLogEntry.",
+    "Interaktivny child-process CLI smoke test ma byt volitelny, nie povinna flaky brana pre bezny beh."
+  ],
+  "inherited_question_count": 0,
+  "new_question_count": 5,
+  "edge_case_count": 3,
+  "source_of_questions": "generated",
+  "notes": "Regresna sada pre writeback authority po odstraneni duplicitneho CLI zapisu, zaradena do kanonickej evolucnej linie testov.",
+  "core_inherited_set": [],
+  "expanded_set": [
+    "Prejde jeden realny CLI-ekvivalentny turn cez agent.ask a vytvori presne jeden novy rawMemory zapis?",
+    "Obsahuje ulozeny input presne povodnu CLI spravu?",
+    "Neobsahuje index_v07.js po patche priamy addLogEntry import ani konkretne zakazany post-ask addLogEntry pattern?",
+    "Zostava volitelny interaktivny CLI smoke test pripraveny pre hlbsi dokaz nad readline bootstrap vrstvou?",
+    "Je bezny testovy beh nadalej stabilny aj bez povinneho child-process smoke kroku?"
+  ],
+  "edge_stress_set": [
+    "Obnovi test po sebe povodny memory.json bez uniku testovacich dat?",
+    "Nesposobi nova vazba memory -> runtimeLogging importnu alebo inicializacnu slucku?",
+    "Ak sa smoke test zapne cez env flag, potvrdi aj interaktivny CLI tok bez druheho write-u?"
+  ]
+}
