@@ -1,0 +1,107 @@
+// ┌─────────────────────────────────────────────┐
+// │  SP4 OS MODULE: kb-provider                │
+// │  Layer: Core / Knowledge Base             │
+// │  Role: Inject SP4 facts into prompts      │
+// │  API: getRelevantKb(prompt, persona)      │
+// └─────────────────────────────────────────────┘
+
+/**
+ * SP4 KNOWLEDGE BASE PROVIDER
+ *
+ * Načíta sp4-kb/index.json (raz, synchrónne pri štarte) a vracia relevantné
+ * fakty o SP4 pre daný prompt. Jednoduché keyword matching (žiadne embeddings).
+ *
+ * ESM modul (sp4_core_agent má type:module; bridge-server.js používa import).
+ *
+ * @module kb-provider
+ */
+
+import fs from 'fs';
+import path from 'path';
+import { fileURLToPath } from 'url';
+
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
+// kb-provider.js: sp4_core_agent/src/core/  ->  KB: SP4KULT/sp4-kb/index.json
+const INDEX_PATH = path.join(__dirname, '..', '..', '..', 'sp4-kb', 'index.json');
+
+/** Lowercase + odstránenie diakritiky pre robustné matchovanie. */
+function normalize(text) {
+  return String(text || '')
+    .toLowerCase()
+    .normalize('NFD')
+    .replace(/[̀-ͯ]/g, '');
+}
+
+// ── Načítanie indexu raz pri štarte ───────────────────────
+let KB_INDEX = [];
+try {
+  const raw = fs.readFileSync(INDEX_PATH, 'utf8');
+  const parsed = JSON.parse(raw);
+  KB_INDEX = Array.isArray(parsed) ? parsed : [];
+  // Predpočítaj normalizované kľúčové slová (term + aliases) pre rýchlosť.
+  for (const rec of KB_INDEX) {
+    const keywords = [rec.term, ...(Array.isArray(rec.aliases) ? rec.aliases : [])];
+    rec._keywords = keywords.map(normalize).filter(Boolean);
+    rec._scope = Array.isArray(rec.persona_scope) ? rec.persona_scope.map((s) => String(s).toLowerCase()) : ['all'];
+  }
+} catch (err) {
+  // KB chýba/zlyhalo načítanie -> provider funguje, len vracia prázdne výsledky.
+  console.warn(`[kb-provider] index.json sa nepodarilo načítať (${INDEX_PATH}): ${err.message}`);
+  KB_INDEX = [];
+}
+
+/** Je záznam viditeľný pre danú personu? */
+function inScope(rec, personaKey) {
+  const scope = rec._scope || ['all'];
+  if (scope.includes('all')) return true;
+  if (!personaKey) return false;
+  return scope.includes(String(personaKey).toLowerCase());
+}
+
+/** Verejný tvar záznamu (bez interných polí). */
+function publicShape(rec) {
+  return { term: rec.term, text: rec.text, source: rec.source };
+}
+
+/**
+ * Vráti najrelevantnejšie KB fakty pre daný prompt.
+ *
+ * @param {string} prompt - Text používateľa.
+ * @param {string} personaKey - Kľúč persony (filtruje persona_scope).
+ * @param {number} maxFacts - Max počet vrátených faktov (default 5).
+ * @returns {Array<{term:string,text:string,source:string}>}
+ */
+export function getRelevantKb(prompt, personaKey, maxFacts = 5) {
+  const normPrompt = normalize(prompt);
+  if (!normPrompt) return [];
+
+  const scored = [];
+  for (const rec of KB_INDEX) {
+    if (!inScope(rec, personaKey)) continue;
+    let score = 0;
+    for (const kw of rec._keywords) {
+      if (kw && normPrompt.includes(kw)) score += 1;
+    }
+    if (score > 0) scored.push({ rec, score });
+  }
+
+  scored.sort((a, b) => b.score - a.score);
+  return scored.slice(0, maxFacts).map((s) => publicShape(s.rec));
+}
+
+/**
+ * Vráti všetky KB fakty viditeľné pre danú personu (baseline do system promptu).
+ *
+ * @param {string} personaKey - Kľúč persony.
+ * @returns {Array<{term:string,text:string,source:string}>}
+ */
+export function getAllKb(personaKey) {
+  return KB_INDEX.filter((rec) => inScope(rec, personaKey)).map(publicShape);
+}
+
+/** Diagnostika: koľko záznamov je načítaných. */
+export function getKbStatus() {
+  return { loaded: KB_INDEX.length, indexPath: INDEX_PATH };
+}
+
+export default { getRelevantKb, getAllKb, getKbStatus };
