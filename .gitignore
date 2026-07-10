@@ -65,3 +65,7 @@ node
 /archive/
 /LAUNCH_PACK/
 /SOCIAL_MEDIA/
+
+# === Test vstupy/vystupy ===
+TESTY odpovede.txt
+test_input.txt
