@@ -111,7 +111,9 @@ export async function distillConversation({ question, answer, memberNames = [], 
             record = appendTip({
                 topic,
                 text: finalText,
-                author: 'anonymous-conversation'
+                author: 'anonymous-conversation',
+                origin: 'ai-distilled',
+                verification: 'unverified'
             });
             return { ok: true, type: 'tip', record };
         } else {
@@ -119,7 +121,9 @@ export async function distillConversation({ question, answer, memberNames = [], 
                 topic,
                 text: finalText,
                 confidence: typeof parsed.confidence === 'number' ? parsed.confidence : 0.6,
-                source
+                source,
+                origin: 'ai-distilled',
+                verification: 'unverified'
             });
             return { ok: true, type: 'insight', record };
         }

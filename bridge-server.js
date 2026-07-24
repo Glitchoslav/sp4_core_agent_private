@@ -16,6 +16,7 @@
 
 import express from 'express';
 import { distillAsync } from './bridge-distiller.js';
+import { shouldDistillConversation } from './bridge-distillation-policy.js';
 import {
     addGlossaryTerm,
     appendPersonalNote,
@@ -232,7 +233,6 @@ function buildGlitchDualModeBlock(text) {
 
 const OPERATIONAL_DHZ_QUERY_RE = /\b(112|150|izs|alarm|po[zž]iar|hor[ií]|dym|kontajner|bytovk|rodinn[yý]\s+dom|dopravn\w*\s+nehod\w*|nehod|z[aá]sah|v[yý]jazd|velite[ľl]|evaku|plyn|zranen|prv[aá]\s+pomoc|tried[ay]\s+[abc]|hasiac|hadic|[cč]erpad|v[yý]baven|v[yý]stroj|ochrann[yý]\s+odev)\b/i;
 const FOLLOWUP_CONTEXT_QUERY_RE = /^(zhr[nň]|stru[cč]ne|opera[cč]ne|a\s+(?:to|čo|co|ako)|pou[žz]i|bez\s+v[šs]eobecn|pokra[cč]uj)\b/i;
-const EXPLICIT_MEMORY_CONTRIBUTION_RE = /\b(zap[ií][šs]|zapam[aä]taj|n[aá]pad|tip|sk[uú]senos[ťt]|po\s+z[aá]sahu|dopln|pridaj\s+do\s+kb|admin)\b/i;
 
 // ─────────────────────────────────────────────────────────────
 // Persona resolver (Krok A — hardcoded; Krok D prepojí na multiVoice/identity)
@@ -492,13 +492,6 @@ function shouldUseCollectiveMemory(text, context = null) {
     return true;
 }
 
-function shouldDistillConversation(text, answer, context = null, source = 'unknown') {
-    if (!answer || String(answer).trim().length < 40) return false;
-    if (context?.requestMode === 'critical' || context?.mode === 'alarm') return false;
-    if (OPERATIONAL_DHZ_QUERY_RE.test(text)) return false;
-    if (FOLLOWUP_CONTEXT_QUERY_RE.test(String(text || '').trim())) return false;
-    return source === 'admin' || EXPLICIT_MEMORY_CONTRIBUTION_RE.test(text);
-}
 
 function looksLikeOperationalAnswer(text) {
     const value = String(text || '').trim();
@@ -1384,7 +1377,13 @@ app.post('/api/collective/tip', (req, res) => {
         return res.status(400).json({ ok: false, error: 'missing_topic_or_text' });
     }
     try {
-        const rec = appendTip({ topic, text, author: req.body?.author || 'explicit' });
+        const rec = appendTip({
+            topic,
+            text,
+            author: req.body?.author || 'explicit',
+            origin: 'admin',
+            verification: 'unverified'
+        });
         res.json({ ok: true, tip: rec });
     } catch (err) {
         res.status(500).json({ ok: false, error: err?.message });

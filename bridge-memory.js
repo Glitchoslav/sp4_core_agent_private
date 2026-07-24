@@ -23,7 +23,9 @@ const __dirname = path.dirname(__filename);
 // ─────────────────────────────────────────────────────────────
 // Cesty
 // ─────────────────────────────────────────────────────────────
-const DATA_ROOT = path.join(__dirname, 'data');
+const DATA_ROOT = process.env.SP4_BRIDGE_DATA_ROOT
+    ? path.resolve(process.env.SP4_BRIDGE_DATA_ROOT)
+    : path.join(__dirname, 'data');
 const COLLECTIVE_DIR = path.join(DATA_ROOT, 'collective-memory');
 const SHARED_KB_DIR = path.join(DATA_ROOT, 'shared-kb');
 const MEMBERS_DIR = path.join(DATA_ROOT, 'dhz-members');
@@ -194,6 +196,27 @@ export function scrubPii(text, extraNames = []) {
 // VRSTVA 1 — COLLECTIVE MEMORY
 // ─────────────────────────────────────────────────────────────
 
+const VALID_ORIGINS = new Set(['ai-distilled', 'admin', 'human']);
+const VALID_VERIFICATIONS = new Set(['unverified', 'verified', 'rejected']);
+
+function normalizeOrigin(value) {
+    return VALID_ORIGINS.has(value) ? value : 'ai-distilled';
+}
+
+function normalizeVerification(value) {
+    return VALID_VERIFICATIONS.has(value) ? value : 'unverified';
+}
+
+function normalizeConfidence(value, defaultValue = 0.7) {
+    if (!Number.isFinite(value)) return defaultValue;
+    return Math.min(1, Math.max(0, value));
+}
+
+function normalizeSource(value) {
+    const normalized = String(value ?? 'unknown').trim().slice(0, 256);
+    return normalized || 'unknown';
+}
+
 /**
  * Pridá anonymizovaný insight do organizmickej pamäte.
  * @param {object} insight — { topic, text, confidence, source }
@@ -204,10 +227,13 @@ export function appendInsight(insight) {
     const id = 'ins_' + Date.now().toString(36) + '_' + Math.random().toString(36).slice(2, 6);
     const record = {
         id,
+        type: 'insight',
         topic: String(insight.topic || 'general').slice(0, 64),
         text: String(insight.text || '').slice(0, 2000),
-        confidence: typeof insight.confidence === 'number' ? insight.confidence : 0.7,
-        source: insight.source || 'unknown',
+        confidence: normalizeConfidence(insight.confidence),
+        origin: normalizeOrigin(insight.origin),
+        verification: normalizeVerification(insight.verification),
+        source: normalizeSource(insight.source),
         createdAt: new Date().toISOString(),
         useCount: 0,
         lastUsedAt: null
@@ -222,8 +248,13 @@ export function appendTip(tip) {
     const id = 'tip_' + Date.now().toString(36) + '_' + Math.random().toString(36).slice(2, 6);
     const record = {
         id,
+        type: 'tip',
         topic: String(tip.topic || 'general').slice(0, 64),
         text: String(tip.text || '').slice(0, 1000),
+        confidence: normalizeConfidence(tip.confidence),
+        origin: normalizeOrigin(tip.origin),
+        verification: normalizeVerification(tip.verification),
+        source: normalizeSource(tip.source),
         author: tip.author || 'anonymous',
         createdAt: new Date().toISOString()
     };
@@ -253,35 +284,38 @@ export function appendStory(story) {
  * @param {number} limit
  * @returns {{insights: object[], tips: object[]}}
  */
-export function searchCollective(query, limit = 5) {
-    ensureDirs();
+function collectiveQueryTokens(query) {
     const q = String(query || '').toLowerCase();
-    const tokens = q.split(/\s+/).filter(t => t.length >= 2);
-    if (tokens.length === 0) return { insights: [], tips: [] };
+    return q.split(/\s+/).filter(t => t.length >= 2);
+}
 
+function rankCollectiveRecords(records, tokens, limit) {
+    if (tokens.length === 0) return [];
     const scoreRecord = (r) => {
-        const hay = (r.text + ' ' + r.topic).toLowerCase();
+        const hay = `${String(r?.text || '')} ${String(r?.topic || '')}`.toLowerCase();
         let s = 0;
         for (const t of tokens) if (hay.includes(t)) s++;
         return s;
     };
 
+    return records
+        .map(r => ({ r, s: scoreRecord(r) }))
+        .filter(x => x.s > 0)
+        .sort((a, b) => b.s - a.s)
+        .slice(0, limit)
+        .map(x => x.r);
+}
+export function searchCollective(query, limit = 5) {
+    ensureDirs();
+    const tokens = collectiveQueryTokens(query);
+    if (tokens.length === 0) return { insights: [], tips: [] };
+
+
     const allInsights = readJsonl(COLLECTIVE_FILES.insights);
     const allTips = readJsonl(COLLECTIVE_FILES.tips);
 
-    const insights = allInsights
-        .map(r => ({ r, s: scoreRecord(r) }))
-        .filter(x => x.s > 0)
-        .sort((a, b) => b.s - a.s)
-        .slice(0, limit)
-        .map(x => x.r);
-
-    const tips = allTips
-        .map(r => ({ r, s: scoreRecord(r) }))
-        .filter(x => x.s > 0)
-        .sort((a, b) => b.s - a.s)
-        .slice(0, limit)
-        .map(x => x.r);
+    const insights = rankCollectiveRecords(allInsights, tokens, limit);
+    const tips = rankCollectiveRecords(allTips, tokens, limit);
 
     return { insights, tips };
 }
@@ -339,7 +373,18 @@ export function recordTopicHit(topic) {
  */
 export function collectiveSummaryForPrompt(query, maxInsights = 4, maxTips = 3) {
     ensureDirs();
-    const { insights, tips } = searchCollective(query, Math.max(maxInsights, maxTips));
+    const tokens = collectiveQueryTokens(query);
+    const isVerified = (record) => record?.verification === 'verified';
+    const insights = rankCollectiveRecords(
+        readJsonl(COLLECTIVE_FILES.insights).filter(isVerified),
+        tokens,
+        maxInsights
+    );
+    const tips = rankCollectiveRecords(
+        readJsonl(COLLECTIVE_FILES.tips).filter(isVerified),
+        tokens,
+        maxTips
+    );
     const glossary = readGlossary();
 
     // Relevantné glossary termíny (ktoré sa v query vyskytujú)
@@ -354,13 +399,13 @@ export function collectiveSummaryForPrompt(query, maxInsights = 4, maxTips = 3) 
     const parts = [];
     if (insights.length > 0) {
         parts.push('Insighty zo zboru:');
-        for (const i of insights.slice(0, maxInsights)) {
+        for (const i of insights) {
             parts.push(`  • ${i.text}`);
         }
     }
     if (tips.length > 0) {
         parts.push('Tipy zo zboru:');
-        for (const t of tips.slice(0, maxTips)) {
+        for (const t of tips) {
             parts.push(`  • ${t.text}`);
         }
     }
