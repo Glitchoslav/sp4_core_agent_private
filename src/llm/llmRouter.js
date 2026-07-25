@@ -77,8 +77,16 @@ export async function sp4LlmCall(options) {
         temperature = 0.7,
         num_predict = 800, // v1.4.3: 800 default (was 4096 → caused 60s timeout on llama3:8b at ~20tok/s)
         stop = [],
+        policy = null,
+        forceLocal = false,
         ...rest
     } = options;
+
+    const localOnlyRequired = preference === 'local-only' ||
+        forceLocal === true ||
+        policy?.forceLocal === true ||
+        process.env.SP4_TEST === 'true';
+    const effectivePreference = localOnlyRequired ? 'local-only' : preference;
 
     // 🔍 VALIDATE INPUT
     if (!prompt) {
@@ -92,7 +100,7 @@ export async function sp4LlmCall(options) {
     // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
     // 📍 MODE 1: LOCAL-FIRST (default)
     // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-    if (preference === 'local-first') {
+    if (effectivePreference === 'local-first') {
         // 🛡️ Check if Ollama is marked unhealthy
         const healthStatus = getOllamaHealthStatus();
 
@@ -120,7 +128,7 @@ export async function sp4LlmCall(options) {
         }
 
         // 🔥 TRY OLLAMA FIRST
-        runtimeLog(`🎯 Vybraný model: ${model} (mode: ${preference})`);
+        runtimeLog(`🎯 Vybraný model: ${model} (mode: ${effectivePreference})`);
         const ollamaResult = await callOllama({
             model,
             prompt,
@@ -197,7 +205,7 @@ export async function sp4LlmCall(options) {
     // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
     // 📍 MODE 2: LOCAL-ONLY
     // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-    if (preference === 'local-only') {
+    if (effectivePreference === 'local-only') {
         runtimeLog(`🎯 Vybraný model: ${model} (mode: ${preference} - no fallback)`);
 
         const result = await callOllama({
@@ -219,7 +227,7 @@ export async function sp4LlmCall(options) {
     // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
     // 📍 MODE 3: CLOUD-ONLY
     // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-    if (preference === 'cloud-only') {
+    if (effectivePreference === 'cloud-only') {
         if (!cloudLLM.isCloudLLMAvailable()) {
             return {
                 ok: false,
@@ -251,7 +259,7 @@ export async function sp4LlmCall(options) {
     // ❌ UNKNOWN PREFERENCE
     return {
         ok: false,
-        error: `Unknown preference: ${preference}`,
+        error: `Unknown preference: ${effectivePreference}`,
         engine: 'none'
     };
 }
