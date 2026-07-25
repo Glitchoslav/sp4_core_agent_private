@@ -17,12 +17,12 @@ const CLOUD_ENV_KEYS = [
 const DEFAULT_EXPECTED_ARTIFACTS = [
     "data/identity.json",
     "data/memory.json",
-    "data/epochs.json",
     "rules/rulebook.yml",
     "rules/pattern-history.json",
     "rules/auto-tuning.yml"
 ];
 const OPTIONAL_ARTIFACTS = [
+    "data/epochs.json",
     "logs/autonomous_decisions.jsonl",
     "rules/user-behavior.log",
     "logs/scheduler.log",
