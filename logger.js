@@ -1,13 +1,11 @@
 // logger.js – jednoduchý súborový logger (offline)
 
 import fs from "fs/promises";
-import path from "path";
+import { AGENT_LOG_FILE, LOGS_DIR } from "./config/paths.js";
 
-const LOG_DIR = "logs";
-const LOG_FILE = path.join(LOG_DIR, "agent.log");
 
 async function ensureLogDir() {
-  await fs.mkdir(LOG_DIR, { recursive: true });
+  await fs.mkdir(LOGS_DIR, { recursive: true });
 }
 
 function formatLine(level, message, extra) {
@@ -24,17 +22,17 @@ function formatLine(level, message, extra) {
 
 export async function logInfo(message, extra) {
   await ensureLogDir();
-  await fs.appendFile(LOG_FILE, formatLine("INFO", message, extra), "utf-8");
+  await fs.appendFile(AGENT_LOG_FILE, formatLine("INFO", message, extra), "utf-8");
 }
 
 export async function logWarn(message, extra) {
   await ensureLogDir();
-  await fs.appendFile(LOG_FILE, formatLine("WARN", message, extra), "utf-8");
+  await fs.appendFile(AGENT_LOG_FILE, formatLine("WARN", message, extra), "utf-8");
 }
 
 export async function logError(message, extra) {
   await ensureLogDir();
-  await fs.appendFile(LOG_FILE, formatLine("ERROR", message, extra), "utf-8");
+  await fs.appendFile(AGENT_LOG_FILE, formatLine("ERROR", message, extra), "utf-8");
 }
 
 export async function logEvent(level, message, extra) {

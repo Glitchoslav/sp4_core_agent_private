@@ -15,12 +15,10 @@
  */
 
 import fs from 'fs';
-import path from 'path';
+import { AUTONOMOUS_DECISIONS_FILE, AUTONOMOUS_LEARNING_FILE } from './config/paths.js';
 import { runtimeWarn } from './src/core/runtimeLogging.js';
-import { fileURLToPath } from 'url';
 import { loadMemory } from './memory.js';
 
-const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 export class AutonomousController {
     constructor(integrationManager) {
@@ -538,7 +536,7 @@ export class AutonomousController {
      */
     loadLearningData() {
         try {
-            const dataPath = path.join(__dirname, 'data', 'autonomous_learning.json');
+            const dataPath = AUTONOMOUS_LEARNING_FILE;
             if (fs.existsSync(dataPath)) {
                 return JSON.parse(fs.readFileSync(dataPath, 'utf-8'));
             }
@@ -550,7 +548,7 @@ export class AutonomousController {
 
     saveLearningData() {
         try {
-            const dataPath = path.join(__dirname, 'data', 'autonomous_learning.json');
+            const dataPath = AUTONOMOUS_LEARNING_FILE;
             fs.writeFileSync(dataPath, JSON.stringify(this.learningData, null, 2));
         } catch (error) {
             console.error('Failed to save learning data:', error.message);
@@ -559,7 +557,7 @@ export class AutonomousController {
 
     saveDecisionLog() {
         try {
-            const logPath = path.join(__dirname, 'logs', 'autonomous_decisions.jsonl');
+            const logPath = AUTONOMOUS_DECISIONS_FILE;
             const logEntry = JSON.stringify(this.decisionLog[this.decisionLog.length - 1]) + '\n';
             fs.appendFileSync(logPath, logEntry);
         } catch (error) {

@@ -5,18 +5,14 @@
 import fs from 'fs/promises';
 import yaml from 'js-yaml';
 import path from 'path';
-import { fileURLToPath } from 'url';
+import { AUTO_TUNING_FILE, PATTERN_HISTORY_FILE, RULEBOOK_FILE, RULES_DIR, RULE_BACKUPS_DIR, USER_BEHAVIOR_LOG } from './config/paths.js';
 import { detectEasternSlovak } from './src/core/dialectAnalyzer.js';
 import { runtimeLog, runtimeWarn } from './src/core/runtimeLogging.js';
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-
-const RULES_DIR = path.join(__dirname, 'rules');
-const RULEBOOK_PATH = path.join(RULES_DIR, 'rulebook.yml');
-const PATTERN_HISTORY_PATH = path.join(RULES_DIR, 'pattern-history.json');
-const USER_BEHAVIOR_PATH = path.join(RULES_DIR, 'user-behavior.log');
-const AUTO_TUNING_PATH = path.join(RULES_DIR, 'auto-tuning.yml');
+const RULEBOOK_PATH = RULEBOOK_FILE;
+const PATTERN_HISTORY_PATH = PATTERN_HISTORY_FILE;
+const USER_BEHAVIOR_PATH = USER_BEHAVIOR_LOG;
+const AUTO_TUNING_PATH = AUTO_TUNING_FILE;
 
 /**
  * Contamination patterns — entries matching any of these must NOT enter the learning cache.
@@ -261,7 +257,7 @@ export class RuleMiner {
         // Backup old version
         try {
             const oldContent = await fs.readFile(RULEBOOK_PATH, 'utf8');
-            const backupPath = path.join(RULES_DIR, 'backups', `rulebook_${Date.now()}.yml`);
+            const backupPath = path.join(RULE_BACKUPS_DIR, `rulebook_${Date.now()}.yml`);
             await fs.writeFile(backupPath, oldContent, 'utf8');
         } catch (err) {
             // Ignore if backup fails (first run)
