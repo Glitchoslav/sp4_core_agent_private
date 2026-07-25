@@ -4,6 +4,24 @@ Lokálny záznam zmien pre feature vetvy SP4 Core Agent.
 
 ---
 
+## Isolated Gate Runtime (2026-07-25)
+
+### Runtime Isolation
+- ✅ `SP4_RUNTIME_ROOT` izoluje zapisovacie cesty pod `data`, `logs` a `rules`.
+- ✅ `SP4_DATA_ROOT` si zachoval pôvodnú verejnú semantiku priameho data adresára.
+- ✅ Produkčný path/hash manifest zostal pred a po izolovanom gate identický.
+
+### Test-Mode Safety
+- ✅ Cloud fallback a `OPEN_URL` sú pri `SP4_TEST=true` fyzicky zablokované.
+- ✅ Gate assertion failure sa propaguje ako non-zero cez `test:gate` aj `test:gate:isolated`.
+- ✅ Izolácia prešla; cloud calls aj cloud secrets viditeľné child procesu boli nulové a temp cleanup uspel.
+
+### Known Functional Blocker
+- ⚠️ Funkčný gate naďalej zlyháva na preexistujúcom nedeterministickom POPIČI fingerprint teste.
+- ⛔ Push, merge a deploy zostávajú blokované do samostatnej opravy fingerprint kontraktu.
+
+---
+
 ## Canonical Knowledge Cleanup (2026-07-25)
 
 ### 📚 Knowledge Alignment
