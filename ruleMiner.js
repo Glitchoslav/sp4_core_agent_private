@@ -27,7 +27,7 @@ const AUTO_TUNING_PATH = path.join(RULES_DIR, 'auto-tuning.yml');
  *   - meta-leak: celý prompt, interné inštrukcie
  *   - broken-smalltalk: Naznamiem, "Toto nebolo trafené"
  */
-const CONTAMINATION_PATTERNS = [
+export const CONTAMINATION_PATTERNS = [
     // --- broken-smalltalk ---
     /Toto nebolo trafen[eé]/i,
     /N[áa]znamiem/i,
@@ -35,6 +35,12 @@ const CONTAMINATION_PATTERNS = [
     /Llama 2/i,
     /odberate[lľ]sk[yý]ch zmluvy/i,
     /SP4OT je tokenizovan[yý] governance/i,
+    /SP4O[TC][^.!?\n]{0,60}?(?<!\bnie\s)\bje\s+(?:u[žz]\s+|dnes\s+|teraz\s+|st[áa]le\s+)?(akt[ií]vn\w+|na\s+blockchaine|verejne\s+obchodovate[ľl]n\w+|nasaden\w+)/i,
+    /SP4O[TC][^.!?\n]{0,60}?\bu[žz]\s+funguje\b/i,
+    /SP4O[TC][^.!?\n]{0,60}?\bm[áa]\s+(cenu|kurz|trhov[úu]\s+hodnotu)/i,
+    /SP4O[TC][^.!?\n]{0,60}?\b(?:obchoduje\s+sa|sa\s+obchoduje)\b/i,
+    /SP4O[TC][^.!?\n]{0,60}?\bgarantuje\s+(v[ýy]nos|zisk)/i,
+    /SP4O[TC][^.!?\n]{0,60}?\bsa\s+(re[áa]lne\s+)?[ťt]a[žz][íi](?=\s|$|[.,!?])/i,
     /NVMe SSD/i,
     /CORE:\s*Sp4 je komplexn[yý] syst[eé]m/i,
     // --- identity-drift ---

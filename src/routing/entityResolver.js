@@ -38,7 +38,7 @@ export function resolveEntity(intent) {
                 target: "kefyk",
                 handler: "glitchoslav",
                 source: "shared.json",
-                contextHint: "Kefyk je zakladateľ SP4, hasič-záchranár 1994"
+                contextHint: "Tvorca SP4 vystupuje verejne ako KEF2W; v komunite je známy ako Kefyk a pôsobí ako hasič-záchranár."
             };
 
         case "ask_technical":

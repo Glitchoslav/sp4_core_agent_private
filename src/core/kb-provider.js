@@ -23,6 +23,7 @@ import { fileURLToPath } from 'url';
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 // kb-provider.js: sp4_core_agent/src/core/  ->  KB: SP4KULT/sp4-kb/index.json
 const INDEX_PATH = path.join(__dirname, '..', '..', '..', 'sp4-kb', 'index.json');
+const TIER = Object.freeze({ public: 0, member: 1, admin: 2 });
 
 /** Lowercase + odstránenie diakritiky pre robustné matchovanie. */
 function normalize(text) {
@@ -58,6 +59,13 @@ function inScope(rec, personaKey) {
   return scope.includes(String(personaKey).toLowerCase());
 }
 
+/** Default-deny visibility gate for KB sensitivity. */
+function visibleToAudience(rec, audience) {
+  const audienceTier = TIER[audience] ?? TIER.public;
+  const sensitivityTier = TIER[rec.sensitivity] ?? TIER.admin;
+  return sensitivityTier <= audienceTier;
+}
+
 /** Verejný tvar záznamu (bez interných polí). */
 function publicShape(rec) {
   return { term: rec.term, text: rec.text, source: rec.source };
@@ -71,13 +79,13 @@ function publicShape(rec) {
  * @param {number} maxFacts - Max počet vrátených faktov (default 5).
  * @returns {Array<{term:string,text:string,source:string}>}
  */
-export function getRelevantKb(prompt, personaKey, maxFacts = 5) {
+export function getRelevantKb(prompt, personaKey, maxFacts = 5, audience = 'public') {
   const normPrompt = normalize(prompt);
   if (!normPrompt) return [];
 
   const scored = [];
   for (const rec of KB_INDEX) {
-    if (!inScope(rec, personaKey)) continue;
+    if (!inScope(rec, personaKey) || !visibleToAudience(rec, audience)) continue;
     let score = 0;
     for (const kw of rec._keywords) {
       if (kw && normPrompt.includes(kw)) score += 1;
@@ -95,8 +103,10 @@ export function getRelevantKb(prompt, personaKey, maxFacts = 5) {
  * @param {string} personaKey - Kľúč persony.
  * @returns {Array<{term:string,text:string,source:string}>}
  */
-export function getAllKb(personaKey) {
-  return KB_INDEX.filter((rec) => inScope(rec, personaKey)).map(publicShape);
+export function getAllKb(personaKey, audience = 'public') {
+  return KB_INDEX
+    .filter((rec) => inScope(rec, personaKey) && visibleToAudience(rec, audience))
+    .map(publicShape);
 }
 
 /** Diagnostika: koľko záznamov je načítaných. */

@@ -473,17 +473,17 @@ async function analyzeAndDecide(userMessage, fullMemory, context, entity = {}) {
     }
 
     // ─────────────────────────────────────────────────────────────────
-    // PATTERN 6: SIMPLE QUESTION ABOUT SP4 TOKEN → CORE
+    // PATTERN 6: SP4OC / LEGACY SP4OT QUESTION → CORE
     // ─────────────────────────────────────────────────────────────────
 
-    const sp4TokenKeywords = /\b(sp4ot|sp4 token|token sp4|ako získať sp4|ako kúpiť sp4)\b/i;
+    const sp4TokenKeywords = /\b(sp4oc|sp4ot|sp4 overtime community|overtime community|sp4 odmeny)\b/i;
 
     if (sp4TokenKeywords.test(lower)) {
         const filteredContext = filterForCORE(fullMemory);
         return {
             action: 'delegate',
             delegate: 'core',
-            reasoning: 'SP4OT token info - technická odpoveď bez filozofie',
+            reasoning: 'SP4OC (plánovaný koncept) — technická odpoveď bez filozofie',
             filteredContext
         };
     }
