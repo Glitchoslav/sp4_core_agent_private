@@ -19,10 +19,8 @@
  */
 
 import fs from 'fs/promises';
-import path from 'path';
+import { DATA_DIR, IDENTITY_FILE } from './config/paths.js';
 
-const DATA_DIR = 'data';
-const IDENTITY_FILE = path.join(DATA_DIR, 'identity.json');
 
 // SP4_CORE immutable values (kotviaci bod)
 const CORE_IDENTITY_ANCHOR = {

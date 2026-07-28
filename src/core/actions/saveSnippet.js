@@ -10,12 +10,7 @@
 
 import fs from 'fs/promises';
 import path from 'path';
-import { fileURLToPath } from 'url';
-
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-const PROJECT_ROOT = path.resolve(__dirname, '../../../');
-const SNIPPETS_DIR = path.join(PROJECT_ROOT, 'data', 'snippets');
+import { SNIPPETS_DIR } from '../../../config/paths.js';
 
 /**
  * Ensure snippets directory exists

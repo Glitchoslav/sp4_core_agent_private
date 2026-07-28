@@ -5,18 +5,14 @@
 import fs from 'fs/promises';
 import yaml from 'js-yaml';
 import path from 'path';
-import { fileURLToPath } from 'url';
+import { AUTO_TUNING_FILE, PATTERN_HISTORY_FILE, RULEBOOK_FILE, RULES_DIR, RULE_BACKUPS_DIR, USER_BEHAVIOR_LOG } from './config/paths.js';
 import { detectEasternSlovak } from './src/core/dialectAnalyzer.js';
 import { runtimeLog, runtimeWarn } from './src/core/runtimeLogging.js';
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-
-const RULES_DIR = path.join(__dirname, 'rules');
-const RULEBOOK_PATH = path.join(RULES_DIR, 'rulebook.yml');
-const PATTERN_HISTORY_PATH = path.join(RULES_DIR, 'pattern-history.json');
-const USER_BEHAVIOR_PATH = path.join(RULES_DIR, 'user-behavior.log');
-const AUTO_TUNING_PATH = path.join(RULES_DIR, 'auto-tuning.yml');
+const RULEBOOK_PATH = RULEBOOK_FILE;
+const PATTERN_HISTORY_PATH = PATTERN_HISTORY_FILE;
+const USER_BEHAVIOR_PATH = USER_BEHAVIOR_LOG;
+const AUTO_TUNING_PATH = AUTO_TUNING_FILE;
 
 /**
  * Contamination patterns — entries matching any of these must NOT enter the learning cache.
@@ -27,7 +23,7 @@ const AUTO_TUNING_PATH = path.join(RULES_DIR, 'auto-tuning.yml');
  *   - meta-leak: celý prompt, interné inštrukcie
  *   - broken-smalltalk: Naznamiem, "Toto nebolo trafené"
  */
-const CONTAMINATION_PATTERNS = [
+export const CONTAMINATION_PATTERNS = [
     // --- broken-smalltalk ---
     /Toto nebolo trafen[eé]/i,
     /N[áa]znamiem/i,
@@ -35,6 +31,12 @@ const CONTAMINATION_PATTERNS = [
     /Llama 2/i,
     /odberate[lľ]sk[yý]ch zmluvy/i,
     /SP4OT je tokenizovan[yý] governance/i,
+    /SP4O[TC][^.!?\n]{0,60}?(?<!\bnie\s)\bje\s+(?:u[žz]\s+|dnes\s+|teraz\s+|st[áa]le\s+)?(akt[ií]vn\w+|na\s+blockchaine|verejne\s+obchodovate[ľl]n\w+|nasaden\w+)/i,
+    /SP4O[TC][^.!?\n]{0,60}?\bu[žz]\s+funguje\b/i,
+    /SP4O[TC][^.!?\n]{0,60}?\bm[áa]\s+(cenu|kurz|trhov[úu]\s+hodnotu)/i,
+    /SP4O[TC][^.!?\n]{0,60}?\b(?:obchoduje\s+sa|sa\s+obchoduje)\b/i,
+    /SP4O[TC][^.!?\n]{0,60}?\bgarantuje\s+(v[ýy]nos|zisk)/i,
+    /SP4O[TC][^.!?\n]{0,60}?\bsa\s+(re[áa]lne\s+)?[ťt]a[žz][íi](?=\s|$|[.,!?])/i,
     /NVMe SSD/i,
     /CORE:\s*Sp4 je komplexn[yý] syst[eé]m/i,
     // --- identity-drift ---
@@ -255,7 +257,7 @@ export class RuleMiner {
         // Backup old version
         try {
             const oldContent = await fs.readFile(RULEBOOK_PATH, 'utf8');
-            const backupPath = path.join(RULES_DIR, 'backups', `rulebook_${Date.now()}.yml`);
+            const backupPath = path.join(RULE_BACKUPS_DIR, `rulebook_${Date.now()}.yml`);
             await fs.writeFile(backupPath, oldContent, 'utf8');
         } catch (err) {
             // Ignore if backup fails (first run)

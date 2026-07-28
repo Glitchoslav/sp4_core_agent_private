@@ -17,9 +17,10 @@
 
 import fs from 'fs/promises';
 import path from 'path';
+import { MEMORY_HIERARCHY_DIR } from '../config/paths.js';
 import { runtimeLog, runtimeWarn } from '../src/core/runtimeLogging.js';
 
-const MEMORY_ROOT = path.join(process.cwd(), 'data', 'memory');
+const MEMORY_ROOT = MEMORY_HIERARCHY_DIR;
 
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 // INITIALIZATION

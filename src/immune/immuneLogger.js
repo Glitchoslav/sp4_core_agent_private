@@ -9,13 +9,7 @@
 // └─────────────────────────────────────────────────────────────────┘
 
 import { appendFileSync, existsSync, mkdirSync } from 'fs';
-import { dirname, join } from 'path';
-import { fileURLToPath } from 'url';
-
-// Resolve data/ relative to sp4_core_agent/ (two levels up from src/immune/)
-const __dirnameHere = dirname(fileURLToPath(import.meta.url));
-const DATA_DIR = join(__dirnameHere, '../../', 'data');
-const LOG_FILE = join(DATA_DIR, 'immune_log.jsonl');
+import { DATA_DIR, IMMUNE_LOG_FILE } from '../../config/paths.js';
 
 /**
  * Zapíše immune event do JSONL logu.
@@ -61,7 +55,7 @@ export async function logImmuneEvent({ verdict, mode, handledBy, queryType, mode
             mkdirSync(DATA_DIR, { recursive: true });
         }
 
-        appendFileSync(LOG_FILE, JSON.stringify(entry) + '\n', 'utf8');
+        appendFileSync(IMMUNE_LOG_FILE, JSON.stringify(entry) + '\n', 'utf8');
     } catch (_err) {
         // Never propagate – logger must never crash runtime
     }

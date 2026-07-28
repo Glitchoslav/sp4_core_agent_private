@@ -11,6 +11,7 @@
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import { AIOS_COST_LOG_FILE } from './config/paths.js';
 import { SP4AIOSBridge } from '../SP4AIOS/src/bridge.js'; // v0.7: Cloud AI Bridge
 import { deliberate } from './agentManager.js';
 import AutonomousController from './autonomousController.js'; // v1.0: Autonomous decision-making
@@ -403,12 +404,18 @@ export class SP4IntegratedAgent {
     // 🌉 v0.7: SP4AIOS Bridge - Cloud AI Integration
     // Load API keys from SP4AIOS .env file
     const aiosEnvPath = path.join(path.dirname(fileURLToPath(import.meta.url)), '..', 'SP4AIOS', '.env');
+    const testMode = process.env.SP4_TEST === 'true';
+    const cloudKeyNames = [
+      'GROQ_API_KEY', 'GEMINI_API_KEY', 'GOOGLE_API_KEY',
+      'MISTRAL_API_KEY', 'ANTHROPIC_API_KEY', 'OPENAI_API_KEY'
+    ];
+    if (testMode) cloudKeyNames.forEach(key => delete process.env[key]);
 
-    let groqKey = process.env.GROQ_API_KEY;
-    let googleKey = process.env.GOOGLE_API_KEY;
+    let groqKey = testMode ? undefined : process.env.GROQ_API_KEY;
+    let googleKey = testMode ? undefined : process.env.GOOGLE_API_KEY;
 
     // Try to load from SP4AIOS/.env if keys not in environment
-    if ((!groqKey || !googleKey) && fs.existsSync(aiosEnvPath)) {
+    if (!testMode && (!groqKey || !googleKey) && fs.existsSync(aiosEnvPath)) {
       const envContent = fs.readFileSync(aiosEnvPath, 'utf-8');
       envContent.split('\n').forEach(line => {
         const [key, ...valueParts] = line.split('=');
@@ -423,10 +430,11 @@ export class SP4IntegratedAgent {
       googleApiKey: googleKey,
       enableCache: true,
       enableCostTracking: true,
+      costLogPath: AIOS_COST_LOG_FILE,
       cacheTTL: 3600000, // 1 hour
       timeout: 90000 // 90s for complex queries
     });
-    this.cloudAIEnabled = !!(groqKey || googleKey);
+    this.cloudAIEnabled = !testMode && !!(groqKey || googleKey);
     this.lastLocalError = null; // Track local failures for fallback
     this.dailyCloudCost = 0; // Track daily spending
     this.maxDailyCloudCost = 5.0; // $5 daily limit
@@ -2900,6 +2908,7 @@ export class SP4IntegratedAgent {
         try {
           enforcementResult = await enforceSlovak(output, {
             userMessage,
+            forceLocal: policy.forceLocal === true,
             systemPrompt: promptPackage.systemPrompt || '', // From buildPrompt
             model: selectedModel,
             persona: personaForLang,
@@ -3641,6 +3650,9 @@ Pracujem na obnovení plnej funkčnosti.`;
    */
   async askCloudAI(input, mode, options = {}) {
     try {
+      if (process.env.SP4_TEST === 'true') {
+        throw new Error('Cloud AI disabled in SP4 test mode');
+      }
       runtimeLog('   🌩️ Cloud AI: Routing request...');
 
       // 🧠 v1.0: Accept provider/model from Autonomous Controller

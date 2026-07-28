@@ -1,6 +1,7 @@
 // ruleMiningPipeline.js - End-to-End Pipeline for Rule Learning
 // Orchestrates: Cleanup → Feature Extraction → Pattern Detection → Rule Update → Validation → Audit
 
+import { RULE_BACKUPS_DIR, RULEBOOK_FILE, USER_BEHAVIOR_LOG } from './config/paths.js';
 import { ruleMiner } from './ruleMiner.js';
 import { runtimeLog, runtimeWarn } from './src/core/runtimeLogging.js';
 
@@ -210,13 +211,7 @@ export class RuleMiningPipeline {
         try {
             const fs = await import('fs/promises');
             const path = await import('path');
-            const { fileURLToPath } = await import('url');
-
-            const __filename = fileURLToPath(import.meta.url);
-            const __dirname = path.dirname(__filename);
-
-            const backupsDir = path.join(__dirname, 'rules', 'backups');
-            const files = await fs.readdir(backupsDir);
+            const files = await fs.readdir(RULE_BACKUPS_DIR);
 
             // Find most recent backup
             const backups = files
@@ -228,8 +223,8 @@ export class RuleMiningPipeline {
                 throw new Error('No backups available');
             }
 
-            const latestBackup = path.join(backupsDir, backups[0]);
-            const rulebookPath = path.join(__dirname, 'rules', 'rulebook.yml');
+            const latestBackup = path.join(RULE_BACKUPS_DIR, backups[0]);
+            const rulebookPath = RULEBOOK_FILE;
 
             // Restore backup
             await fs.copyFile(latestBackup, rulebookPath);
@@ -252,13 +247,7 @@ export class RuleMiningPipeline {
     async auditTrail(entry) {
         try {
             const fs = await import('fs/promises');
-            const path = await import('path');
-            const { fileURLToPath } = await import('url');
-
-            const __filename = fileURLToPath(import.meta.url);
-            const __dirname = path.dirname(__filename);
-
-            const auditPath = path.join(__dirname, 'rules', 'user-behavior.log');
+            const auditPath = USER_BEHAVIOR_LOG;
 
             const logEntry = `[${new Date().toISOString()}] ${JSON.stringify(entry)}\n`;
             await fs.appendFile(auditPath, logEntry, 'utf8');

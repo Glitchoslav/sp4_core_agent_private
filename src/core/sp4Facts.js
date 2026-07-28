@@ -3,23 +3,23 @@
 
 const SP4_VALUES_LIST = 'pravda a úprimnosť (aj keď bolí), sloboda myslenia a života, kreativita namiesto pasívnej konzumácie, pomoc medzi ľuďmi (kmeň, nie korporácia), ochrana súkromia (lokálne dáta, offline-first), úcta k prírode a skutočnému životu';
 
-export const SP4_DEFINITION = 'SP4 je offline-first AI projekt a osobný digitálny partner. Beží primárne lokálne, drží dáta pod kontrolou používateľa a spája pamäť, routing, persony, validátory a lokálny LLM runtime.';
+export const SP4_DEFINITION = 'SP4 je local-first digitálny ekosystém a infraštruktúra pre živé komunity. Prepája ľudí, pamäť, nástroje a AI tak, aby technológia slúžila komunite a zostávala pod jej kontrolou.';
 
-export const SP4_FOUNDER = 'Kefyk (Glitchoslav) je zakladateľ SP4 - hasič-záchranár a filozof slobody. Vytvoril SP4, aby mal človek vlastný AI mozog, nie korporátny produkt kontrolovaný treťou stranou.';
+export const SP4_FOUNDER = 'SP4 vzniká pod vedením tvorcu vystupujúceho ako KEF2W spolu s ľuďmi, agentmi a komunitami, ktoré sa vedome rozhodnú prispieť svojou prácou, skúsenosťou, spätnou väzbou alebo podporou.';
 
-export const SP4_ORIGIN_FACT = 'SP4 vzniklo v roku 2025 na východnom Slovensku ako odpoveď na digitálne otroctvo a algoritmickú kontrolu. Rok 1994 patrí generácii a narodeniu Kefyka, nie dátumu vzniku projektu.';
+export const SP4_ORIGIN_FACT = 'SP4 vzniklo v roku 2025 na východnom Slovensku. Číslo 1994 je generačným a symbolickým prvkom identity SP4, nie verejným údajom o občianskej identite tvorcu.';
 
-export const SP4_COMMUNITY_FACT = 'SP4 tvorí kmeň reálnych ľudí okolo Kefyka a ďalších spolupracovníkov, ktorí držia pravdu, slobodu, kreativitu a lokálnu kontrolu. Nie je to anonymná korporátna user base, ale živí ľudia a dlhodobí spolupracovníci.';
+export const SP4_COMMUNITY_FACT = 'SP4 tvorí komunita reálnych ľudí okolo tvorcu KEF2W spolu s agentmi a spolupracovníkmi, ktorí prispievajú prácou, skúsenosťou, spätnou väzbou alebo podporou.';
 
 export const SP4_VALUES = `Hodnoty SP4 komunity: ${SP4_VALUES_LIST}.`;
 
 export const SP4_LOCAL_FIRST_NATURE = 'SP4 je offline-first a local-first: preferuje lokálne modely a lokálne dáta, znižuje závislosť od cloudu a necháva väčšiu kontrolu, súkromie aj runtime priamo u používateľa.';
 
-export const SP4_SYSTEM_ROLE = 'SP4 navonok funguje ako offline-first AI partner a osobný digitálny systém. Jeho úloha je držať AI viac lokálne, viac pod kontrolou používateľa a bližšie k dlhodobej spolupráci než ku cloudovej službe.';
+export const SP4_SYSTEM_ROLE = 'SP4 je local-first infraštruktúra pre komunity. AI, agenti, chatboty a aplikácie sú nástroje postavené na SP4, nie definícia samotného ekosystému.';
 
 export const SP4_AGENT_RELATION = 'SP4 je systém a rámec. Agent je konkrétny hlas alebo runtime rola v systéme SP4. Používateľ je človek, ktorému systém slúži, a nie je to agent ani persona.';
 
-export const SP4_TARGET_USERS = 'SP4 je pre ľudí, ktorí chcú AI viac lokálne, viac pod kontrolou a s väčším dôrazom na súkromie, pamäť a dlhodobejšiu spoluprácu.';
+export const SP4_TARGET_USERS = 'SP4 je pre ľudí a živé komunity, ktoré chcú prepájať pamäť, nástroje a AI pod vlastnou kontrolou a rozvíjať dlhodobú spoluprácu bez závislosti od jednej aplikácie alebo cloudovej služby.';
 
 export const SP4_EXTERNAL_EXPLANATION = `${SP4_DEFINITION} ${SP4_SYSTEM_ROLE}`;
 
@@ -45,7 +45,7 @@ export const SP4_AGENT_DISAGREEMENT_FACT = 'Keď dva agentné pohľady nesúhlas
 
 export const SP4_AGENT_SELECTION_FACT = 'SP4 rozhoduje, ktorý agent odpovie, podľa routingu: najprv deterministic guardy a safety, potom intent, téma, emočná intenzita, technický alebo životný kontext a prípadný lock. CORE rieši technické a faktické veci, GLITCHOSLAV identitu/existenciu/hlbšie témy, POPIČI frustráciu, dialekt a tvrdšiu spätnú väzbu. Ak nie je jasný dôvod na inú personu, default je CORE.';
 
-export const SP4_PERSONA_ROSTER_FACT = 'SP4 má aktívne persony CORE, GLITCHOSLAV, POPIČI, FLORIÁN (hasic) a VALIDATOR. CORE je technický sprievodca a default fallback. GLITCHOSLAV rieši identitu, existenciu a hlbšie otázky. POPIČI je drsnejší, priami hlas. FLORIÁN je DHZ persona pre produkciu. VALIDATOR je diagnostický slot a nie je routable ako bežný režim.';
+export const SP4_PERSONA_ROSTER_FACT = 'SP4 má štyri základné persony: CORE, Glitchoslav, Popiči a Validator. Florián je prvý špecializovaný doménový agent postavený na SP4 pre prostredie dobrovoľných hasičských zborov. Ďalší agenti alebo persony môžu vzniknúť podľa potrieb vývoja a komunít. Persona = spôsob myslenia a komunikácie; agent = konkrétna rola, doména a oprávnenia.';
 
 export const SP4_DETERMINISTIC_GUARD_FACT = 'Deterministic guard je vrstva v SP4 routingu ktorá odpovedá na known SP4 pojmy priamo bez volania LLM. Používa sa pre stabilné fakty kde LLM improvizácia nie je žiaduca. Výstup je vždy rovnaký pre rovnaký vstup.';
 
@@ -61,19 +61,19 @@ export const SP4_MOTTO_FACT = '"Be real. Be free." = ži pravdivo, ži slobodne.
 
 export const SP4_LAUNCHER_FACT = 'SP4 sa štartuje defaultne cez `node sp4.js start`. To je kanonický launcher. Legacy `server.js` flow ostáva mimo default štartu a ide len cez explicitný script `server:legacy`.';
 
-export const SP4_IDENTITY_LOCATION_FACT = 'Canonical identita SP4 je výhradne v sp4_core_agent/src/identity/IDENTITY_KERNEL.js. Je to jediný zdroj pravdy pre identity, tón a pravidlá persón. Súbory v identity/personas/* sú len compatibility wrappers — identitu nikdy nemeníš cez ne, len cez IDENTITY_KERNEL.js.';
+export const SP4_IDENTITY_LOCATION_FACT = 'IDENTITY_KERNEL.js je enforcement autorita identity a pravidiel persón; identity/personas/* nesú meta definície. Identita sa mení výhradne cez IDENTITY_KERNEL.js.';
 
 export const SP4_CHANGELOG_FACT = 'Každá runtime alebo governance zmena sa zapisuje do SP4_CHANGELOG.md v root adresári projektu. Šablóna obsahuje povinné polia: ID (YYYY-MM-DD-NNN), vrstva, súbory, čo, prečo, dopad, riziko a status. Zápis je povinný po každej overenej zmene pred commitom.';
 
 export const SP4_GATE_TEST_FACT = 'Integrita identity sa overuje príkazom npm run test:gate. Spúšťa tri deterministic súbory: test_identity_kernel_contract.js (27 assertions), test_prompt_assembly_identity_contract.js (20 assertions) a test_immune_identity_all_personas.js (15 assertions). Všetky musia prejsť pred commitom.';
 
-export const SP4_MODEL_ROUTING_FACT = 'SP4 routing modelov je local-first: primárny model je gemma3:4b bežiaci lokálne cez Ollama (localhost:11434). Fallback na cloud path cez SP4AIOS bridge existuje, ale nie je canonical default. V test mode (SP4_TEST=true) platí num_predict=256 a timeout 20s.';
+export const SP4_MODEL_ROUTING_FACT = 'SP4 používa konfigurovateľné lokálne modely podľa zariadenia, služby, úlohy a aktuálnej dostupnosti. Konkrétny model je runtime stav, nie trvalý fakt.';
 
 export const SP4_GLITCH_FALLBACK_FACT = 'Fallback pre Glitchoslava je v src/core/identityVault.js: slot loader načíta SP4_CORE identity ak nie je dostupný canonical kernel. Toto je záchranný mechanizmus — canonical autorita identity ostáva výhradne v IDENTITY_KERNEL.js.';
 
 export const SP4_BATTLETEST_FACT = 'Battletest sa spúšťa príkazom npm run test:live:battletest alebo npm run test:live:offline pre 7-otázkový smoke test. Defaultný battletest dnes smeruje na test_014 (214 otázok) a legacy 50-case baseline ostáva dostupná cez test_010. Partial nie je fail — fail je len hard fail bez žiadneho pass. Test suite je v TESTY/evolution/ (test_009 smoke, test_014 default battletest, test_010 legacy baseline).';
 
-export const SP4_MEMORY_SYSTEM_FACT = 'SP4 memory systém má 5 vrstiev: Raw Log (surové záznamy interakcií), Compressed (denné zhrnutia), Chapters (mesačné kapitoly), Seeds (kľúčové momenty a vzory) a Triggers (aktívne pravidlá správania). Ukladá sa do data/memory.json. Konsolidácia beží cez npm run consolidate.';
+export const SP4_MEMORY_SYSTEM_FACT = 'SP4 memory systém má 5 technických stupňov (Raw Log, Compressed, Chapters, Seeds, Triggers) zoskupených do 3 logických vrstiev: surová pamäť, spracovaná pamäť, dlhodobé poznanie a aktivácia.';
 
 export const SP4_DREAM_CYCLE_FACT = '"Dream cycle" nie je kanonický SP4 mechanizmus ani runtime termín. Ak tým myslíš interný pracovný názov, treba ho potvrdiť v SP4 zdrojoch. Ako fakt platí len to, čo je v kanonických zdrojoch — bez takého ukotvenia si SP4 nesmie definíciu domýšľať ani doplniť voľnou špekuláciou.';
 
@@ -97,7 +97,9 @@ export const SP4_FUTURE_DIRECTION_FACT = 'SP4 smeruje k hlbšej lokálnej AI int
 
 export const SP4_MEMORY_LOCATION_FACT = 'Rozhovory a pamäť sa ukladajú lokálne do súboru `data/memory.json` v adresári `sp4_core_agent/`. Dáta neopúšťajú lokálny systém. Štruktúra pamäte je: Raw Log → Compressed → Chapters → Seeds → Triggers.';
 
-export const SP4_PRIVACY_COMMITMENT_FACT = 'SP4 je offline-first: žiadne dáta sa neposielajú do cloudu bez explicitného povolenia používateľa. Všetky rozhovory zostávajú na lokálnom zariadení. Neexistuje remote backend, analytika ani telemetria. Tvoje informácie nebudú zneužité, pretože neopúšťajú tvoj počítač.';
+export const SP4_PRIVACY_COMMITMENT_FACT = 'SP4 je local-first a offline-first systém. Dáta a hlavné funkcie majú zostať pod kontrolou komunity. Externé AI služby môžu byť použité iba ako voliteľný fallback, keď ich administrátor výslovne povolí. Systém má jasne oznámiť, keď odpoveď nevznikla lokálne.';
+
+export const SP4OC_FACT = 'SP4OC znamená SP4 Overtime Community. Je to plánovaný komunitný odmeňovací koncept SP4, ktorý môže v budúcnosti oceňovať používanie systémov, pomoc, tvorbu, spätnú väzbu a prínos komunite. Dnes nejde o aktívnu kryptomenu ani verejne obchodovateľný token. Staršie materiály používali označenie SP4OT; aktuálne plánované označenie je SP4OC — SP4 Overtime Community.';
 
 export const SP4_USER_PROFILE_FACT = 'SP4 vie len to, čo mu zakladateľ alebo používateľ priamo povedal v rámci lokálnych rozhovorov. Profil sa buduje výhradne z lokálnej pamäte — nie z externých databáz ani verejných zdrojov. Čo nie je v pamäti, SP4 nevie.';
 
@@ -120,7 +122,7 @@ export const SP4_FACTS_BLOCK = [
     `Vzťah systém/agent/používateľ: ${SP4_AGENT_RELATION}`,
     `Navonok: ${SP4_SYSTEM_ROLE}`,
     `Motto: ${SP4_MOTTO_FACT}`,
-    'Token: SP4OT (komunitný governance token).'
+    'SP4OC: plánovaný komunitný odmeňovací koncept (zatiaľ nie aktívny token).'
 ].join('\n');
 
 // Compatibility aliases for existing consumers.
@@ -186,5 +188,6 @@ export default {
     SP4_FOUNDER_FACT,
     SP4_VALUES_FACT,
     SP4_MOTTO_FACT,
+    SP4OC_FACT,
     SP4_FACTS_BLOCK
 };

@@ -346,13 +346,16 @@ export async function enforceSlovak(text, context = {}) {
 
         // 🔥 v1.3.1: Soft stop tokens pre enforcer (prevent over-truncation)
         const retryResult = await sp4LlmCall({
-            preference: 'local-first',
+            preference: (context.forceLocal === true || process.env.SP4_TEST === 'true')
+                ? 'local-only'
+                : 'local-first',
             model: TRANSLATOR_MODEL,
             prompt: translationPrompt,
             system: '',
             temperature: 0.15,
             num_predict: 256,
-            stop: undefined // 🔥 Vypnuté stop tokens (allow full response)
+            stop: undefined, // 🔥 Vypnuté stop tokens (allow full response)
+            forceLocal: context.forceLocal === true
         });
 
         if (retryResult && retryResult.ok) {

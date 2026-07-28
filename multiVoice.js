@@ -373,8 +373,7 @@ Motto: "Be real. Be free."
 Technický stack:
 - Ollama (lokálne LLM na GPU/CPU)
 - Hierarchická pamäť (raw log → chapters → seeds)
-- Multi-agent orchestrácia (CORE, POPICI, GLITCHOSLAV módy)
-- Tokenizovaný governance (SP4OT - komunitný token)`;
+- Multi-agent orchestrácia (CORE, POPICI, GLITCHOSLAV módy)`;
 }
 
 function buildAgentLayer(profile, mode = 'core', job = {}) {

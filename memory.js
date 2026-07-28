@@ -3,14 +3,12 @@
 // v0.8.7: SP4 manifest integration - long-term facts
 
 import fs from "fs/promises";
-import path from "path";
+import { DATA_DIR, MEMORY_FILE, QUARANTINE_FILE } from "./config/paths.js";
 import { runtimeDebug } from "./src/core/runtimeLogging.js";
 import { SP4_VERSION } from "./src/version.js";
 import { SP4_CORE_FACTS } from "./src/core/sp4Manifest.js";
 import { assessMemoryContamination, auditMemoryState } from "./src/runtime/memoryHygiene.js";
 
-const DATA_DIR = "data";
-const MEMORY_FILE = path.join(DATA_DIR, "memory.json");
 
 const DEFAULT_MEMORY = {
   userProfile: {
@@ -559,7 +557,6 @@ export async function getSummary() {
  * Izoluje nebezpečne emočný obsah s kontrolovaným prístupom
  */
 
-const QUARANTINE_FILE = path.join(DATA_DIR, "quarantine.json");
 
 /**
  * Inicializuje quarantine storage

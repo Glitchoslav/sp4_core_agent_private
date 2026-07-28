@@ -25,6 +25,15 @@ export async function executeOpenUrl(payload, context = {}) {
     const { persona = 'unknown' } = context;
 
     try {
+        if (process.env.SP4_TEST === 'true') {
+            return {
+                success: false,
+                skipped: true,
+                reason: 'disabled_in_test_mode',
+                error: 'OPEN_URL disabled in SP4 test mode'
+            };
+        }
+
         // Platform-specific command
         const platform = process.platform;
         let command;

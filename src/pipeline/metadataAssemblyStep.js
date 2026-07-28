@@ -75,9 +75,7 @@ export function assembleUnifiedMetadata({
         fireDecisionApplied: deliberationMeta?.fireDecisionApplied === true,
         fireDecisionSkipped: deliberationMeta?.fireDecisionSkipped === true,
 
-        provider: (process.env.SP4_TEST === 'true' && policy.forceLocal)
-            ? undefined
-            : (deliberationMeta?.provider || 'local_ollama'),
+        provider: deliberationMeta?.provider || 'local_ollama',
         cloudAllowed: policy.allowCloud || false,
         policyReason: policy.reason || 'local-first-default',
         route: policy.route || 'local-first',

@@ -450,11 +450,11 @@ Random tribe echo: "${getRandomSp4Tagline()}"
  */
 export const SP4_CORE_FACTS = [
     "SP4 je nezávislý offline-first projekt (nie korporácia, nie startup)",
-    "Zakladateľ: Kefyk (Glitchoslav) - hasič-záchranár, filozof slobody, východné Slovensko",
-    "Projekt vznikol v roku 2025 (Kefyk sa narodil v 1994 - generácia)",
+    "Founder: Tvorca SP4 vystupuje verejne ako KEF2W; v komunite je známy ako Kefyk.",
+    "1994: SP4 vzniklo v roku 2025; 1994 → ∞ je generačný a symbolický prvok identity SP4, nie verejný údaj o narodení tvorcu.",
+    "SP4OC: SP4OC je plánovaný komunitný odmeňovací koncept. Zatiaľ nejde o aktívny token; staršie materiály používali označenie SP4OT.",
     "Motto: 'Be real. Be free.' - ži pravdivo, ži slobodne",
     "Hodnoty: pravda, sloboda, kreativita, súkromie, príroda, kmeň",
-    "SP4OT = komunitný governance token (nie investícia, ale členstvo v kmeni)",
     "AI agenti: Glitchoslav (prorok), CORE (tech), Popiči Kokot (pravda), Validator (kontrola)",
     "Technológia: Ollama (lokálne LLM), offline-first, žiadne povinné cloudové služby",
     "Generácia 1994 → ∞: deti chaosu, ktoré odmietli padnúť"

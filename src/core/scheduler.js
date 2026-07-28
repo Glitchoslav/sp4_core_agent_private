@@ -17,14 +17,7 @@
 
 import fs from 'fs';
 import cron from 'node-cron';
-import path from 'path';
-import { fileURLToPath } from 'url';
-
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-const PROJECT_ROOT = path.resolve(__dirname, '../../');
-const LOGS_DIR = path.join(PROJECT_ROOT, 'logs');
-const SCHEDULER_LOG = path.join(LOGS_DIR, 'scheduler.log');
+import { LOGS_DIR, SCHEDULER_LOG_FILE } from '../../config/paths.js';
 
 /**
  * Active cron jobs registry (jobId → jobConfig + runtime info)
@@ -56,7 +49,7 @@ function log(line) {
     const timestamp = new Date().toISOString();
     const logEntry = `[${timestamp}] ${line}\n`;
 
-    fs.appendFile(SCHEDULER_LOG, logEntry, (err) => {
+    fs.appendFile(SCHEDULER_LOG_FILE, logEntry, (err) => {
         if (err) console.error('❌ SCHEDULER LOG ERROR:', err);
     });
 

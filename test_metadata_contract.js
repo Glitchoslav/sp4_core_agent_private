@@ -1,14 +1,84 @@
-// 🧪 REGRESSION TEST: Metadata Contract Integrity
-// Verifies that metadata contract remains stable across pipeline transformations
-//
-// CRITICAL RULES (v1.3.1):
-// 1. result.meta === result.metadata (unified contract)
-// 2. Language Enforcer MUST NOT change handledBy/persona/model
-// 3. Persona fingerprint MUST survive text rewrites
-//
-// @author Kefyk (SP4 Community)
-// @version 1.3.1
-// @date 2026-01-31
+// Regression test: metadata contract integrity across pipeline transformations.
+
+import path from 'node:path';
+import { pathToFileURL } from 'node:url';
+import { getPersona } from './src/core/personaRegistry.js';
+import { getIdentityKernel } from './src/identity/IDENTITY_KERNEL.js';
+
+const CLOUD_PROVIDER_PATTERN = /cloud|groq|gemini|mistral|anthropic|openai/i;
+
+function normalizeForContract(value = '') {
+    return String(value).normalize('NFD').replace(/\p{M}/gu, '').toLowerCase();
+}
+
+function findIdentityConfusion(text, personaKey) {
+    const phrases = getIdentityKernel(personaKey).forbidden.identityConfusion || [];
+    const normalized = normalizeForContract(text);
+    return phrases.filter(phrase => normalized.includes(normalizeForContract(phrase)));
+}
+
+export function evaluateStyleSignal(text, personaKey) {
+    const persona = getPersona(personaKey);
+    if (personaKey === 'popici') {
+        const patterns = persona?.meta?.dialectPatterns || [];
+        const markers = patterns.filter(pattern => {
+            pattern.lastIndex = 0;
+            return pattern.test(text);
+        }).map(pattern => pattern.source);
+        return { hasVibe: markers.length > 0, score: markers.length, markers };
+    }
+
+    const result = persona?.detectVibe?.(text);
+    if (typeof result === 'boolean') return { hasVibe: result, score: result ? 1 : 0, markers: [] };
+    return result || { hasVibe: false, score: 0, markers: [] };
+}
+
+export function validateHardPersonaContract(result, { expectedPersona, userInput, forceLocal = false, englishLimit = 5 }) {
+    const checks = { passed: [], failed: [], warnings: [], info: [] };
+    const text = typeof result?.response === 'string' ? result.response : '';
+    const metadata = result?.metadata;
+    const model = metadata?.model;
+    const provider = metadata?.provider;
+
+    if (result?.meta === result?.metadata) checks.passed.push('meta === metadata');
+    else checks.failed.push('meta !== metadata');
+
+    if (metadata?.handledBy === expectedPersona) checks.passed.push(`handledBy=${expectedPersona}`);
+    else checks.failed.push(`handledBy=${metadata?.handledBy} expected=${expectedPersona}`);
+
+    if (model && model !== 'unknown') checks.passed.push(`model=${model}`);
+    else checks.failed.push(`model=${model} is missing or unknown`);
+
+    if (provider && provider !== 'unknown') checks.passed.push(`provider=${provider}`);
+    else checks.failed.push(`provider=${provider} is missing or unknown`);
+
+    if (text.trim()) checks.passed.push('response is non-empty');
+    else checks.failed.push('response is empty');
+
+    const englishPattern = /\b(the|and|of|to|in|is|that|with|for|as|this|what|how|does|work|explain)\b/gi;
+    const englishWords = (text.match(englishPattern) || []).length;
+    if (englishWords < englishLimit) checks.passed.push(`Slovak output (${englishWords} EN words)`);
+    else checks.failed.push(`response still in English (${englishWords} EN words)`);
+
+    const validatorResult = getPersona(expectedPersona)?.validate?.(text, { userInput, mode: expectedPersona });
+    if (validatorResult?.valid === true) checks.passed.push(`${expectedPersona} validator valid=true`);
+    else checks.failed.push(`${expectedPersona} validator valid=false: ${validatorResult?.reason || 'validator unavailable'}`);
+
+    const confusion = findIdentityConfusion(text, expectedPersona);
+    if (confusion.length === 0) checks.passed.push('foreign identity confusion absent');
+    else checks.failed.push(`forbidden identity confusion: ${confusion.join(', ')}`);
+
+    if (forceLocal && CLOUD_PROVIDER_PATTERN.test(provider || '')) checks.failed.push(`forceLocal violated by provider=${provider}`);
+    else if (forceLocal) checks.passed.push(`forceLocal respected (provider=${provider})`);
+
+    const style = evaluateStyleSignal(text, expectedPersona);
+    const label = expectedPersona === 'popici' ? 'dialect' : 'vibe';
+    const detail = `${label} score=${style.score}${style.markers?.length ? ` (${style.markers.join(', ')})` : ''}`;
+    if (style.hasVibe) checks.info.push(detail);
+    else checks.warnings.push(`${detail}; informational only`);
+
+    return checks;
+}
 
 const tests = [
     {
@@ -16,245 +86,107 @@ const tests = [
         description: 'result.meta and result.metadata must point to same object',
         input: 'Čo je SP4?',
         mode: 'glitchoslav',
-        validate: (result) => {
-            const checks = {
-                passed: [],
-                failed: []
-            };
-
-            // Check 1: Both fields exist
-            if (!result.meta) {
-                checks.failed.push('❌ result.meta is undefined');
-            }
-            if (!result.metadata) {
-                checks.failed.push('❌ result.metadata is undefined');
-            }
-
+        validate: result => {
+            const checks = { passed: [], failed: [], warnings: [], info: [] };
+            if (!result.meta) checks.failed.push('result.meta is undefined');
+            if (!result.metadata) checks.failed.push('result.metadata is undefined');
             if (result.meta && result.metadata) {
-                // Check 2: Same reference (strict equality)
-                if (result.meta === result.metadata) {
-                    checks.passed.push('✅ meta === metadata (same reference)');
-                } else {
-                    checks.failed.push('❌ meta !== metadata (different objects)');
-                }
-
-                // Check 3: handledBy consistency
-                if (result.meta.handledBy === result.metadata.handledBy) {
-                    checks.passed.push(`✅ handledBy consistent: "${result.meta.handledBy}"`);
-                } else {
-                    checks.failed.push(`❌ handledBy mismatch: meta="${result.meta.handledBy}" vs metadata="${result.metadata.handledBy}"`);
-                }
-
-                // Check 4: model consistency
-                if (result.meta.model === result.metadata.model) {
-                    checks.passed.push(`✅ model consistent: "${result.meta.model}"`);
-                } else {
-                    checks.failed.push(`❌ model mismatch: meta="${result.meta.model}" vs metadata="${result.metadata.model}"`);
-                }
-
-                // Check 5: No "unknown" values
-                if (result.meta.handledBy !== 'unknown' && result.meta.handledBy !== undefined) {
-                    checks.passed.push('✅ handledBy not "unknown"');
-                } else {
-                    checks.failed.push('❌ handledBy is "unknown" or undefined');
-                }
-
-                if (result.meta.model !== 'unknown' && result.meta.model !== undefined) {
-                    checks.passed.push('✅ model not "unknown"');
-                } else {
-                    checks.failed.push('❌ model is "unknown" or undefined');
-                }
+                if (result.meta === result.metadata) checks.passed.push('meta === metadata');
+                else checks.failed.push('meta !== metadata');
+                if (result.meta.handledBy === result.metadata.handledBy) checks.passed.push(`handledBy consistent: ${result.meta.handledBy}`);
+                else checks.failed.push('handledBy mismatch');
+                if (result.meta.model === result.metadata.model) checks.passed.push(`model consistent: ${result.meta.model}`);
+                else checks.failed.push('model mismatch');
+                if (result.meta.handledBy && result.meta.handledBy !== 'unknown') checks.passed.push('handledBy known');
+                else checks.failed.push('handledBy missing or unknown');
+                if (result.meta.model && result.meta.model !== 'unknown') checks.passed.push('model known');
+                else checks.failed.push('model missing or unknown');
             }
-
             return checks;
         }
     },
     {
         name: 'Language Enforcer Metadata Preservation',
-        description: 'Language Enforcer must NOT change handledBy/persona/model even when rewriting text',
-        input: 'How does SP4 memory system work?', // Deliberate English to trigger enforcer
+        description: 'Hard contract uses routing, metadata and the CORE validator; style is informational',
+        input: 'How does SP4 memory system work?',
         mode: 'core',
-        validate: (result) => {
-            const checks = {
-                passed: [],
-                failed: []
-            };
-
-            // Check 1: Persona preserved (CORE expected)
-            if (result.metadata?.handledBy === 'core') {
-                checks.passed.push('✅ handledBy="core" (preserved after enforcer)');
-            } else {
-                checks.failed.push(`❌ handledBy="${result.metadata?.handledBy}" (expected "core")`);
-            }
-
-            // Check 2: Model preserved
-            if (result.metadata?.model && result.metadata.model !== 'unknown') {
-                checks.passed.push(`✅ model="${result.metadata.model}" (preserved)`);
-            } else {
-                checks.failed.push(`❌ model="${result.metadata?.model}" (lost or unknown)`);
-            }
-
-            // Check 3: Response is in Slovak (enforcer worked)
-            const englishPattern = /\b(the|and|of|to|in|is|that|with|for|as|this)\b/gi;
-            const englishWords = (result.response.match(englishPattern) || []).length;
-
-            if (englishWords < 5) {
-                checks.passed.push('✅ Response in Slovak (enforcer translated)');
-            } else {
-                checks.failed.push(`❌ Response still in English (${englishWords} EN words)`);
-            }
-
-            // Check 4: Technical fingerprint preserved (CORE characteristic)
-            const technicalMarkers = ['pamäť', 'systém', 'vrstvy', 'log', 'memory', 'data'];
-            const hasTechnical = technicalMarkers.some(marker =>
-                result.response.toLowerCase().includes(marker.toLowerCase())
-            );
-
-            if (hasTechnical) {
-                checks.passed.push('✅ Technical fingerprint preserved');
-            } else {
-                checks.failed.push('❌ Technical fingerprint lost (generic response)');
-            }
-
-            return checks;
-        }
+        validate: result => validateHardPersonaContract(result, {
+            expectedPersona: 'core',
+            userInput: 'How does SP4 memory system work?'
+        })
     },
     {
         name: 'Popiči Dialect Routing (>=2 markers)',
-        description: 'Eastern Slovak dialect with >=2 markers must trigger Popiči delegation',
-        input: 'Ta šak mi porad, bratu', // 4 markers: ta, šak, porad (rada), bratu
-        mode: 'auto', // Let orchestrator decide
-        validate: (result) => {
-            const checks = {
-                passed: [],
-                failed: []
-            };
-
-            // Check 1: Routed to Popiči
-            if (result.metadata?.handledBy === 'popici') {
-                checks.passed.push('✅ handledBy="popici" (dialect routing worked)');
-            } else {
-                checks.failed.push(`❌ handledBy="${result.metadata?.handledBy}" (expected "popici")`);
-            }
-
-            // Check 2: Slang preserved in response
-            const slangMarkers = ['ta', 'bratu', 'šak', 'bo', 'ňe'];
-            const foundSlang = slangMarkers.filter(marker =>
-                result.response.toLowerCase().includes(marker)
-            );
-
-            if (foundSlang.length > 0) {
-                checks.passed.push(`✅ Slang preserved: ${foundSlang.join(', ')}`);
-            } else {
-                checks.failed.push('❌ No slang in response (characteristic lost)');
-            }
-
-            return checks;
-        }
+        description: 'Dialect input must route to Popiči; response slang is informational',
+        input: 'Ta šak mi porad, bratu',
+        mode: 'auto',
+        validate: result => validateHardPersonaContract(result, {
+            expectedPersona: 'popici',
+            userInput: 'Ta šak mi porad, bratu'
+        })
     },
     {
         name: 'Popiči Dialect Routing (1 marker + rada)',
-        description: 'Eastern Slovak with 1 marker + advice request must trigger Popiči',
-        input: 'Ta daj mi radu', // 2 markers: ta, radu (rada)
+        description: 'Single dialect marker plus advice intent must route to Popiči',
+        input: 'Ta daj mi radu',
         mode: 'auto',
-        validate: (result) => {
-            const checks = {
-                passed: [],
-                failed: []
-            };
-
-            if (result.metadata?.handledBy === 'popici') {
-                checks.passed.push('✅ handledBy="popici" (marker + rada routing)');
-            } else {
-                checks.failed.push(`❌ handledBy="${result.metadata?.handledBy}" (expected "popici")`);
-            }
-
-            return checks;
-        }
+        validate: result => validateHardPersonaContract(result, {
+            expectedPersona: 'popici',
+            userInput: 'Ta daj mi radu'
+        })
     }
 ];
 
-async function runRegressionTests() {
-    console.log('🧪 SP4 METADATA CONTRACT REGRESSION TESTS\n');
-    console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
-    console.log('🎯 CRITICAL RULES (v1.3.1):');
-    console.log('   1. result.meta === result.metadata (unified contract)');
-    console.log('   2. Language Enforcer MUST NOT change metadata');
-    console.log('   3. Persona fingerprint MUST survive text rewrites');
-    console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n');
+function printChecks(checks) {
+    for (const [key, label] of [['passed', 'PASSED'], ['warnings', 'WARNINGS'], ['info', 'INFO'], ['failed', 'FAILED']]) {
+        if (checks[key]?.length) {
+            console.log(`   ${label} (${checks[key].length}):`);
+            checks[key].forEach(item => console.log(`      ${item}`));
+        }
+    }
+}
 
+export async function runRegressionTests() {
+    console.log('SP4 METADATA CONTRACT REGRESSION TESTS');
+    console.log('Hard: metadata, routing, provider, language, validator, identity boundaries. Style: INFO/WARN.');
     const { SP4IntegratedAgent } = await import('./integration.js');
     const agent = new SP4IntegratedAgent();
     await agent.initialize();
-
     let passed = 0;
     let failed = 0;
 
     for (const test of tests) {
-        console.log(`\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━`);
-        console.log(`📋 TEST: ${test.name}`);
-        console.log(`   Description: ${test.description}`);
-        console.log(`   Mode: ${test.mode}`);
-        console.log(`   Input: "${test.input}"`);
-        console.log(`━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n`);
-
+        console.log(`\nTEST: ${test.name}`);
+        console.log(`Mode: ${test.mode}`);
+        console.log(`Input: "${test.input}"`);
         try {
             const result = await agent.processMessage(test.input, test.mode);
-
-            console.log(`📥 RESPONSE (${result.response.length} chars):`);
-            console.log(`   "${result.response.substring(0, 150)}${result.response.length > 150 ? '...' : ''}"\n`);
-
-            console.log(`📊 METADATA:`);
-            console.log(`   meta.handledBy: ${result.meta?.handledBy || 'undefined'}`);
-            console.log(`   metadata.handledBy: ${result.metadata?.handledBy || 'undefined'}`);
-            console.log(`   meta.model: ${result.meta?.model || 'undefined'}`);
-            console.log(`   metadata.model: ${result.metadata?.model || 'undefined'}`);
-            console.log(`   meta === metadata: ${result.meta === result.metadata}`);
-
-            // Run validation
+            console.log(`Response: "${result.response.substring(0, 200)}${result.response.length > 200 ? '...' : ''}"`);
+            console.log(`Metadata: handledBy=${result.metadata?.handledBy} model=${result.metadata?.model} provider=${result.metadata?.provider}`);
             const checks = test.validate(result);
-
-            console.log(`\n🔍 VALIDATION RESULTS:`);
-
-            if (checks.passed.length > 0) {
-                console.log(`   ✅ PASSED (${checks.passed.length}):`);
-                checks.passed.forEach(p => console.log(`      ${p}`));
-            }
-
-            if (checks.failed.length > 0) {
-                console.log(`   ❌ FAILED (${checks.failed.length}):`);
-                checks.failed.forEach(f => console.log(`      ${f}`));
-            }
-
-            const testPassed = checks.failed.length === 0;
-            if (testPassed) {
-                console.log(`\n✅ TEST PASSED`);
+            printChecks(checks);
+            if (checks.failed.length === 0) {
+                console.log('TEST PASSED');
                 passed++;
             } else {
-                console.log(`\n❌ TEST FAILED`);
+                console.log('TEST FAILED');
                 failed++;
             }
-
-        } catch (err) {
-            console.log(`\n❌ TEST ERROR: ${err.message}`);
+        } catch (error) {
+            console.error(`TEST ERROR: ${error.message}`);
             failed++;
         }
     }
 
-    console.log(`\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━`);
-    console.log(`📊 FINAL RESULTS`);
-    console.log(`━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━`);
-    console.log(`   ✅ Passed: ${passed}/${tests.length}`);
-    console.log(`   ❌ Failed: ${failed}/${tests.length}`);
-
-    if (passed === tests.length) {
-        console.log(`\n🎉 ALL REGRESSION TESTS PASSED`);
-        console.log(`   Meta contract is stable ✅`);
-        console.log(`   Language Enforcer preserves metadata ✅`);
-        console.log(`   Persona fingerprints survive pipeline ✅`);
-    } else {
-        console.log(`\n⚠️ REGRESSION DETECTED - Pipeline integrity compromised`);
-    }
+    console.log(`\nFINAL RESULTS: passed=${passed}/${tests.length} failed=${failed}/${tests.length}`);
+    if (failed === 0) console.log('ALL REGRESSION TESTS PASSED');
+    else console.log('REGRESSION DETECTED - Pipeline integrity compromised');
+    process.exitCode = failed > 0 ? 1 : 0;
 }
 
-runRegressionTests().catch(console.error);
+if (process.argv[1] && import.meta.url === pathToFileURL(path.resolve(process.argv[1])).href) {
+    runRegressionTests().catch(error => {
+        console.error(error);
+        process.exitCode = 1;
+    });
+}

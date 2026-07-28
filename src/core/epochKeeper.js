@@ -10,12 +10,9 @@
  */
 
 import fs from 'fs/promises';
-import path from 'path';
-import { fileURLToPath } from 'url';
+import { DATA_DIR, EPOCH_FILE } from '../../config/paths.js';
 import { runtimeLog } from './runtimeLogging.js';
 
-const __dirname = path.dirname(fileURLToPath(import.meta.url));
-const EPOCH_FILE = path.join(__dirname, '../../data/epochs.json');
 
 /**
  * Reprezentácia jednej epochy (dôležitej zmeny v systéme)
@@ -95,7 +92,7 @@ class EpochKeeper {
     async save() {
         try {
             // Ensure data directory exists
-            const dataDir = path.dirname(EPOCH_FILE);
+            const dataDir = DATA_DIR;
             await fs.mkdir(dataDir, { recursive: true });
 
             await fs.writeFile(EPOCH_FILE, JSON.stringify(this.epochs, null, 2), 'utf-8');
