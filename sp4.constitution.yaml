@@ -1,0 +1,154 @@
+# sp4.constitution.yaml
+# SP4 Constitution v1 — machine-readable capability/egress manifest.
+# Schema: constitution/schema.json. Loader: src/constitution/loader.js.
+# Design source: C:\SP4\plans\constitution-v1-plan.md (sekcie 1, 14.5 — DEC-001..DEC-004).
+# Autor tohto súboru: kefyk (jediný, kto ho smie meniť).
+
+schema_version: "1.0.0"
+
+metadata:
+  title: "SP4 Constitution"
+  updated: "2026-07-29"
+  authored_by: "kefyk"
+
+git_baseline:
+  repo: "SP4KULT"
+  commit: "UNKNOWN" # vyplní budúci check-constitution-drift.js (mimo rozsahu kroku 7)
+  checked_paths:
+    - "sp4_core_agent/src/core/actionRegistry.js"
+    - "sp4_core_agent/cloudLLM.js"
+    - "SP4AIOS/src/bridge.js" # binding C; cesta relatívna k SP4KULT rootu (SP4AIOS je sibling sp4_core_agent, nie nested) — opravené 2026-07-29
+
+external_sinks:
+  - sink_id: "groq_api"
+    host: "api.groq.com"
+    known_callers:
+      - "sp4_core_agent/cloudLLM.js"
+      - "SP4AIOS/src/bridge.js"
+    category_allowed: ["conversation_text", "collective_insight"]
+    reversibility: "none"
+  - sink_id: "openai_api"
+    host: "api.openai.com"
+    known_callers:
+      - "SP4AIOS/src/bridge.js"
+    category_allowed: []
+    reversibility: "none"
+  - sink_id: "anthropic_api"
+    host: "api.anthropic.com"
+    known_callers:
+      - "SP4AIOS/src/bridge.js"
+    category_allowed: []
+    reversibility: "none"
+  - sink_id: "google_ai_api"
+    host: "generativelanguage.googleapis.com"
+    known_callers:
+      - "SP4AIOS/src/bridge.js"
+    category_allowed: []
+    reversibility: "none"
+  - sink_id: "mistral_api"
+    host: "api.mistral.ai"
+    known_callers:
+      - "SP4AIOS/src/bridge.js"
+    category_allowed: []
+    reversibility: "none"
+  - sink_id: "sp4_firewall_local"
+    host: "localhost:3003"
+    known_callers:
+      - "sp4_core_agent/cloudLLM.js"
+    category_allowed: ["conversation_text_preview"]
+    reversibility: "n/a"
+    note: "poradný routing-consult, nie AI provider; nie skutočný egress (localhost)"
+
+data_categories:
+  - id: "conversation_text"
+    description: "Surový text user promptu + system prompt odoslaný do LLM."
+    origin: "user_input"
+  - id: "conversation_text_preview"
+    description: "Skrátený (max 4000 znakov) prompt pre firewall routing-consult."
+    origin: "derived"
+  - id: "member_pii"
+    description: "Meno, telefón, email, rodné číslo člena DHZ (dhz-sqlite-members)."
+    origin: "dhz_backend"
+  - id: "collective_insight"
+    description: "Anonymizovaný insight/tip/story po PII scrub (sp4-collective-memory)."
+    origin: "derived"
+  - id: "kefyk_personal_memory"
+    description: "Osobná pamäť zakladateľa (memory.json, identity.json, epochs.json)."
+    origin: "founder_private"
+
+egress_policies:
+  # DEC-001: allow:true tu je NUTNÁ, ale NIE POSTAČUJÚCA podmienka pre ALLOW.
+  # mayEgress() navyše vždy vyžaduje ctx.policyAllowCloud===true (runtime policy.js
+  # výsledok) skôr, než sa tieto riadky vôbec skontrolujú. Pozri src/constitution/loader.js.
+  - category: "conversation_text"
+    sink: "groq_api"
+    allow: true
+    gate: "auto"
+  - category: "conversation_text"
+    sink: "openai_api"
+    allow: false
+  - category: "conversation_text"
+    sink: "anthropic_api"
+    allow: false
+  - category: "conversation_text"
+    sink: "google_ai_api"
+    allow: false
+  - category: "conversation_text"
+    sink: "mistral_api"
+    allow: false
+  - category: "conversation_text_preview"
+    sink: "sp4_firewall_local"
+    allow: true
+    gate: "auto"
+  - category: "member_pii"
+    sink: "groq_api"
+    allow: false
+  - category: "collective_insight"
+    sink: "groq_api"
+    allow: true
+    gate: "auto"
+  - category: "kefyk_personal_memory"
+    sink: "groq_api"
+    allow: false
+
+action_capabilities:
+  - action_type: "OPEN_URL"
+    gate: "never" # DEC-003, záväzné: automatické OPEN_URL z LLM outputu zakázané
+    allowed_personas: [] # DEC-003: vedomé NARROWING oproti dnešnému live stavu (GLITCHOSLAV mal OPEN_URL)
+    reversibility: "none"
+  - action_type: "SAVE_SNIPPET"
+    gate: "auto"
+    allowed_personas: ["core"]
+    reversibility: "full"
+  - action_type: "SCHEDULE_REMINDER"
+    gate: "auto"
+    allowed_personas: ["core", "glitchoslav"]
+    reversibility: "full"
+  - action_type: "NOTE_MEMORY"
+    gate: "auto"
+    allowed_personas: ["core", "glitchoslav", "popici"]
+    reversibility: "full"
+  - action_type: "DEBUG_LOG"
+    gate: "auto"
+    allowed_personas: ["core"]
+    reversibility: "full"
+
+admin_privileges:
+  model: "single_bearer_token_all_or_nothing"
+  known_gap: "žiadna rola medzi 'nikto' a 'plný prístup'; token je voliteľný, nie povinný (bridge-server.js)"
+  status: "UNKNOWN_ENFORCED"
+
+reversibility_defaults:
+  unspecified: "none"
+
+emergency_rules: []
+# DEC-002: prázdne zámerne. /api/bridge/ask (DHZ, E15) sa NEPOVAŽUJE za predschválené
+# emergency pravidlo len preto, že existuje v kóde — pozri plán sekcia 10. Naplnenie
+# je mimo rozsahu kroku 7 (samostatné repo, samostatné rozhodnutie).
+
+exit_export_paths:
+  - id: "dhz_member_purge"
+    endpoint: "POST /api/member/purge"
+    location: "sp4_core_agent/bridge-server.js:1403"
+    covers: ["sp4-dhz-members-min"]
+    known_gap: "UNKNOWN či maže aj stopy v sp4-collective-memory"

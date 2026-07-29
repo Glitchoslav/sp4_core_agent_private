@@ -1,0 +1,119 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "sp4-constitution-schema-v1",
+  "title": "SP4 Constitution v1 manifest schema",
+  "description": "Spec for sp4.constitution.yaml. Enforced programmatically in src/constitution/loader.js (validateManifest). This file documents the same rules; it is not itself consumed by a generic JSON Schema validator in v1 — see plan C:\\SP4\\plans\\constitution-v1-plan.md sekcia 2.",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "metadata",
+    "git_baseline",
+    "external_sinks",
+    "data_categories",
+    "egress_policies",
+    "action_capabilities",
+    "admin_privileges",
+    "reversibility_defaults",
+    "emergency_rules",
+    "exit_export_paths"
+  ],
+  "properties": {
+    "schema_version": { "type": "string" },
+    "metadata": {
+      "type": "object",
+      "required": ["title", "updated", "authored_by"],
+      "properties": {
+        "title": { "type": "string" },
+        "updated": { "type": "string" },
+        "authored_by": { "type": "string" }
+      }
+    },
+    "git_baseline": {
+      "type": "object",
+      "required": ["repo", "commit", "checked_paths"],
+      "properties": {
+        "repo": { "type": "string" },
+        "commit": { "type": "string" },
+        "checked_paths": { "type": "array", "items": { "type": "string" } }
+      }
+    },
+    "external_sinks": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["sink_id", "host", "category_allowed", "reversibility"],
+        "properties": {
+          "sink_id": { "type": "string" },
+          "host": { "type": "string" },
+          "known_callers": { "type": "array", "items": { "type": "string" } },
+          "category_allowed": { "type": "array", "items": { "type": "string" } },
+          "reversibility": { "enum": ["full", "partial", "none", "n/a"] },
+          "note": { "type": "string" }
+        }
+      }
+    },
+    "data_categories": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["id", "origin"],
+        "properties": {
+          "id": { "type": "string" },
+          "description": { "type": "string" },
+          "origin": { "enum": ["user_input", "dhz_backend", "founder_private", "derived"] }
+        }
+      }
+    },
+    "egress_policies": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["category", "sink", "allow"],
+        "properties": {
+          "category": { "type": "string" },
+          "sink": { "type": "string" },
+          "allow": { "type": "boolean" },
+          "gate": { "enum": ["auto", "never"] }
+        },
+        "if": { "properties": { "allow": { "const": true } } },
+        "then": { "required": ["category", "sink", "allow", "gate"] }
+      }
+    },
+    "action_capabilities": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["action_type", "gate", "allowed_personas", "reversibility"],
+        "properties": {
+          "action_type": { "type": "string" },
+          "gate": { "enum": ["auto", "never"] },
+          "allowed_personas": { "type": "array", "items": { "type": "string" } },
+          "reversibility": { "enum": ["full", "partial", "none"] }
+        }
+      }
+    },
+    "admin_privileges": {
+      "type": "object",
+      "required": ["model", "status"],
+      "properties": {
+        "model": { "type": "string" },
+        "known_gap": { "type": "string" },
+        "status": { "enum": ["UNKNOWN_ENFORCED", "ENFORCED", "NOT_ENFORCED"] }
+      }
+    },
+    "reversibility_defaults": {
+      "type": "object",
+      "required": ["unspecified"],
+      "properties": {
+        "unspecified": { "enum": ["full", "partial", "none"] }
+      }
+    },
+    "emergency_rules": { "type": "array" },
+    "exit_export_paths": { "type": "array" }
+  },
+  "notes": {
+    "fail_closed_no_implicit_defaults": "A missing 'gate' on an action_capabilities row, or a missing egress_policies row for an observed (category, sink) pair at runtime, MUST NOT be silently defaulted to a permissive value. The only permitted silent default in the whole schema is reversibility_defaults.unspecified, which is 'none' (most restrictive, not most permissive).",
+    "gate_enum_v1": "gate is strictly 'auto' | 'never' in v1. 'ask' is not a valid value — no interactive channel exists yet (see plan sekcia 12).",
+    "actor_type_v1": "DEC-004: ctx.actorType passed to can()/mayEgress() at runtime is one of interactive-human | automation | agent | subprocess. It is not part of the manifest schema itself (it is a per-call runtime context field, not a static declaration) — documented here for completeness since loader.js validates it at decision time."
+  }
+}

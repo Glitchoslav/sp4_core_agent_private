@@ -18,9 +18,9 @@
 
 import {
     ACTION_TYPES,
-    isActionAllowed,
     validateActionPayload
 } from './actionRegistry.js';
+import { can } from '../constitution/loader.js'; // Constitution v1 binding A (DEC-003, DEC-004)
 
 import { executeNoteMemory } from './actions/noteMemory.js';
 import { executeOpenUrl } from './actions/openUrl.js';
@@ -115,15 +115,16 @@ export function extractActionsFromResponse(responseText) {
 
 /**
  * Validate action against persona permissions and schema
- * 
+ *
  * @param {Object} action - { type: string, payload: Object }
  * @param {string} persona - Persona key
+ * @param {string} [actorType='automation'] - DEC-004: interactive-human|automation|agent|subprocess
  * @returns {Object} { valid: boolean, error?: string }
  */
-export function validateAction(action, persona) {
+export function validateAction(action, persona, actorType = 'automation') {
     const { type, payload } = action;
 
-    // Check if action type exists
+    // Check if action type exists (cheap, manifest-independent — stays first)
     if (!ACTION_TYPES[type]) {
         return {
             valid: false,
@@ -131,11 +132,14 @@ export function validateAction(action, persona) {
         };
     }
 
-    // Check persona permissions
-    if (!isActionAllowed(type, persona)) {
+    // Constitution v1 binding A (DEC-003, DEC-004) — replaces isActionAllowed().
+    // Fail-closed: unknown action/persona/actorType, or manifest load failure,
+    // all resolve to BLOCK inside can(). See src/constitution/loader.js.
+    const constitutionCheck = can(type, { persona, actorType });
+    if (constitutionCheck.decision !== 'ALLOW') {
         return {
             valid: false,
-            error: `Action ${type} not allowed for persona ${persona.toUpperCase()}`
+            error: `Action ${type} blocked by Constitution: ${constitutionCheck.reason}`
         };
     }
 
@@ -192,7 +196,7 @@ export async function executeAction(action, context = {}) {
  * @returns {Promise<Object>} { actionsFound: number, executed: number, results: Array }
  */
 export async function processResponseActions(responseText, context = {}) {
-    const { persona = 'unknown' } = context;
+    const { persona = 'unknown', actorType = 'automation' } = context;
 
     // Step 1: Extract actions from response
     const detectedActions = extractActionsFromResponse(responseText);
@@ -215,7 +219,7 @@ export async function processResponseActions(responseText, context = {}) {
         console.log(`   🔍 Validating: ${action.type}`);
 
         // Validate
-        const validation = validateAction(action, persona);
+        const validation = validateAction(action, persona, actorType);
         if (!validation.valid) {
             console.warn(`   ❌ Validation failed: ${validation.error}`);
             results.push({

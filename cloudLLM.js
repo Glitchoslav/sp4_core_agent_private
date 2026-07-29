@@ -8,13 +8,44 @@ const GROQ_ENDPOINT = 'https://api.groq.com/openai/v1/chat/completions';
 const MAX_TOKENS = parseInt(process.env.GROQ_MAX_TOKENS || '150'); // ULTRA short
 const TEMPERATURE = parseFloat(process.env.GROQ_TEMPERATURE || '0.4'); // Less creative bypassing
 
+// Constitution v1 binding B (DEC-001, DEC-004) — see C:\SP4\plans\constitution-v1-plan.md
+import { mayEgress, ConstitutionalBlockError } from './src/constitution/loader.js';
+
 /**
  * Call GROQ API (OpenAI-compatible endpoint)
  * Ultra-fast inference with Llama 3.1
+ *
+ * @param {string} userMessage
+ * @param {string} systemPrompt
+ * @param {object} options
+ * @param {object} [options.policy] - resolvePolicy() result; options.policy.allowCloud
+ *   must be exactly true or this call is Constitutionally blocked (DEC-001). Missing
+ *   options.policy entirely is treated as "not provided" and also blocks, fail-closed.
+ * @param {string} [options.actorType] - interactive-human|automation|agent|subprocess
+ *   (DEC-004). Defaults to "automation" when not supplied by the caller.
  */
 export async function askGroqLLM(userMessage, systemPrompt = '', options = {}) {
     if (!GROQ_API_KEY) {
         throw new Error('GROQ_API_KEY not configured');
+    }
+
+    // Constitution v1 gate — must run before any message assembly or fetch().
+    // Two independent layers must both allow: runtime policy.allowCloud (via
+    // options.policy, threaded from sp4LlmCall) AND the static manifest
+    // egress_policies row for (conversation_text, groq_api).
+    const policyProvided = options.policy !== undefined && options.policy !== null;
+    const policyAllowCloud = policyProvided ? options.policy.allowCloud === true : undefined;
+    const egressCheck = mayEgress('conversation_text', 'groq_api', {
+        actorType: options.actorType || 'automation',
+        policyAllowCloud,
+        requestId: options.requestId,
+        callerFile: 'cloudLLM.js:askGroqLLM'
+    });
+    if (egressCheck.decision !== 'ALLOW') {
+        throw new ConstitutionalBlockError(egressCheck.reason, {
+            category: 'conversation_text',
+            sink: 'groq_api'
+        });
     }
 
     const messages = [];

@@ -78,6 +78,8 @@ export async function sp4LlmCall(options) {
         stop = [],
         policy = null,
         forceLocal = false,
+        actorType = 'automation', // DEC-004: default for non-interactive call sites
+        requestId,
         ...rest
     } = options;
 
@@ -108,7 +110,7 @@ export async function sp4LlmCall(options) {
             await logFirewallAdvice(prompt);
 
             try {
-                const text = await cloudLLM.askGroqLLM(prompt, system, { temperature, num_predict, stop });
+                const text = await cloudLLM.askGroqLLM(prompt, system, { temperature, num_predict, stop, policy, actorType, requestId });
                 return {
                     ok: true,
                     text,
@@ -173,7 +175,7 @@ export async function sp4LlmCall(options) {
         await logFirewallAdvice(prompt);
 
         try {
-            const text = await cloudLLM.askGroqLLM(prompt, system, { temperature, num_predict, stop });
+            const text = await cloudLLM.askGroqLLM(prompt, system, { temperature, num_predict, stop, policy, actorType, requestId });
 
             // 📊 LOG FALLBACK EVENT
             await recordEpoch('Cloud LLM fallback triggered', {
@@ -239,7 +241,7 @@ export async function sp4LlmCall(options) {
         await logFirewallAdvice(prompt, 'high');
 
         try {
-            const text = await cloudLLM.askGroqLLM(prompt, system, { temperature, num_predict, stop });
+            const text = await cloudLLM.askGroqLLM(prompt, system, { temperature, num_predict, stop, policy, actorType, requestId });
             return {
                 ok: true,
                 text,
