@@ -2233,7 +2233,8 @@ export class SP4IntegratedAgent {
                   temperature: autonomousStrategy.temperature || 0.7,
                   maxTokens: autonomousStrategy.maxTokens || 2000,
                   provider: autonomousStrategy.provider,
-                  model: autonomousStrategy.model
+                  model: autonomousStrategy.model,
+                  policy // Constitution v1 binding C (DEC-001): effective policy from resolvePolicy(), threaded to the final mayEgress() gate
                 });
 
                 // 🔥 v1.3.1: Extract text using unified extractor
@@ -3646,6 +3647,9 @@ Pracujem na obnovení plnej funkčnosti.`;
    * @param {string} input - User message
    * @param {string} mode - Current mode
    * @param {Object} options - Additional options
+   * @param {object} [options.policy] - resolvePolicy() result for THIS request. Threaded
+   *   to SP4AIOSBridge's mayEgress() gate (Constitution v1 binding C, DEC-001). Missing
+   *   or allowCloud!==true both resolve to BLOCK inside the bridge — never assumed true here.
    * @returns {Promise<string>} - AI response
    */
   async askCloudAI(input, mode, options = {}) {
@@ -3666,6 +3670,18 @@ Pracujem na obnovení plnej funkčnosti.`;
       // System prompt based on mode
       const systemPrompt = this.getCloudSystemPrompt(mode);
 
+      // Constitution v1 binding C (DEC-001, DEC-004) — effective policy threading.
+      // policyAllowCloud is derived from THIS request's resolvePolicy() result, never
+      // hardcoded. Missing options.policy (caller forgot to pass it) is distinct from
+      // an explicit allowCloud:false — both leave policyAllowCloud falsy/undefined,
+      // and SP4AIOSBridge.ask()'s mayEgress() call blocks on either. Provider/model
+      // selection above (autonomousController's decision) is not itself permission —
+      // the bridge's Constitution gate is what actually authorizes egress.
+      const policyProvided = options.policy !== undefined && options.policy !== null;
+      const policyAllowCloud = policyProvided ? options.policy.allowCloud === true : undefined;
+      const actorType = options.actorType || 'automation';
+      const requestId = options.requestId;
+
       let response;
 
       if (provider && model) {
@@ -3676,16 +3692,24 @@ Pracujem na obnovení plnej funkčnosti.`;
           model,
           systemPrompt,
           temperature: options.temperature || 0.7,
-          maxTokens: options.maxTokens || 2000
+          maxTokens: options.maxTokens || 2000,
+          policyAllowCloud,
+          actorType,
+          requestId
         });
       } else {
-        // Route via SP4AIOS Bridge intelligent routing
+        // Route via SP4AIOS Bridge intelligent routing — intelligentRoute() only ever
+        // picks provider/model and forwards this same options object into ask(); it
+        // never sets or overrides policyAllowCloud itself (see bridge.js).
         response = await this.aiosBridge.intelligentRoute(input, {
           complexity,
           priority,
           systemPrompt,
           temperature: options.temperature || 0.7,
-          maxTokens: options.maxTokens || 2000
+          maxTokens: options.maxTokens || 2000,
+          policyAllowCloud,
+          actorType,
+          requestId
         });
       }
 
