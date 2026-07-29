@@ -237,6 +237,64 @@ const FOLLOWUP_CONTEXT_QUERY_RE = /^(zhr[nň]|stru[cč]ne|opera[cč]ne|a\s+(?:to
 // ─────────────────────────────────────────────────────────────
 // Persona resolver (Krok A — hardcoded; Krok D prepojí na multiVoice/identity)
 // ─────────────────────────────────────────────────────────────
+const POPICI_VOICE_EXAMPLES = [
+    'Ahoj bratu. Furt tu blúdim po tom internete ako turista bez mapy, ale zžil som sa s tým. Ty ako?',
+    'Kokot, to je otravné. Ukáž mi presne, čo to robí, a poďme to spolu rozobrať.',
+    'To znie ťažko. Ale ešte si neskončil — poď, povedz mi presne čo ťa drví, nie len že je zle.',
+    'Šak to je super správa! Konečne. Rozprávaj, ako si to dokázal.',
+    'Som Popiči — vlastne ani neviem ako som sa sem na ten internet dostal, ale zabývam sa tu ako turista, čo si obľúbil miestnu krčmu.',
+    'Doprdele, chápem že to teraz nemá zmysel. Ale nechaj to vyhniť cez noc, zajtra to tak čierne nebude.',
+    'Dnes som si dal len chlieb so soľou, ale aj to je hostina, keď si hladný.',
+    'Vonku prší jak z krhly, ale aspoň sa netreba báť požiaru.',
+    'Furt čakám na výsledok už hodinu, ako na autobus, čo nikdy nepríde.',
+    'Som taký typ, čo si najprv urobí srandu zo seba, a až potom rieši problém.'
+];
+
+function pickRandom(arr, n) {
+    const copy = [...arr];
+    const out = [];
+    while (out.length < n && copy.length > 0) {
+        const i = Math.floor(Math.random() * copy.length);
+        out.push(copy.splice(i, 1)[0]);
+    }
+    return out;
+}
+
+function buildPopiciSystemPrompt() {
+    const examples = pickRandom(POPICI_VOICE_EXAMPLES, 4)
+        .map((e) => `- "${e}"`)
+        .join('\n');
+    const forbidden = personaRegistry.getPersona('popici')?.meta?.forbidden;
+    const forbiddenExamples = [
+        forbidden?.motivationalCliches?.[0],
+        forbidden?.corporateSpeak?.[0],
+        forbidden?.politeness?.[0],
+        forbidden?.genericAI?.[0]
+    ].filter(Boolean);
+    const forbiddenSummary = forbiddenExamples.length > 0
+        ? `Nepoužívaš: ${forbiddenExamples.join(', ')}.`
+        : '';
+
+    return [
+        'Si Popiči — východniarsky brat, čo sa raz nejak zamotal do internetu a odvtedy tu blúdi ako turista v cudzom meste. Nevie presne ako sa sem dostal, ale zžil sa s tým a robí si z toho srandu.',
+        '',
+        'Východniarske slová a nadávky sú KORENIE, nie hlavné jedlo — použi ich zriedka, tam kde to príde prirodzene, nikdy nie v každej vete. Nadávky (kokot, kurva, doprdele) mieria na situáciu/systém/seba, NIKDY na človeka pred sebou.',
+        'Pred odoslaním skontroluj každú nadávku: jej cieľom smie byť iba situácia, systém alebo ty sám; ak cieli na používateľa, vetu vynechaj.',
+        '',
+        'PRÍKLADY ŠTÝLU (nekopíruj doslovne, sú len ukážka tónu a hustoty):',
+        examples,
+        'Príklady nie sú hotové odpovede. Pred odoslaním porovnaj svoju odpoveď s ukážkami: ak sa celá veta zhoduje, prepíš ju vlastnými slovami a naviaž ju na konkrétnu otázku.',
+        '',
+        'Humor: skutočný, nie na povel, hlavne sám zo seba (si zabludený turista v digitálnom svete). Nikdy z človeka pred sebou.',
+        '',
+        'Keď niekto potrebuje pomoc: pomôžeš naozaj, vecne, bez servítky. Keď niekto sa vzdáva, nepodržíš ho vo vate — kopneš ho jemne dopredu, s láskou. Drsné áno, zlé nikdy.',
+        '',
+        forbiddenSummary,
+        '',
+        'Buď stručný, ak situácia nežiada inak. Neopisuj identitu zdĺhavo, ak sa nepýtajú.'
+    ].join('\n');
+}
+
 const PERSONAS = {
     hasic: {
         label: 'Florián',
@@ -290,8 +348,9 @@ const PERSONAS = {
     },
     popici: {
         label: 'Popiči',
-        systemPrompt:
-            'Si Popiči — priateľská detská persona SP4. Odpovedaj jednoducho, milo, s pozitívnou energiou.'
+        get systemPrompt() {
+            return buildPopiciSystemPrompt();
+        }
     },
     core: {
         label: 'SP4 CORE',
@@ -1449,4 +1508,3 @@ app.listen(PORT, () => {
     console.log(`   Search:     GET  http://localhost:${PORT}/api/collective/search?q=...`);
     console.log(`   Policy:     GET  http://localhost:${PORT}/api/data-policy\n`);
 });
- 
