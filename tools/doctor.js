@@ -1,7 +1,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { ollamaHealthCheck } from '../src/llm/ollamaClient.js';
+import { callOllama, ollamaHealthCheck } from '../src/llm/ollamaClient.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -34,11 +34,29 @@ export async function runDoctor({ debug = false } = {}) {
     const health = await ollamaHealthCheck();
     add('Ollama', health.healthy ? 'OK' : 'FAIL', health.healthy ? '' : (health.error || 'unreachable'));
 
-    const envModel = process.env.OLLAMA_MODEL || process.env.OLLAMA_DEFAULT_MODEL || process.env.OLLAMA_PRIMARY_MODEL;
     if (health.healthy && Array.isArray(health.models) && health.models.length > 0) {
-      add('Local model', 'OK', health.models[0].name || 'detected');
-    } else if (envModel) {
-      add('Local model', 'OK', `configured (${envModel})`);
+      const installedModels = health.models.map((model) => model.name).filter(Boolean);
+      const configuredPrimary = process.env.PRIMARY_MODEL;
+      const model = configuredPrimary && installedModels.includes(configuredPrimary)
+        ? configuredPrimary
+        : installedModels[0];
+      const result = await callOllama({
+        model,
+        prompt: 'Odpovedz iba slovom OK.',
+        temperature: 0,
+        num_predict: 20,
+        timeoutMs: 15000,
+        maxRetries: 0,
+      });
+      const hasText = result.ok && typeof result.text === 'string' && result.text.trim().length > 0;
+      const fallbackReason = configuredPrimary && model !== configuredPrimary
+        ? `; PRIMARY_MODEL ${configuredPrimary} unavailable`
+        : '';
+      add(
+        'Local model',
+        hasText ? 'OK' : 'FAIL',
+        hasText ? `${model}${fallbackReason}` : (result.error || `${model} returned empty text`)
+      );
     } else {
       add('Local model', 'WARN', 'not detected or configured');
     }

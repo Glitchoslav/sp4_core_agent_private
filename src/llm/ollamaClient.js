@@ -19,6 +19,7 @@
  * @module ollamaClient
  */
 
+import 'dotenv/config';
 import { recordEpoch } from '../core/epochKeeper.js';
 
 // 🔧 CONFIGURATION (ENV overrides)
@@ -52,6 +53,8 @@ let consecutiveFailures = 0;
  * @param {number} options.num_predict - Max tokens (default: 4096)
  * @param {string[]} options.stop - Stop sequences (optional)
  * @param {boolean} options.stream - Stream mode (default: false)
+ * @param {number} options.timeoutMs - Per-call timeout override (optional)
+ * @param {number} options.maxRetries - Per-call retry override (optional)
  * 
  * @returns {Promise<Object>} Result object:
  *   - ok: boolean - Success flag
@@ -70,11 +73,24 @@ export async function callOllama(options) {
         num_predict = 4096,
         stop = [],
         stream = false,
+        top_k = 40,
+        top_p = 0.9,
+        repeat_penalty = 1.1,
+        penalize_newline = false,
+        options: ollamaOptions = {},
+        timeoutMs: requestedTimeoutMs,
+        maxRetries: requestedMaxRetries,
         testMode = false, // 🔥 v1.3.2: TEST MODE flag
         ...rest
     } = options;
 
     const isTestMode = testMode || process.env.SP4_TEST === 'true';
+    const perCallTimeoutMs = Number.isFinite(requestedTimeoutMs) && requestedTimeoutMs > 0
+        ? requestedTimeoutMs
+        : null;
+    const effectiveMaxRetries = Number.isInteger(requestedMaxRetries) && requestedMaxRetries >= 0
+        ? requestedMaxRetries
+        : MAX_RETRIES;
 
     // 🧪 v1.3.2: TEST MODE optimizations
     let optimizedNumPredict = num_predict;
@@ -112,13 +128,13 @@ export async function callOllama(options) {
     let lastError = null;
     let totalRetries = 0;
 
-    for (let attempt = 1; attempt <= MAX_RETRIES + 1; attempt++) {
+    for (let attempt = 1; attempt <= effectiveMaxRetries + 1; attempt++) {
         const isRetry = attempt > 1;
         const controller = new AbortController();
 
         // 🎯 DYNAMIC TIMEOUT: TEST MODE = 20s (option testMode alebo env SP4_TEST), Slovak models = 150s, others = 90s
-        let timeoutMs = isTestMode ? optimizedTimeout : DEFAULT_TIMEOUT_MS;
-        if (!isTestMode) {
+        let timeoutMs = perCallTimeoutMs || (isTestMode ? optimizedTimeout : DEFAULT_TIMEOUT_MS);
+        if (!isTestMode && !perCallTimeoutMs) {
             if (model.includes('mistral-sk') || model.includes('OpenEuroLLM')) {
                 timeoutMs = 150000; // 2.5 min
             }
@@ -134,7 +150,7 @@ export async function callOllama(options) {
             }
 
             if (isRetry) {
-                console.log(`🔄 Retry ${attempt - 1}/${MAX_RETRIES} for ${model}...`);
+                console.log(`🔄 Retry ${attempt - 1}/${effectiveMaxRetries} for ${model}...`);
             }
 
             const messages = [];
@@ -193,14 +209,17 @@ Target: 3-5 sentences UNLESS your persona requires longer format (e.g., GLITCHOS
                     model,
                     messages,
                     stream,
-                    temperature: isTestMode ? optimizedTemperature : (temperature || 0.5), // 🔥 v1.3.2: TEST MODE optimization
-                    num_predict: isTestMode ? optimizedNumPredict : (num_predict || 512), // 🔥 v1.3.2: TEST MODE optimization
-                    stop,
-                    penalize_newline: false,
-                    top_k: 40,
-                    top_p: 0.9,
-                    repeat_penalty: 1.1,
-                    keep_alive: isTestMode ? '5m' : '0', // 🔥 v1.3.2: Keep model loaded between tests
+                    keep_alive: isTestMode ? '5m' : '10m',
+                    options: {
+                        temperature: isTestMode ? optimizedTemperature : (temperature || 0.5),
+                        num_predict: isTestMode ? optimizedNumPredict : (num_predict || 512),
+                        stop,
+                        penalize_newline,
+                        top_k,
+                        top_p,
+                        repeat_penalty,
+                        ...ollamaOptions,
+                    },
                     ...rest,
                 }),
             });
@@ -302,15 +321,15 @@ Target: 3-5 sentences UNLESS your persona requires longer format (e.g., GLITCHOS
             console.warn(`[OLLAMA_${errorType}]`, epochData);
 
             // 🔥 RECORD TO EPOCH KEEPER (only on final failure)
-            if (attempt >= MAX_RETRIES + 1) {
+            if (attempt >= effectiveMaxRetries + 1) {
                 await recordEpoch(
-                    `Ollama ${errorType}: ${model} failed after ${MAX_RETRIES} retries`,
+                    `Ollama ${errorType}: ${model} failed after ${effectiveMaxRetries} retries`,
                     { ...epochData, finalFailure: true }
                 ).catch(() => { }); // Don't crash if epoch save fails
             }
 
             // 🔁 RETRY DECISION
-            if (attempt < MAX_RETRIES + 1) {
+            if (attempt < effectiveMaxRetries + 1) {
                 // Retry if timeout or network error
                 if (isTimeout || isNetworkError) {
                     console.log(`⚠️ ${errorType} - retry in progress...`);
