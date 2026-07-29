@@ -14,9 +14,13 @@ export function isPopiciDirectedInsult(responseText) {
     const traits = 'zly\\w*|zla|hlup\\w*|neschopn\\w*|idiot\\w*|' +
         'blbec|blb\\w*|sasek\\w*|kokot\\w*|kurv\\w*|chuj\\w*|debil\\w*|' +
         'dementn\\w*|retard\\w*|nanic';
+    const modifiers = '(?:fakt|naozaj|uplne|uplny|totalne|len|taky|taka|' +
+        'proste|vlastne|skutocne|jednoducho)';
     const youArePattern = new RegExp(
-        `\\b(ty\\s+si|si)\\s+(fakt\\s+|naozaj\\s+|uplne\\s+|uplny\\s+|totalne\\s+)?(${traits})\\b`
+        `\\b(ty\\s+si|si)\\s+(?:${modifiers}\\s+){0,2}(${traits})\\b`
     );
-    const dontBePattern = new RegExp(`\\bnebud\\s+(${traits})\\b`);
+    const dontBePattern = new RegExp(
+        `\\bnebud\\s+(?:${modifiers}\\s+){0,2}(${traits})\\b`
+    );
     return youArePattern.test(text) || dontBePattern.test(text);
 }
