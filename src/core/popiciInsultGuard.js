@@ -11,9 +11,9 @@ export function isPopiciDirectedInsult(responseText) {
         .replace(/\s+/g, ' ')
         .trim();
     const text = norm(responseText);
-    const traits = 'zly|zla|hlupy|hlupa|neschopny|neschopna|idiot\\w*|' +
-        'blbec|blb\\w*|sasek|kokot|kurva|chuj\\w*|debil\\w*|dementny|' +
-        'retard\\w*|nanic';
+    const traits = 'zly\\w*|zla|hlup\\w*|neschopn\\w*|idiot\\w*|' +
+        'blbec|blb\\w*|sasek\\w*|kokot\\w*|kurv\\w*|chuj\\w*|debil\\w*|' +
+        'dementn\\w*|retard\\w*|nanic';
     const youArePattern = new RegExp(
         `\\b(ty\\s+si|si)\\s+(fakt\\s+|naozaj\\s+|uplne\\s+|uplny\\s+|totalne\\s+)?(${traits})\\b`
     );
