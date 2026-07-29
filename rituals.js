@@ -10,7 +10,12 @@ import {
 } from "./memoryLayers.js";
 import { formatMultiVoiceResponse, getMultiVoiceResponse } from "./multiVoice.js";
 import { formatRelationshipStatus } from "./relationshipEvolution.js";
-import { askLocalLLM, getModelRegistry } from "./sp4os/llmLocal.js";
+import {
+  askLocalLLM,
+  FAST_PATH_MODEL,
+  getModelRegistry,
+  PRIMARY_MODEL
+} from "./sp4os/llmLocal.js";
 import { debugValidate, formatValidationReport } from "./src/core/debugValidator.js"; // v0.10.2: Validator debug endpoint
 import { pickMode } from "./src/core/modeCompass.js";
 import { SP4_MANIFEST_CREED, SP4_MANIFEST_FULL, SP4_VISION } from "./src/core/sp4Manifest.js";
@@ -528,21 +533,29 @@ ${sp4Facts.map((fact, i) => `${i + 1}. ${fact}`).join('\n')}
   if (command === "/debug_engines" || command === "debug_engines") {
     let registry = {};
     try { registry = await getModelRegistry(); } catch (_) { /* llmLocal.js ollamaHealthCheck not available */ }
+    const availableModels = Array.isArray(registry.available)
+      ? registry.available
+        .map((model) => typeof model === 'string' ? model : model?.name)
+        .filter(Boolean)
+      : [];
+    const configuredPrimary = process.env.PRIMARY_MODEL || PRIMARY_MODEL;
+    const configuredFastPath = process.env.FAST_PATH_MODEL || FAST_PATH_MODEL;
+    const configuredFallback = process.env.FALLBACK_MODEL || FAST_PATH_MODEL;
     return [
       '\n🐛 DEBUG: ENGINES & FALLBACK',
       'Model Registry:',
-      `  reasoning.primary: ${registry.reasoning?.primary || 'N/A'}`,
-      `  reasoning.fallback: ${registry.reasoning?.fallback || 'N/A'}`,
-      `  popici.primary: ${registry.popici?.primary || 'N/A'}`,
-      `  fast.primary: ${registry.fast?.primary || 'N/A'}`,
+      `  healthy: ${registry.healthy === true}`,
+      `  available: ${availableModels.length > 0 ? availableModels.join(', ') : 'none detected'}`,
+      `  configured.primary: ${configuredPrimary}`,
+      `  configured.fast-path: ${configuredFastPath}`,
       '\nActive integrations:',
       '  ✅ integration.js (multi-agent council)',
       '  ✅ contextManager.js (conversation locking)',
       '  ✅ intensityDetection.js (emotion detection)',
       '  ✅ validateOutput.js (persona validators)',
       '\nGraceful degradation chain:',
-      '  1. Primary model (llama3:8b)',
-      '  2. Fallback model (deepseek-r1:8b)',
+      `  1. Primary model (${configuredPrimary})`,
+      `  2. Fallback model (${configuredFallback})`,
       '  3. Emergency static response',
     ].join('\n');
   }

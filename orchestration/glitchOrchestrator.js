@@ -647,7 +647,7 @@ async function glitchoslavHandle(userMessage, fullMemory, context) {
         runtimeLog(`   🛡️  Injecting forced context: ${context.forcedContext.substring(0, 60)}...`);
     }
 
-    // Model selection - prefer qwen2.5:14b for Slovak
+    // Model selection follows the configured primary/fast-path routing.
     const modelDecision = pickModelForTaskDetailed({
         persona: 'glitchoslav',
         userInput: userMessage

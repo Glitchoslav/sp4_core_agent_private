@@ -28,7 +28,6 @@ import { runtimeLog, runtimeWarn } from '../core/runtimeLogging.js';
 import { callOllama, getOllamaHealthStatus } from './ollamaClient.js';
 
 const USE_CLOUD_FALLBACK = process.env.USE_CLOUD_FALLBACK !== 'false'; // Default: true
-const FALLBACK_ORDER = ['llama3:8b', 'deepseek-r1:8b']; // v1.3.0: llama3 primary
 
 /**
  * Poradný consult SP4 AI Firewallu pred cloud fallbackom.

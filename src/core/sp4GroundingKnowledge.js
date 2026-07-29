@@ -28,6 +28,7 @@ import {
     SP4_SYSTEM_ROLE,
     SP4_VALUES
 } from './sp4Facts.js';
+import { FAST_PATH_MODEL, PRIMARY_MODEL } from '../../sp4os/llmLocal.js';
 
 function normalizeGroundingQuery(query = '') {
     return String(query || '')
@@ -280,7 +281,7 @@ const SP4_ARCHITECTURE_FACTS = `
 
 **OFFLINE-FIRST:**
 - Primary: Ollama (localhost:11434)
-- Models: llama3:8b, qwen2.5:14b, gemma3:1b
+- Routing models: Primary: ${PRIMARY_MODEL}, Fast-path: ${FAST_PATH_MODEL}
 - Cloud: Optional (Groq, Google) - len ak policy.allowCloud=true
 
 **PREČO OFFLINE:**
