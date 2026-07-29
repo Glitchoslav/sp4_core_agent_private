@@ -53,6 +53,10 @@ import {
 // Kanonický persona registry (definície v identity/personas/*, logika v src/core/personaRegistry.js).
 // Slúži ako fallback pre persony, ktoré bridge nemá v inline PERSONAS (glitchoslav, validator).
 import personaRegistry from './src/core/personaRegistry.js';
+import {
+    isPopiciDirectedInsult,
+    POPICI_SAFE_FALLBACKS
+} from './src/core/popiciInsultGuard.js';
 // SP4 znalostná báza (sp4-kb/index.json) — fakty o SP4 pre VŠETKY persony (grounding proti halucináciám).
 import { getRelevantKb } from './src/core/kb-provider.js';
 // Crisis/self-harm detekcia — deterministický safety guard, žiadny LLM call. Aktívny od 2026-06-25.
@@ -1239,23 +1243,60 @@ app.post('/api/bridge/ask', requireBridgeAuth, async (req, res) => {
             });
         }
 
-        if (personaKey === 'popici' && isPopiciEcho(result.text, systemPrompt)) {
-            console.warn('[POPICI_ECHO] detected, retrying once');
-            const retrySystemPrompt = systemPrompt +
-                '\n\nTVOJA PREDCHÁDZAJÚCA ODPOVEĎ SKOPÍROVALA TENTO PROMPT. ' +
-                'Odpovedz teraz úplne vlastnými slovami, v prvej osobe, bez opakovania viet vyššie.';
-            const retryResult = await sp4LlmCall({
-                ...llmOptions,
-                system: retrySystemPrompt
-            });
+        if (personaKey === 'popici') {
+            if (isPopiciDirectedInsult(result.text)) {
+                console.warn('[POPICI_INSULT] directed insult detected, retrying once');
+                const retrySystemPrompt = systemPrompt +
+                    '\n\nTVOJA PREDCHÁDZAJÚCA ODPOVEĎ HODNOTILA ALEBO URÁŽALA POUŽÍVATEĽA PRIAMO ' +
+                    '(napr. "si zlý", "si neschopný"). To je zakázané. Odpovedz znova — ' +
+                    'nadávky smeruj len na situáciu, systém alebo na seba, NIKDY nehodnoť ' +
+                    'ani neurážaj človeka, ktorý sa s tebou rozpráva.';
+                const retryResult = await sp4LlmCall({
+                    ...llmOptions,
+                    system: retrySystemPrompt
+                });
 
-            if (retryResult?.ok) {
-                result = retryResult;
-                if (isPopiciEcho(result.text, retrySystemPrompt)) {
-                    console.warn('[POPICI_ECHO] retry still contains prompt echo, returning retry response');
+                if (retryResult?.ok && !isPopiciDirectedInsult(retryResult.text)) {
+                    result = retryResult;
+                } else {
+                    if (retryResult?.ok) {
+                        console.warn('[POPICI_INSULT] retry still insulting, using safe fallback');
+                    } else {
+                        console.warn('[POPICI_INSULT] retry transport failed, using safe fallback');
+                    }
+                    result = {
+                        ...(retryResult?.ok ? retryResult : result),
+                        text: pickRandom(POPICI_SAFE_FALLBACKS, 1)[0]
+                    };
                 }
-            } else {
-                console.warn('[POPICI_ECHO] retry failed, returning original response');
+            }
+
+            if (isPopiciEcho(result.text, systemPrompt)) {
+                console.warn('[POPICI_ECHO] detected, retrying once');
+                const retrySystemPrompt = systemPrompt +
+                    '\n\nTVOJA PREDCHÁDZAJÚCA ODPOVEĎ SKOPÍROVALA TENTO PROMPT. ' +
+                    'Odpovedz teraz úplne vlastnými slovami, v prvej osobe, bez opakovania viet vyššie.';
+                const retryResult = await sp4LlmCall({
+                    ...llmOptions,
+                    system: retrySystemPrompt
+                });
+
+                if (retryResult?.ok) {
+                    result = retryResult;
+                    if (isPopiciEcho(result.text, retrySystemPrompt)) {
+                        console.warn('[POPICI_ECHO] retry still contains prompt echo, returning retry response');
+                    }
+                } else {
+                    console.warn('[POPICI_ECHO] retry failed, returning original response');
+                }
+            }
+
+            if (isPopiciDirectedInsult(result.text)) {
+                console.warn('[POPICI_INSULT] post-echo response still insulting, using safe fallback');
+                result = {
+                    ...result,
+                    text: pickRandom(POPICI_SAFE_FALLBACKS, 1)[0]
+                };
             }
         }
 
