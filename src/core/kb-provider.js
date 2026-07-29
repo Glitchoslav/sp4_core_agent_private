@@ -24,6 +24,7 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 // kb-provider.js: sp4_core_agent/src/core/  ->  KB: SP4KULT/sp4-kb/index.json
 const INDEX_PATH = path.join(__dirname, '..', '..', '..', 'sp4-kb', 'index.json');
 const TIER = Object.freeze({ public: 0, member: 1, admin: 2 });
+const PERSONA_IDENTITY_IDS = new Set(['core', 'glitchoslav', 'popici', 'validator']);
 
 /** Lowercase + odstránenie diakritiky pre robustné matchovanie. */
 function normalize(text) {
@@ -83,8 +84,11 @@ export function getRelevantKb(prompt, personaKey, maxFacts = 5, audience = 'publ
   const normPrompt = normalize(prompt);
   if (!normPrompt) return [];
 
+  const normalizedPersonaKey = String(personaKey || '').toLowerCase();
   const scored = [];
   for (const rec of KB_INDEX) {
+    const recordId = String(rec.id || '').toLowerCase();
+    if (PERSONA_IDENTITY_IDS.has(recordId) && recordId !== normalizedPersonaKey) continue;
     if (!inScope(rec, personaKey) || !visibleToAudience(rec, audience)) continue;
     let score = 0;
     for (const kw of rec._keywords) {
