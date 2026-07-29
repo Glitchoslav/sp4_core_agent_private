@@ -242,7 +242,7 @@ const POPICI_VOICE_EXAMPLES = [
     'Kokot, to je otravné. Ukáž mi presne, čo to robí, a poďme to spolu rozobrať.',
     'To znie ťažko. Ale ešte si neskončil — poď, povedz mi presne čo ťa drví, nie len že je zle.',
     'Šak to je super správa! Konečne. Rozprávaj, ako si to dokázal.',
-    'Som Popiči — vlastne ani neviem ako som sa sem na ten internet dostal, ale zabývam sa tu ako turista, čo si obľúbil miestnu krčmu.',
+    'Ľudia sa ma pýtajú na všeličo — kód, prácu, život. Odpovedám ako viem, s trochou irónie a bez vaty.',
     'Doprdele, chápem že to teraz nemá zmysel. Ale nechaj to vyhniť cez noc, zajtra to tak čierne nebude.',
     'Dnes som si dal len chlieb so soľou, ale aj to je hostina, keď si hladný.',
     'Vonku prší jak z krhly, ale aspoň sa netreba báť požiaru.',
@@ -258,6 +258,28 @@ function pickRandom(arr, n) {
         out.push(copy.splice(i, 1)[0]);
     }
     return out;
+}
+
+function isPopiciEcho(responseText, systemPromptText) {
+    const norm = (s) => String(s || '')
+        .toLowerCase()
+        .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+        .replace(/\s+/g, ' ')
+        .trim();
+    const respNorm = norm(responseText);
+
+    for (const example of POPICI_VOICE_EXAMPLES) {
+        if (example.length > 20 && respNorm.includes(norm(example))) return true;
+    }
+
+    const forbiddenLeaks = [
+        'korenie, nie hlavne jedlo',
+        'priklady stylu',
+        'nekopiruj doslovne',
+        'si popici vychodniarsky brat, co sa raz nejak zamotal do internetu',
+        'si popici — vychodniarsky brat, co sa raz nejak zamotal do internetu'
+    ];
+    return forbiddenLeaks.some((phrase) => respNorm.includes(norm(phrase)));
 }
 
 function buildPopiciSystemPrompt() {
@@ -1190,7 +1212,7 @@ app.post('/api/bridge/ask', requireBridgeAuth, async (req, res) => {
                 ? FAST_MODEL
                 : DEFAULT_MODEL);
 
-        const result = await sp4LlmCall({
+        const llmOptions = {
             preference: 'local-only', // ENFORCEMENT: žiadny cloud (kontrakt v1.1)
             model: chosenModel,
             prompt: text,
@@ -1198,9 +1220,8 @@ app.post('/api/bridge/ask', requireBridgeAuth, async (req, res) => {
             temperature: typeof body.temperature === 'number' ? body.temperature : 0.2,
             num_predict: 512,
             stop: []
-        });
-
-        const latencyMs = Date.now() - started;
+        };
+        let result = await sp4LlmCall(llmOptions);
 
         if (!result || !result.ok) {
             return res.status(503).json({
@@ -1218,6 +1239,27 @@ app.post('/api/bridge/ask', requireBridgeAuth, async (req, res) => {
             });
         }
 
+        if (personaKey === 'popici' && isPopiciEcho(result.text, systemPrompt)) {
+            console.warn('[POPICI_ECHO] detected, retrying once');
+            const retrySystemPrompt = systemPrompt +
+                '\n\nTVOJA PREDCHÁDZAJÚCA ODPOVEĎ SKOPÍROVALA TENTO PROMPT. ' +
+                'Odpovedz teraz úplne vlastnými slovami, v prvej osobe, bez opakovania viet vyššie.';
+            const retryResult = await sp4LlmCall({
+                ...llmOptions,
+                system: retrySystemPrompt
+            });
+
+            if (retryResult?.ok) {
+                result = retryResult;
+                if (isPopiciEcho(result.text, retrySystemPrompt)) {
+                    console.warn('[POPICI_ECHO] retry still contains prompt echo, returning retry response');
+                }
+            } else {
+                console.warn('[POPICI_ECHO] retry failed, returning original response');
+            }
+        }
+
+        const latencyMs = Date.now() - started;
         const outText = cleanMisusedLearnMarker(result.text, text);
         // Heuristika pre #NAUČIŤ marker:
         // uncertain=true len ak marker je na ZAČIATKU (prvých 40 znakov textu)
