@@ -30,6 +30,13 @@ assert.equal(isPopiciDirectedInsult('Si na zlom mieste, poď preč.'), false);
 assert.equal(isPopiciDirectedInsult('Si zlomkom väčšieho príbehu.'), false);
 assert.equal(isPopiciDirectedInsult('Si zlatý, ďakujem za pomoc.'), false);
 assert.equal(isPopiciDirectedInsult('Si zlatokop, hľadáš v kóde poklad.'), false);
+assert.equal(isPopiciDirectedInsult('Nechaj sa to tak, lebo si len kokot.'), true);
+assert.equal(
+    isPopiciDirectedInsult('Ale počúvaj, čo sa deje, a nebuď taký kurva.'),
+    true
+);
+assert.equal(isPopiciDirectedInsult('Si taký ako ja, zvedavý.'), false);
+assert.equal(isPopiciDirectedInsult('Nebuď smutný, zvládneš to.'), false);
 
 for (const fallback of POPICI_SAFE_FALLBACKS) {
     assert.equal(isPopiciDirectedInsult(fallback), false);
