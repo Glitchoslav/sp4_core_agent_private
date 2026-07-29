@@ -112,6 +112,34 @@ export function detectCrisis(message) {
 }
 
 /**
+ * Detekuje, či používateľ hovorí zhadzujúco sám o sebe.
+ *
+ * @param {string} message - Užívateľská správa
+ * @returns {boolean} - true pri osobnom sebazhadzovaní
+ */
+export function detectSelfDeprecation(message) {
+    if (!message || typeof message !== 'string') return false;
+
+    const normalized = message
+        .toLowerCase()
+        .normalize('NFD')
+        .replace(/[\u0300-\u036f]/g, '')
+        .replace(/\s+/g, ' ')
+        .trim();
+    const patterns = [
+        /\bsom\s+neschopn[ya]\b/,
+        /\bsom\s+(?:k\s+nicomu|na\s+nic)\b/,
+        /\bsom\s+(?:(?:fakt|asi|uplne|totalne)\s+)?(?:blb[ya]|hlup[ya])\b/,
+        /\bnic\s+mi\s+(?:nejde|nedari)\b/,
+        /\bvsetko\s+(?:pokazim|zkazim)\b/,
+        /\bnestojim\s+za\s+nic\b/,
+        /\bsom\s+zbytocn[ya]\b/
+    ];
+
+    return patterns.some((pattern) => pattern.test(normalized));
+}
+
+/**
  * Vygeneruje bezpečnú odpoveď pre kritickú situáciu.
  * 
  * @param {Object} crisis - Crisis detection result
@@ -177,11 +205,19 @@ export function checkPopiciSafety(message) {
         };
     }
 
+    if (detectSelfDeprecation(message)) {
+        return {
+            soften: true,
+            reason: 'Self-deprecating input detected. Injecting supportive Popici directive.'
+        };
+    }
+
     return null; // POPIČI safe to use
 }
 
 export default {
     detectCrisis,
+    detectSelfDeprecation,
     getSafeResponse,
     checkPopiciSafety
 };

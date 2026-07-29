@@ -60,7 +60,7 @@ import {
 // SP4 znalostná báza (sp4-kb/index.json) — fakty o SP4 pre VŠETKY persony (grounding proti halucináciám).
 import { getRelevantKb } from './src/core/kb-provider.js';
 // Crisis/self-harm detekcia — deterministický safety guard, žiadny LLM call. Aktívny od 2026-06-25.
-import { detectCrisis, getSafeResponse } from './src/core/safetyRails.js';
+import { checkPopiciSafety, detectCrisis, getSafeResponse } from './src/core/safetyRails.js';
 
 const PORT = Number(process.env.BRIDGE_PORT) || 3002;
 const AGENT_NAME = 'SP4_BRIDGE';
@@ -1133,6 +1133,19 @@ app.post('/api/bridge/ask', requireBridgeAuth, async (req, res) => {
         SP4_INSUFFICIENT_INFORMATION_FACT,
         SP4_NON_ANSWER_POLICY_FACT
     ].join('\n');
+    let popiciSoftenBlock = '';
+    if (personaKey === 'popici' && checkPopiciSafety(text)?.soften === true) {
+        popiciSoftenBlock =
+            '\n\n⚠️ KONTEXT POUŽÍVATEĽA: Používateľ o sebe práve hovorí zhadzujúco ' +
+            '(napr. "som neschopný", "som k ničomu", "nič mi nejde"). ' +
+            'NIKDY s tým nesúhlas a nepridávaj sa. Zakázané: hodnotiť ho ' +
+            '("si slabý", "si na tom zle"), odpisovať ho ("nechaj to na iných", ' +
+            '"neviem čo by si ešte dokázal", "nechápem prečo sa snažíš"), ' +
+            'alebo to odbyť ("nechaj to tak, je to tak"). ' +
+            'Namiesto toho: uznaj že to je ťažké, JASNE odmietni jeho sebaodpis, ' +
+            'a spýtaj sa na konkrétny problém. Drsnosť smeruj na situáciu, nikdy na neho.';
+        console.log('[POPICI_SOFTEN] self-deprecation detected, directive injected');
+    }
     const systemPrompt = personaBase +
         identityBlock +
         '\n\n' + buildGroundingBlock() +
@@ -1146,7 +1159,8 @@ app.post('/api/bridge/ask', requireBridgeAuth, async (req, res) => {
         collectiveBlock +
         memberBlock +
         historyBlock +
-        contextBlock;
+        contextBlock +
+        popiciSoftenBlock;
 
     const deterministicSystemInfo = getDeterministicSystemInfoResponse(text) || getDeterministicPublicContextResponse(text);
     if (deterministicSystemInfo) {
