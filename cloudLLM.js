@@ -1,7 +1,15 @@
 // cloudLLM.js - Cloud LLM fallback for production (when Ollama unavailable)
 // Supports: GROQ, OpenAI, Anthropic, etc.
 
-// Note: Railway injects env vars directly, no dotenv needed
+// Import-order fix: this file used to assume dotenv had already run (true on
+// Railway, where env vars are injected directly — false in local/dev, where
+// dotenv only ran because src/llm/ollamaClient.js happened to import
+// 'dotenv/config' and llmRouter.js happened to import ollamaClient.js AFTER
+// this file. That made GROQ_API_KEY below silently capture '' on local runs,
+// depending entirely on import order elsewhere. dotenv/config is idempotent
+// and never overrides an already-set var, so this is safe on Railway too.
+import 'dotenv/config';
+
 const GROQ_API_KEY = process.env.GROQ_API_KEY || '';
 const GROQ_MODEL = process.env.GROQ_MODEL || 'llama-3.1-8b-instant';
 const GROQ_ENDPOINT = 'https://api.groq.com/openai/v1/chat/completions';
