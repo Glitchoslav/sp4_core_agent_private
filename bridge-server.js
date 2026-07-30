@@ -7,7 +7,7 @@
 //   - Nenahradiť legacy server.js ani multiVoice — len kanál pre DHZ
 //
 // Port: process.env.BRIDGE_PORT || 3002
-// Auth:  process.env.BRIDGE_AUTH_TOKEN (Bearer; nenastavené = dev mode, localhost vždy povolený)
+// Auth:  BRIDGE_AUTH_TOKEN je povinný; localhost bypass riadi BRIDGE_ALLOW_LOCALHOST_BYPASS
 // CORS:  process.env.BRIDGE_ALLOWED_ORIGIN (default '*')
 // Endpoints:
 //   GET  /health                 → liveness + Ollama status
@@ -930,16 +930,22 @@ function deterministicDhzMemberAnswer(text) {
 // Express app
 // ─────────────────────────────────────────────────────────────
 
-// Bearer token ochrana pre bridge, member a collective API. BRIDGE_AUTH_TOKEN nenastavené
-// → lokálny dev mode, auth sa preskočí (žiadna zmena dnešného správania).
+// Bearer token ochrana pre bridge, member a collective API.
 function requireBridgeAuth(req, res, next) {
-    const token = process.env.BRIDGE_AUTH_TOKEN;
-    if (!token) return next();
+    const token = String(process.env.BRIDGE_AUTH_TOKEN || '').trim();
+    if (!token) {
+        return res.status(503).json({
+            error: 'bridge_auth_misconfigured',
+            message: 'bridge auth misconfigured — BRIDGE_AUTH_TOKEN not set'
+        });
+    }
 
-    // Whitelist: localhost/127.0.0.1 vždy preskočí auth (Launcher, lokálny dev).
+    // Dočasná kompatibilita pre Launcher/lokálny dev; na VPS explicitne vypnúť.
+    const allowLocalhostBypass =
+        String(process.env.BRIDGE_ALLOW_LOCALHOST_BYPASS || 'true').trim().toLowerCase() === 'true';
     const ip = req.ip || req.socket?.remoteAddress || '';
     const isLocalhost = ip === '127.0.0.1' || ip === '::1' || ip === '::ffff:127.0.0.1';
-    if (isLocalhost) return next();
+    if (allowLocalhostBypass && isLocalhost) return next();
 
     const match = /^Bearer\s+(.+)$/i.exec(req.headers['authorization'] || '');
     const providedToken = match ? match[1] : null;
