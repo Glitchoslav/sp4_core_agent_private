@@ -27,7 +27,7 @@ import { recordEpoch } from '../core/epochKeeper.js';
 import { runtimeLog, runtimeWarn } from '../core/runtimeLogging.js';
 import { callOllama, getOllamaHealthStatus } from './ollamaClient.js';
 
-const USE_CLOUD_FALLBACK = process.env.USE_CLOUD_FALLBACK !== 'false'; // Default: true
+const USE_CLOUD_FALLBACK = process.env.USE_CLOUD_FALLBACK === 'true'; // Default: false
 
 /**
  * Poradný consult SP4 AI Firewallu pred cloud fallbackom.
