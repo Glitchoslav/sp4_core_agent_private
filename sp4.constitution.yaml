@@ -12,12 +12,15 @@ metadata:
   authored_by: "kefyk"
 
 git_baseline:
-  repo: "SP4KULT"
-  commit: "UNKNOWN" # vyplní budúci check-constitution-drift.js (mimo rozsahu kroku 7)
+  repo: "https://github.com/Glitchoslav/sp4-workspace.git"
+  commit: "50ad8b4998b7c1f459887220a1acc49acec91e54"
+  core_agent_commit: "d391f47d3afd2daabd8e91ff13b4cd2dcd60ef21"
   checked_paths:
     - "sp4_core_agent/src/core/actionRegistry.js"
     - "sp4_core_agent/cloudLLM.js"
     - "SP4AIOS/src/bridge.js" # binding C; cesta relatívna k SP4KULT rootu (SP4AIOS je sibling sp4_core_agent, nie nested) — opravené 2026-07-29
+  # repo/commit označujú SP4KULT root repo, kde žije SP4AIOS; tento core_agent
+  # je samostatný repo identifikovaný cez core_agent_commit.
 
 external_sinks:
   - sink_id: "groq_api"
@@ -58,6 +61,79 @@ external_sinks:
     category_allowed: ["conversation_text_preview"]
     reversibility: "n/a"
     note: "poradný routing-consult, nie AI provider; nie skutočný egress (localhost)"
+
+side_effect_capabilities:
+  - id: "groq_chat_completion"
+    kind: "network"
+    file: "cloudLLM.js"
+    symbol: "askGroqLLM"
+    authority: "mayEgress"
+    status: "governed"
+    evidence: "weak"
+    note: "textová blízkosť gate->fetch, nie AST dôkaz"
+  - id: "firewall_consult"
+    kind: "network"
+    file: "cloudLLM.js"
+    symbol: "consultFirewall"
+    authority: null
+    status: "known_gap"
+    evidence: "none"
+    note: "fetch bez mayEgress; SP4_FIREWALL_URL je env-override, default je loopback"
+  - id: "sp4aios_bridge_ask"
+    kind: "network"
+    file: "SP4AIOS/src/bridge.js"
+    symbol: "ask"
+    authority: "mayEgress"
+    status: "governed"
+    evidence: "weak"
+  - id: "sp4aios_bridge_providers_direct"
+    kind: "network"
+    file: "SP4AIOS/src/bridge.js"
+    symbol: "providers[x].complete (verejný prístup)"
+    authority: null
+    status: "known_gap"
+    evidence: "none"
+    note: "this.providers je verejná property, obchádza ask()'s gate; zároveň používané testami ako injection seam - sealing je v1.2"
+  - id: "sp4_core_agent_bridge_legacy"
+    kind: "network"
+    file: "SP4AIOSBridge.js"
+    symbol: "OpenAIProvider/AnthropicProvider/atď complete()"
+    authority: null
+    status: "dead"
+    evidence: "none"
+    note: "jediný importer je examples/aios_examples.js, mimo npm skriptov aj runtime cesty"
+  - id: "action_router_execute"
+    kind: "process"
+    file: "src/core/actionRouter.js"
+    symbol: "executeAction"
+    authority: null
+    status: "known_gap"
+    evidence: "none"
+    note: "exportovaná, validateAction() volá can() ale executeAction() samotná nie; dosiahnuteľné priamym importom"
+  - id: "open_url_shell_exec"
+    kind: "shell"
+    file: "src/core/actions/openUrl.js"
+    symbol: "executeOpenUrl"
+    authority: null
+    status: "known_gap"
+    evidence: "none"
+    note: "gate:never na OPEN_URL v action_capabilities znamená, že kód sa dnes nevykoná - ale samotná funkcia can() nekontroluje"
+  - id: "bridge_server_member_purge"
+    kind: "network"
+    file: "bridge-server.js"
+    symbol: "POST /api/member/purge"
+    authority: null
+    status: "known_gap"
+    evidence: "none"
+    note: "requireBridgeAuth použitý iba na /api/bridge/ask; táto a ďalších 12 routes bez auth"
+  - id: "legacy_persona_permissions"
+    kind: "process"
+    file: "src/core/actionRegistry.js"
+    symbol: "isActionAllowed"
+    authority: null
+    status: "dead"
+    evidence: "none"
+    note: "PERSONA_PERMISSIONS/isActionAllowed nemajú žiadneho callera po zapojení can() v actionRouter.js; hovoria iné povolenia než manifest"
 
 data_categories:
   - id: "conversation_text"
