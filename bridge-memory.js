@@ -492,7 +492,7 @@ function defaultMemberRecord(memberId) {
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString(),
         consent: {
-            collectiveContribution: true, // default AUTO (filozofia: anonymné ex-ante)
+            collectiveContribution: false, // explicit opt-in; nikdy nie súhlas udelený za člena
             personalNotes: false,          // opt-in pre osobné fakty
             askedAt: null,
             version: 1
