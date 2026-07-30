@@ -63,6 +63,7 @@ import { getRelevantKb } from './src/core/kb-provider.js';
 import { checkPopiciSafety, detectCrisis, getSafeResponse } from './src/core/safetyRails.js';
 
 const PORT = Number(process.env.BRIDGE_PORT) || 3002;
+const HOST = process.env.BRIDGE_HOST || '127.0.0.1';
 const AGENT_NAME = 'SP4_BRIDGE';
 const CONTRACT_VERSION = '1.1';
 const DEFAULT_MODEL = PRIMARY_MODEL || 'gemma3:4b';
@@ -929,7 +930,7 @@ function deterministicDhzMemberAnswer(text) {
 // Express app
 // ─────────────────────────────────────────────────────────────
 
-// Bearer token ochrana pre /api/bridge/ask. BRIDGE_AUTH_TOKEN nenastavené
+// Bearer token ochrana pre bridge, member a collective API. BRIDGE_AUTH_TOKEN nenastavené
 // → lokálny dev mode, auth sa preskočí (žiadna zmena dnešného správania).
 function requireBridgeAuth(req, res, next) {
     const token = process.env.BRIDGE_AUTH_TOKEN;
@@ -970,6 +971,10 @@ app.use((req, _res, next) => {
     }
     next();
 });
+
+// Member a collective dáta sú citlivé. Health zostáva verejný a bridge ask
+// používa rovnaký middleware explicitne pri registrácii svojho endpointu.
+app.use(['/api/member', '/api/collective'], requireBridgeAuth);
 
 // ─────────────────────────────────────────────────────────────
 // GET /health
@@ -1594,8 +1599,8 @@ app.use((req, res) => {
     res.status(404).json({ ok: false, error: 'not_found', path: req.path });
 });
 
-app.listen(PORT, () => {
-    console.log(`\n🌉 ${AGENT_NAME} (contract v${CONTRACT_VERSION}) beží na porte ${PORT}`);
+app.listen(PORT, HOST, () => {
+    console.log(`\n🌉 ${AGENT_NAME} (contract v${CONTRACT_VERSION}) beží na ${HOST}:${PORT}`);
     console.log(`   Policy: local-only (cloud zakázaný na úrovni bridge)`);
     console.log(`   Pamäť:  organizmická (collective-memory) + KB + member-min`);
     console.log(`   Health:     http://localhost:${PORT}/health`);
