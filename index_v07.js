@@ -6,6 +6,7 @@ import path from 'path';
 import readline from "readline";
 import { fileURLToPath } from 'url';
 import { createBackup } from "./backup.js";
+import { getBridgeClientHeaders } from "./bridge-client-auth.js";
 import { completeGoal, dropGoal, getGoals, setGoal } from "./goalsModel.js";
 import { SP4IntegratedAgent } from "./integration.js";
 import { getProfileSummary, getSummary, loadMemory, saveMemory } from "./memory.js";
@@ -848,14 +849,17 @@ async function init() {
 
             const zbGet = async (path) => {
                 try {
-                    const r = await fetch(BRIDGE_BASE + path, { signal: AbortSignal.timeout(5000) });
+                    const r = await fetch(BRIDGE_BASE + path, {
+                        headers: getBridgeClientHeaders(),
+                        signal: AbortSignal.timeout(5000)
+                    });
                     return r.json();
                 } catch (e) { return { error: 'SP4 bridge nedostupný: ' + e.message }; }
             };
             const zbPost = async (path, body) => {
                 try {
                     const r = await fetch(BRIDGE_BASE + path, {
-                        method: 'POST', headers: { 'Content-Type': 'application/json' },
+                        method: 'POST', headers: getBridgeClientHeaders(),
                         body: JSON.stringify(body), signal: AbortSignal.timeout(5000)
                     });
                     return r.json();
