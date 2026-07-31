@@ -1,5 +1,6 @@
 import { runtimeLog, runtimeWarn } from '../core/runtimeLogging.js';
 import { runMemoryWritebackStep } from '../pipeline/memoryWritebackStep.js';
+import { saveMemory } from '../../memory.js';
 
 export async function runWritebackTail({
     userMessage,
@@ -122,7 +123,11 @@ export async function runWritebackTail({
     if (rawLogLength > 0 && rawLogLength % 5 === 0) {
         runtimeLog('💕 Vyhodnocujem progres vzťahu...');
         try {
-            await evaluateRelationshipProgression(updatedMemory);
+            const newRelationship = await evaluateRelationshipProgression(updatedMemory);
+            if (newRelationship && newRelationship !== updatedMemory.relationship) {
+                updatedMemory.relationship = newRelationship;
+                await saveMemory(updatedMemory);
+            }
         } catch (err) {
             runtimeWarn('⚠️ Relationship tracking error:', err.message);
         }
