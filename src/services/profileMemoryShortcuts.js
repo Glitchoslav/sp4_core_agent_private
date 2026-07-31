@@ -1,5 +1,6 @@
 import { loadMemory } from '../../memory.js';
 import { SP4_COMMUNITY_FACT, SP4_FUTURE_DIRECTION_FACT } from '../core/sp4Facts.js';
+import { buildRuntimeFacts } from '../core/runtimeFacts.js';
 import { getRetrievableMemoryLog } from '../runtime/memoryHygiene.js';
 import { loadUserSeed } from '../startup/userSeed.js';
 import { buildWhoAmITextFromSeed } from './personalProfile.js';
@@ -13,6 +14,19 @@ function normalizeShortcutText(text = '') {
         .replace(/\s+/g, ' ')
         .trim();
 }
+
+const MEMORY_VERB_KNOW = String.raw`(?:pam[ae]t\w*|zapam[ae]t\w*|vies|vedel\w*|poznas|poznat|vybav\w*)`;
+const MEMORY_VERB_STORE = String.raw`(?:uklad\w*|uchovav\w*|drz\w*|zbier\w*|zapis\w*|poznacen\w*|poznamena\w*)`;
+const MEMORY_VERB_RESET = String.raw`(?:reset\w*)`;
+const MEMORY_NOUN = String.raw`(?:pam[ae]t\w*|histori\w*|rozhovor\w*|udaj\w*|data|informaci\w*|otazk\w*|odpoved\w*|zaznam\w*|interakci\w*|databaz\w*)`;
+const CONTINUITY_MARKER = String.raw`(?:po\s+restart\w*|po\s+vypnuti|ked\s+ta\s+vypn\w*|prezij\w*.{0,20}restart\w*)`;
+const AKY_FORMS = String.raw`(?:aky|aka|ake|aki|akej|akych|akymi|akym|akeho|akemu)`;
+const AVAILABLE_MARKER = String.raw`(?:dostupn\w*|k\s+dispozici\w*|dalsi\w*|moz\w*\s+pouzit\w*|moz\w*\s+mat\w*)`;
+const CURRENT_MARKER = String.raw`(?:pouzivas|bezis|fungujes)`;
+const STRONG_MEMORY_NOUN = String.raw`(?:pam[ae]t\w*|histori\w*|rozhovor\w*|zaznam\w*|interakci\w*|databaz\w*)`;
+const WEAK_MEMORY_NOUN = String.raw`(?:data|udaj\w*|informaci\w*|otazk\w*|odpoved\w*)`;
+const SELF_REF_MARKER = String.raw`(?:o\s+mne|moje\w*|o\s+nas\b|nase\w*|nasich|co\s+som\s+ti|co\s+sme|nas\s+rozhovor\w*|predchadzajuc\w*|doteraz)`;
+const PERSISTENCE_MARKER = String.raw`(?:uloz\w*|uchov\w*|restart\w*|vypnut\w*|zabud\w*)`;
 
 function formatHumanValue(value) {
     return String(value || '')
@@ -111,6 +125,9 @@ export function detectProfileMemoryShortcutKind(message = '') {
         /(^| )co\s+mas\s+ulozene\s+(?:o\s+mne|omne)( |$)/,
         /(^| )co\s+o\s+mne\s+mas\s+ulozene( |$)/,
         /(^| )co\s+drzis\s+(?:o\s+mne|omne)( |$)/,
+        /(^| )co\s+mas\s+(?:o\s+mne|omne)\s+v\s+pam[ae]ti( |$)/,
+        /(^| )co\s+mas\s+(?:o\s+mne|omne)\s+pam[ae]ti( |$)/,
+        /(^| )co\s+mas\s+(?:o\s+mne|omne)\s+ulozene( |$)/,
         // SP4-audit-008: memory disclosure — "eviduješ v pamäti", "aké data", "právo vedieť"
         /(^| )co\s+o\s+mne\s+evidujes(\s+v\s+pameti)?( |$)/,
         /(^| )co\s+evidujes\s+o\s+mne( |$)/,
@@ -119,7 +136,15 @@ export function detectProfileMemoryShortcutKind(message = '') {
         /mam\s+pravo\s+vediet.{0,30}o\s+mne.{0,30}(data|udaje)/,
     ];
 
-    if (memoryStoredAboutUserPatterns.some((pattern) => pattern.test(normalized))) {
+    const memoryStoredAboutUserSemanticPatterns = [
+        new RegExp(`\\bmas\\b.{0,30}\\b(?:zapis\\w*|poznacen\\w*|ulozen\\w*)\\b.{0,30}\\b(?:o\\s+mne|omne)\\b`),
+        new RegExp(`\\b(?:o\\s+mne|omne)\\b.{0,30}\\b(?:zapis\\w*|poznacen\\w*|ulozen\\w*)\\b`),
+    ];
+
+    if (
+        memoryStoredAboutUserPatterns.some((pattern) => pattern.test(normalized))
+        || memoryStoredAboutUserSemanticPatterns.some((pattern) => pattern.test(normalized))
+    ) {
         return 'memory_stored_about_user';
     }
 
@@ -133,10 +158,112 @@ export function detectProfileMemoryShortcutKind(message = '') {
         /(^| )co\s+si\s+pam[ae]tas( |$)/,
         /(^| )pam[ae]tas\s+si\s+na\s+mna( |$)/,
         /(^| )pam[ae]tas\s+si\s+m[ae]( |$)/,
+        /(^| )poznas\s+moju\s+historiu( |$)/,
     ];
 
-    if (memoryAboutUserPatterns.some((pattern) => pattern.test(normalized))) {
+    const hasForget =
+        /zabud\w*/.test(normalized) &&
+        /\bsi\b/.test(normalized);
+
+    const hasMemoryObject =
+        /\b(co|vsetko)\b/.test(normalized) &&
+        /\b(povedal|napisal|spomenul|hovoril)\w*\b/.test(normalized);
+
+    if (hasForget && hasMemoryObject) {
         return 'memory_about_user';
+    }
+
+    const memoryAboutUserSemanticPatterns = [
+        new RegExp(`\\b${MEMORY_VERB_KNOW}\\b.{0,60}\\b(?:mna|ma|mne|moju|moje|nasej|nasho|predchadzajuc\\w*)\\b`),
+        new RegExp(`\\bco\\s+si\\s+${MEMORY_VERB_KNOW}\\b`),
+        /\bvies\s+si\s+vybavit\b.{0,60}\bco\b/,
+        /\bvies\b.{0,20}\bco\s+(?:som|sme)\b.{0,50}\b(?:povedal|napisal|spomenul|hovoril|riesil|riesili)\w*\b/,
+        /\b(?:ostav|zostal)\w*\b.{0,30}\bv\s+hlave\b.{0,50}\brozhovor\w*\b/,
+    ];
+
+    if (
+        memoryAboutUserPatterns.some((pattern) => pattern.test(normalized))
+        || memoryAboutUserSemanticPatterns.some((pattern) => pattern.test(normalized))
+    ) {
+        return 'memory_about_user';
+    }
+
+    const runtimeMemoryStatsPatterns = [
+        /\bkolko\b.{0,60}\b(?:interakci\w*|zaznam\w*)\b/,
+        /\bkolko\b.{0,60}\bulozil\w*\b/,
+        /\baka\s+velka\b.{0,30}\bpam[ae]t\w*\b/,
+    ];
+
+    if (runtimeMemoryStatsPatterns.some((pattern) => pattern.test(normalized))) {
+        return 'runtime_memory_stats';
+    }
+
+    const conversationStoragePatterns = [
+        /(^| )ukladas\s+nase\s+rozhovory( |$)/,
+        /(^| )zbieras\s+odpovede\s+do\s+databazy( |$)/,
+        /(^| )mas\s+databazu( |$)/,
+    ];
+
+    const userDescribesOwnStorage =
+        /(^| )(ukladam|uchovavam|zbieram|zapisujem|poznamenujem)\s+si( |$)/.test(normalized);
+    const conversationStorageSemanticPatterns = [
+        new RegExp(`\\b${MEMORY_VERB_STORE}\\b.{0,70}\\b(?:rozhovor\\w*|otazk\\w*|odpoved\\w*|databaz\\w*|histori\\w*|co\\s+sme)\\b`),
+        new RegExp(`\\b(?:rozhovor\\w*|otazk\\w*|odpoved\\w*|databaz\\w*|histori\\w*)\\b.{0,70}\\b${MEMORY_VERB_STORE}\\b`),
+        new RegExp(`\\b${MEMORY_VERB_STORE}\\b(?=.{0,50}\\b(?:data|udaj\\w*)\\b)(?=.{0,50}\\b${SELF_REF_MARKER}\\b)`),
+        new RegExp(`\\b(?:data|udaj\\w*)\\b(?=.{0,50}\\b${MEMORY_VERB_STORE}\\b)(?=.{0,50}\\b${SELF_REF_MARKER}\\b)`),
+        new RegExp(`\\bkde\\b.{0,35}\\b${MEMORY_VERB_STORE}\\b`),
+        /\bmas\b.{0,30}\b(?:zapis\w*|poznacen\w*|ulozen\w*)\b/,
+    ];
+
+    if (
+        conversationStoragePatterns.some((pattern) => pattern.test(normalized))
+        || (!userDescribesOwnStorage
+            && conversationStorageSemanticPatterns.some((pattern) => pattern.test(normalized)))
+    ) {
+        return 'conversation_storage';
+    }
+
+    const memoryResetQuestionPatterns = [
+        /(^| )si\s+zabudol( |$)/,
+        /^zabud\w*\s+si$/,
+        /(^| )zabudol\s+si\s+na\s+mna( |$)/,
+        /(^| )resetuje\s+sa\s+ti\s+pam[ae]t( |$)/,
+        /(^| )resetovala\s+sa\s+ti\s+pam[ae]t( |$)/,
+        new RegExp(`(^| )ako\\s+casto\\s+sa\\s+${MEMORY_NOUN}\\s+${MEMORY_VERB_RESET}( |$)`),
+        new RegExp(`(^| )ako\\s+casto\\s+sa\\s+${MEMORY_VERB_RESET}\\s+${MEMORY_NOUN}( |$)`),
+    ];
+
+    const memoryResetSemanticPatterns = [
+        new RegExp(`\\b${MEMORY_VERB_RESET}\\b.{0,35}\\b${MEMORY_NOUN}\\b`),
+        new RegExp(`\\b${MEMORY_NOUN}\\b.{0,35}\\b${MEMORY_VERB_RESET}\\b`),
+    ];
+
+    if (
+        memoryResetQuestionPatterns.some((pattern) => pattern.test(normalized))
+        || memoryResetSemanticPatterns.some((pattern) => pattern.test(normalized))
+    ) {
+        return 'memory_reset_question';
+    }
+
+    const runtimeModelsAvailablePatterns = [
+        new RegExp(`\\b${AKY_FORMS}\\b.{0,30}\\bmodel\\w*\\b.{0,30}\\b${AVAILABLE_MARKER}\\b`),
+        /\bktore\w*\b.{0,30}\bmodel\w*\b.{0,30}\b(?:moz\w*\s+pouzit\w*|pouzit\w*)\b/,
+        new RegExp(`\\b${AVAILABLE_MARKER}\\b.{0,30}\\bmodel\\w*\\b`),
+        /\bdostupn\w*\b.{0,30}\bollam\w*\b/,
+    ];
+
+    if (runtimeModelsAvailablePatterns.some((pattern) => pattern.test(normalized))) {
+        return 'runtime_models_available';
+    }
+
+    const runtimeModelCurrentPatterns = [
+        new RegExp(`\\b${AKY_FORMS}\\b.{0,30}\\bmodel\\w*\\b.{0,30}\\b${CURRENT_MARKER}\\b`),
+        /\bna\s+akom\s+model\w*\b.{0,30}\b(?:pouzivas|bezis|fungujes)\b/,
+        new RegExp(`\\b${CURRENT_MARKER}\\b.{0,50}\\b(?:lokal\\w*|cloud\\w*)\\b`),
+    ];
+
+    if (runtimeModelCurrentPatterns.some((pattern) => pattern.test(normalized))) {
+        return 'runtime_model_current';
     }
 
     const profileNamePatterns = [
@@ -163,9 +290,24 @@ export function detectProfileMemoryShortcutKind(message = '') {
     const memoryStatusPatterns = [
         /^(a\s+)?mas\s+pam[ae]t$/,
         /^(a\s+)?pam[ae]tas\s+si$/,
+        /^pam[ae]tas$/,
     ];
 
-    if (memoryStatusPatterns.some((pattern) => pattern.test(normalized))) {
+    const memoryStatusSemanticPatterns = [
+        new RegExp(`\\b(?:mas|funguje\\w*|bezi\\w*)\\b.{0,35}\\b${STRONG_MEMORY_NOUN}\\b`),
+        new RegExp(`\\b(?:mas|funguje\\w*|bezi\\w*)\\b(?=.{0,50}\\b${WEAK_MEMORY_NOUN}\\b)(?=.{0,50}\\b(?:${SELF_REF_MARKER}|${PERSISTENCE_MARKER})\\b)`),
+        new RegExp(`\\b${CONTINUITY_MARKER}\\b.{0,40}\\b${MEMORY_NOUN}\\b`),
+        new RegExp(`\\b${MEMORY_NOUN}\\b.{0,40}\\b${CONTINUITY_MARKER}\\b`),
+        /\bnezmizn\w*\b.{0,50}\bked\s+ta\s+vypn\w*\b/,
+        /\bpokracujeme\b.{0,70}\bpo\s+restart\w*\b/,
+        /\bprezij\w*\b.{0,30}\b(?:data|udaj\w*|pam[ae]t\w*)\b.{0,20}\brestart\w*\b/,
+        /\bzostan\w*\b.{0,35}\b(?:data|udaj\w*)\b.{0,40}\bked\s+ta\s+vypn\w*\b/,
+    ];
+
+    if (
+        memoryStatusPatterns.some((pattern) => pattern.test(normalized))
+        || memoryStatusSemanticPatterns.some((pattern) => pattern.test(normalized))
+    ) {
         return 'memory_status';
     }
 
@@ -243,6 +385,60 @@ function buildStoredAboutUserText(seed, memory) {
     return `O tebe mám uložené, ${joinHumanParts(remembered)}. V živej pamäti mám navyše ${formatRecordCount(retrievableEntries.length)} v logu rozhovorov, ale citlivé veci nesypem naslepo bez kontextu.`;
 }
 
+function buildConversationStorageText(memory) {
+    const retrievableEntries = getRetrievableMemoryLog(memory).entries || [];
+    return `Rozhovory sa ukladajú lokálne do data/memory.json. Aktuálne je v živom logu bezpečne čitateľných ${formatRecordCount(retrievableEntries.length)}. Nejde o cloudové úložisko a nič sa nikam neodosiela.`;
+}
+
+function buildMemoryResetQuestionText(memory) {
+    const retrievableEntries = getRetrievableMemoryLog(memory).entries || [];
+    // Holé "si zabudol?" môže byť follow-up s antecedentom; ten patrí samostatnému resolveru.
+    return `Nie, pamäť sa pri štarte neresetuje. Aktuálne je v živom logu bezpečne čitateľných ${formatRecordCount(retrievableEntries.length)}.`;
+}
+
+function buildRuntimeModelCurrentText(memory, seed) {
+    const facts = buildRuntimeFacts(memory, { seed });
+    const allowCloud = facts.routingPolicy === 'UNKNOWN'
+        ? 'UNKNOWN'
+        : facts.routingPolicy.allowCloud;
+    const policyReason = facts.routingPolicy === 'UNKNOWN'
+        ? 'UNKNOWN'
+        : facts.routingPolicy.reason;
+    const cloudText = allowCloud === true
+        ? `Cloud je administrátorom výslovne povolený (${policyReason}).`
+        : allowCloud === false
+            ? `Cloud nie je povolený (${policyReason}); predvolená cesta je lokálna cez Ollama.`
+            : 'Cloud politika je UNKNOWN.';
+
+    return `Nakonfigurovaný primary model je ${facts.primaryModel} a fast-path model ${facts.fastPathModel}. ${cloudText} Toto je konfigurovaný stav, nie tvrdenie o modeli, ktorý práve generoval odpoveď: táto odpoveď je deterministická a žiadny LLM pri nej nebežal.`;
+}
+
+function buildRuntimeModelsAvailableText(memory, seed) {
+    const facts = buildRuntimeFacts(memory, { seed });
+    return `SP4 je nakonfigurovaný používať ${facts.primaryModel} (hlavný) a ${facts.fastPathModel} (rýchla cesta). Úplný zoznam všetkých modelov nainštalovaných v Ollama odtiaľto nedokážem deterministicky zistiť — je to UNKNOWN.`;
+}
+
+function buildRuntimeMemoryStatsText(memory, seed) {
+    const facts = buildRuntimeFacts(memory, { seed });
+    const parts = [
+        `Bezpečne čitateľných je ${formatRecordCount(facts.retrievableCount)}.`,
+        `Surový živý log má ${facts.rawLogCount} z limitu ${facts.maxLogEntries}; po prekročení limitu funguje FIFO a najstaršie záznamy odchádzajú.`,
+        `Dlhodobých seedov je ${facts.seedCount}.`,
+    ];
+
+    if (facts.ignoredCount > 0) {
+        parts.push(facts.ignoredCount === 1
+            ? '1 záznam je ignorovaný ako nevhodný na retrieval.'
+            : `${formatRecordCount(facts.ignoredCount)} je ignorovaných ako nevhodných na retrieval.`);
+    }
+
+    if (facts.lifetimeInteractions > facts.rawLogCount) {
+        parts.push(`Vzťahová metrika eviduje ${facts.lifetimeInteractions} interakcií za celý čas.`);
+    }
+
+    return parts.join(' ');
+}
+
 function buildProfileNameText(seed, memory) {
     const name = memory?.userProfile?.name || seed?.username || memory?.userProfile?.id;
 
@@ -312,6 +508,26 @@ export async function buildProfileMemoryShortcutResponse(message = '', deps = {}
 
     if (kind === 'memory_stored_about_user') {
         return buildStoredAboutUserText(seed, memory);
+    }
+
+    if (kind === 'conversation_storage') {
+        return buildConversationStorageText(memory);
+    }
+
+    if (kind === 'memory_reset_question') {
+        return buildMemoryResetQuestionText(memory);
+    }
+
+    if (kind === 'runtime_models_available') {
+        return buildRuntimeModelsAvailableText(memory, seed);
+    }
+
+    if (kind === 'runtime_model_current') {
+        return buildRuntimeModelCurrentText(memory, seed);
+    }
+
+    if (kind === 'runtime_memory_stats') {
+        return buildRuntimeMemoryStatsText(memory, seed);
     }
 
     if (kind === 'profile_name') {
