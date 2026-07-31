@@ -940,11 +940,14 @@ function requireBridgeAuth(req, res, next) {
         });
     }
 
-    // Dočasná kompatibilita pre Launcher/lokálny dev; na VPS explicitne vypnúť.
     const allowLocalhostBypass =
-        String(process.env.BRIDGE_ALLOW_LOCALHOST_BYPASS || 'true').trim().toLowerCase() === 'true';
-    const ip = req.ip || req.socket?.remoteAddress || '';
-    const isLocalhost = ip === '127.0.0.1' || ip === '::1' || ip === '::ffff:127.0.0.1';
+        process.env.NODE_ENV === 'development'
+        && String(process.env.BRIDGE_ALLOW_LOCALHOST_BYPASS || 'false').trim().toLowerCase() === 'true';
+    const peerAddress = req.socket?.remoteAddress || '';
+    const isLocalhost =
+        peerAddress === '127.0.0.1'
+        || peerAddress === '::1'
+        || peerAddress === '::ffff:127.0.0.1';
     if (allowLocalhostBypass && isLocalhost) return next();
 
     const match = /^Bearer\s+(.+)$/i.exec(req.headers['authorization'] || '');
@@ -957,7 +960,7 @@ function requireBridgeAuth(req, res, next) {
 }
 
 const app = express();
-app.set('trust proxy', 1);
+app.set('trust proxy', false);
 app.use(express.json({ limit: '256kb' }));
 
 // CORS (iba lokálne; Launcher/DHZ)

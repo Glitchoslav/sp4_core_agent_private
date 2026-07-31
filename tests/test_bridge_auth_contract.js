@@ -22,11 +22,14 @@ vm.runInNewContext(
 function invoke({
     token,
     localhostBypass,
+    nodeEnv,
     ip = '203.0.113.10',
-    authorization
+    authorization,
+    forwardedFor
 } = {}) {
     const env = {};
     if (token !== undefined) env.BRIDGE_AUTH_TOKEN = token;
+    if (nodeEnv !== undefined) env.NODE_ENV = nodeEnv;
     if (localhostBypass !== undefined) {
         env.BRIDGE_ALLOW_LOCALHOST_BYPASS = localhostBypass;
     }
@@ -38,7 +41,10 @@ function invoke({
     const req = {
         ip,
         socket: { remoteAddress: ip },
-        headers: authorization ? { authorization } : {}
+        headers: {
+            ...(authorization ? { authorization } : {}),
+            ...(forwardedFor ? { 'x-forwarded-for': forwardedFor } : {})
+        }
     };
     const res = {
         status(code) {
@@ -67,23 +73,42 @@ for (const token of [undefined, '', '   ']) {
 }
 
 const localhostDefault = invoke({ token: 'test-token', ip: '127.0.0.1' });
-assert.equal(localhostDefault.nextCalls, 1, 'localhost bypass defaults to enabled');
+assert.equal(localhostDefault.statusCode, 401, 'localhost bypass must default to disabled');
+assert.equal(localhostDefault.nextCalls, 0);
 
-const localhostProtected = invoke({
+const productionBypassAttempt = invoke({
     token: 'test-token',
-    localhostBypass: 'false',
+    localhostBypass: 'true',
+    nodeEnv: 'production',
     ip: '127.0.0.1'
 });
-assert.equal(localhostProtected.statusCode, 401);
-assert.equal(localhostProtected.nextCalls, 0);
+assert.equal(productionBypassAttempt.statusCode, 401);
+assert.equal(productionBypassAttempt.nextCalls, 0);
+
+const developmentBypass = invoke({
+    token: 'test-token',
+    localhostBypass: 'true',
+    nodeEnv: 'development',
+    ip: '127.0.0.1'
+});
+assert.equal(developmentBypass.nextCalls, 1, 'explicit DEV localhost bypass must work');
 
 const localhostAuthorized = invoke({
     token: 'test-token',
-    localhostBypass: 'false',
     ip: '127.0.0.1',
     authorization: 'Bearer test-token'
 });
 assert.equal(localhostAuthorized.nextCalls, 1);
+
+const spoofedForwardedFor = invoke({
+    token: 'test-token',
+    localhostBypass: 'true',
+    nodeEnv: 'development',
+    ip: '203.0.113.10',
+    forwardedFor: '127.0.0.1'
+});
+assert.equal(spoofedForwardedFor.statusCode, 401);
+assert.equal(spoofedForwardedFor.nextCalls, 0);
 
 const remoteUnauthorized = invoke({ token: 'test-token' });
 assert.equal(remoteUnauthorized.statusCode, 401);
@@ -117,5 +142,6 @@ const corsIndex = source.indexOf('// CORS (iba lokálne; Launcher/DHZ)');
 const preflightIndex = source.indexOf("if (req.method === 'OPTIONS')", corsIndex);
 assert.ok(corsIndex !== -1 && preflightIndex !== -1);
 assert.ok(preflightIndex < apiAuthIndex, 'CORS preflight must run before auth');
+assert.match(source, /app\.set\('trust proxy', false\)/);
 
 console.log('bridge auth contract: PASS');
