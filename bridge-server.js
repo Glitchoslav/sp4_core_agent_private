@@ -1259,7 +1259,7 @@ app.post('/api/bridge/ask', requireBridgeAuth, async (req, res) => {
                 text: '⚠️ SP4 dočasne nedostupný (lokálny model neodpovedá). Skús neskôr.',
                 persona: body.persona || 'hasic',
                 personaLabel: persona.label,
-                latencyMs,
+                latencyMs: Date.now() - started,
                 uncertain: true,
                 learnHint: null,
                 memoryWritten: false,
