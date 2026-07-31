@@ -9,13 +9,13 @@
 /**
  * 🔥 LLM ROUTER v1.0 - MISSION: OLLAMA_TIMEOUT_FIX_v1
  * 
- * Smart routing system with fallback logic:
+ * Smart routing system with explicit cloud policy:
  * 1. Try Ollama (local-first)
- * 2. If Ollama fails → Cloud LLM (GROQ)
+ * 2. If Ollama fails and policy.allowCloud=true → Cloud LLM (GROQ)
  * 3. If Cloud unavailable → Error
  * 
  * Supported preferences:
- * - local-first (default) - Try Ollama, fallback to cloud
+ * - local-first (default) - Try Ollama; cloud requires explicit policy
  * - local-only - Only Ollama, fail if unavailable
  * - cloud-only - Skip Ollama, use cloud directly
  * 
@@ -88,6 +88,7 @@ export async function sp4LlmCall(options) {
         policy?.forceLocal === true ||
         process.env.SP4_TEST === 'true';
     const effectivePreference = localOnlyRequired ? 'local-only' : preference;
+    const explicitCloudAllowed = policy?.allowCloud === true;
 
     // 🔍 VALIDATE INPUT
     if (!prompt) {
@@ -105,7 +106,7 @@ export async function sp4LlmCall(options) {
         // 🛡️ Check if Ollama is marked unhealthy
         const healthStatus = getOllamaHealthStatus();
 
-        if (healthStatus.unhealthy && USE_CLOUD_FALLBACK && cloudLLM.isCloudLLMAvailable()) {
+        if (healthStatus.unhealthy && USE_CLOUD_FALLBACK && explicitCloudAllowed && cloudLLM.isCloudLLMAvailable()) {
             runtimeWarn(`⚠️ Ollama UNHEALTHY (cooldown: ${Math.round(healthStatus.cooldownMs / 1000)}s) - skipping to cloud`);
             await logFirewallAdvice(prompt);
 
@@ -157,6 +158,17 @@ export async function sp4LlmCall(options) {
                 error: ollamaResult.error,
                 engine: 'ollama',
                 localError: ollamaResult.error
+            };
+        }
+
+        if (!explicitCloudAllowed) {
+            return {
+                ok: false,
+                error: 'cloud_policy_required',
+                engine: 'ollama',
+                localError: ollamaResult.error,
+                degraded: true,
+                reason: 'cloud_policy_required',
             };
         }
 
@@ -229,6 +241,16 @@ export async function sp4LlmCall(options) {
     // 📍 MODE 3: CLOUD-ONLY
     // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
     if (effectivePreference === 'cloud-only') {
+        if (!explicitCloudAllowed) {
+            return {
+                ok: false,
+                error: 'cloud_policy_required',
+                engine: 'none',
+                degraded: true,
+                reason: 'cloud_policy_required',
+            };
+        }
+
         if (!cloudLLM.isCloudLLMAvailable()) {
             return {
                 ok: false,
@@ -276,6 +298,7 @@ export function getRouterStats() {
 
     return {
         cloudFallback: USE_CLOUD_FALLBACK,
+        cloudRequiresExplicitPolicy: true,
         cloudAvailable,
         ollama: {
             unhealthy: healthStatus.unhealthy,

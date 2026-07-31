@@ -56,10 +56,18 @@ try {
     assert.equal(cloudCalls, 0, "forceLocal attempted cloud fallback");
     assert.equal(firewallCalls, 0, "forceLocal consulted cloud path");
 
-    const productionResult = await sp4LlmCall(request);
+    const noPolicyResult = await sp4LlmCall(request);
+    assert.equal(noPolicyResult.ok, false);
+    assert.equal(noPolicyResult.error, "cloud_policy_required");
+    assert.equal(cloudCalls, 0, "local-first without explicit policy attempted cloud");
+
+    const productionResult = await sp4LlmCall({
+        ...request,
+        policy: { allowCloud: true },
+    });
     assert.equal(productionResult.ok, true);
     assert.equal(productionResult.engine, "cloud-preemptive");
-    assert.equal(cloudCalls, 1, "production local-first lost cloud fallback capability");
+    assert.equal(cloudCalls, 1, "explicit cloud policy lost fallback capability");
 
     process.env.SP4_TEST = "true";
     const metadata = assembleUnifiedMetadata({
@@ -89,4 +97,4 @@ try {
     await fs.rm(tempRoot, { recursive: true, force: true });
 }
 
-console.log("PASS: SP4_TEST and forceLocal block cloud while production local-first fallback and provider metadata remain intact");
+console.log("PASS: local-only and missing policy block cloud while explicit policy preserves fallback");

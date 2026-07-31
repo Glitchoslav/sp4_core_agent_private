@@ -142,7 +142,7 @@ async function main() {
             policy: { allowCloud: false }
         });
         check('3: result.ok === false', result.ok === false, JSON.stringify(result));
-        check('3: blocked by Constitution, not by missing credentials', String(result.error).includes('policy_disallows_cloud'), result.error);
+        check('3: blocked by explicit router policy', result.error === 'cloud_policy_required', result.error);
         check('3: ZERO calls to api.groq.com', groqCalls() === 0, `count=${groqCalls()}`);
     }
 
@@ -171,7 +171,7 @@ async function main() {
             // no policy key
         });
         check('5: result.ok === false', result.ok === false, JSON.stringify(result));
-        check('5: reason is policy_context_missing', String(result.error).includes('policy_context_missing'), result.error);
+        check('5: reason is cloud_policy_required', result.error === 'cloud_policy_required', result.error);
         check('5: ZERO calls to api.groq.com', groqCalls() === 0, `count=${groqCalls()}`);
     }
 
