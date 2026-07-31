@@ -314,7 +314,7 @@ export function detectSP4Query(query) {
     }
 
     // Memory system keywords
-    if (normalizedQuery.match(/\b(memory|pamat|spominam|spominas|seed|log|chapters?|kapitol|konsolidacia|consolidation)\b/)) {
+    if (normalizedQuery.match(/\b(memory|pamat\w*|spominam|spominas|seed|log|chapters?|kapitol|konsolidacia|consolidation)\b/)) {
         return 'memory';
     }
 
