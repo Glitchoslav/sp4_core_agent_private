@@ -6,16 +6,37 @@ import {
     callOllama,
     getOllamaConfig,
     getOllamaHealthStatus,
-    ollamaHealthCheck,
+    ollamaHealthCheck as runOllamaHealthCheck,
 } from '../src/llm/ollamaClient.js';
+import {
+    ROLE_POLICIES,
+    buildRuntimeModelStates,
+    formatModelRegistryAudit,
+    getRegistryMode,
+    resolveModelForRole,
+} from '../src/core/localModelRegistry.js';
 
 export const PRIMARY_MODEL = process.env.PRIMARY_MODEL || 'gemma3:4b';
 export const FAST_PATH_MODEL = process.env.FAST_PATH_MODEL || 'llama3.2:3b';
 const OLLAMA_HOST = process.env.OLLAMA_HOST || 'http://localhost:11434';
 let availableModelsCache = [];
 let lastHealthCheck = null;
+let lastHealthSnapshot = null;
 
-export { getOllamaConfig, getOllamaHealthStatus, ollamaHealthCheck };
+export { getOllamaConfig, getOllamaHealthStatus };
+export { formatModelRegistryAudit };
+
+export async function ollamaHealthCheck() {
+  const health = await runOllamaHealthCheck();
+  lastHealthSnapshot = health;
+
+  if (health.healthy) {
+    availableModelsCache = health.models || [];
+    lastHealthCheck = health.timestamp;
+  }
+
+  return health;
+}
 
 const IDENTITY_PATTERNS = [
   /\b(kto si|si ai|si chatgpt|co si zac|kto ste|kto je sp4|co je sp4)\b/i,
@@ -59,7 +80,56 @@ function hasAnyPattern(text, patterns) {
   return patterns.some((pattern) => pattern.test(text));
 }
 
-export function pickModelForTaskDetailed({ persona, userInput, task }) {
+function legacyRegistryDecision({ role, legacyModel, mode, reason }) {
+  return {
+    role,
+    selectedModel: null,
+    recommendedModel: null,
+    actualModel: legacyModel,
+    qualification: null,
+    selectionSource: 'LEGACY_FALLBACK',
+    executionReason: 'registry_exception_fallback',
+    candidates: [],
+    fallbackUsed: true,
+    fallbackPolicy: ROLE_POLICIES[role]?.fallbackPolicy || 'LEGACY_MODEL',
+    reason,
+    evidenceRunIds: [],
+    mode,
+  };
+}
+
+function resolveRegistryForLiveGate({
+  role,
+  legacyModel,
+  registryMode,
+  runtimeStates,
+  registryResolver,
+}) {
+  const mode = getRegistryMode(registryMode);
+  try {
+    return registryResolver(role, {
+      legacyModel,
+      mode,
+      runtimeStates: runtimeStates || buildRuntimeModelStates(lastHealthSnapshot),
+    });
+  } catch (error) {
+    return legacyRegistryDecision({
+      role,
+      legacyModel,
+      mode,
+      reason: `Registry exception; compatibility fallback used: ${error?.message || 'unknown error'}`,
+    });
+  }
+}
+
+export function pickModelForTaskDetailed({
+  persona,
+  userInput,
+  task,
+  registryMode,
+  runtimeStates,
+  registryResolver = resolveModelForRole,
+}) {
   const rawInput = String(userInput || '');
   const normalizedInput = normalizeRoutingText(rawInput);
   const words = normalizedInput ? normalizedInput.split(' ').filter(Boolean) : [];
@@ -93,8 +163,15 @@ export function pickModelForTaskDetailed({ persona, userInput, task }) {
   const isSafeFastPath = highRiskTriggers.length === 0 && isLowRiskQueryType && isShortSimpleInput && queryConfidence !== 'low';
 
   if (isSafeFastPath) {
+    const registryDecision = resolveRegistryForLiveGate({
+      role: 'fast_conversation',
+      legacyModel: FAST_PATH_MODEL,
+      registryMode,
+      runtimeStates,
+      registryResolver,
+    });
     return {
-      model: FAST_PATH_MODEL,
+      model: registryDecision.actualModel || FAST_PATH_MODEL,
       selectionReason: `fast-path:${queryType}`,
       fastPathUsed: true,
       highRiskTrigger: null,
@@ -103,12 +180,24 @@ export function pickModelForTaskDetailed({ persona, userInput, task }) {
       queryConfidence,
       persona: persona || 'unknown',
       task: task || 'general',
+      role: 'fast_conversation',
+      registryMode: registryDecision.mode,
+      recommendedModel: registryDecision.recommendedModel,
+      registryDecision,
     };
   }
 
   if (highRiskTriggers.length > 0) {
+    const role = highRiskTriggers.includes('code_debug') ? 'code' : 'general';
+    const registryDecision = resolveRegistryForLiveGate({
+      role,
+      legacyModel: PRIMARY_MODEL,
+      registryMode,
+      runtimeStates,
+      registryResolver,
+    });
     return {
-      model: PRIMARY_MODEL,
+      model: registryDecision.actualModel || PRIMARY_MODEL,
       selectionReason: `primary:blocked_fast_path:${highRiskTriggers[0]}`,
       fastPathUsed: false,
       highRiskTrigger: highRiskTriggers[0],
@@ -117,11 +206,22 @@ export function pickModelForTaskDetailed({ persona, userInput, task }) {
       queryConfidence,
       persona: persona || 'unknown',
       task: task || 'general',
+      role,
+      registryMode: registryDecision.mode,
+      recommendedModel: registryDecision.recommendedModel,
+      registryDecision,
     };
   }
 
+  const registryDecision = resolveRegistryForLiveGate({
+    role: 'general',
+    legacyModel: PRIMARY_MODEL,
+    registryMode,
+    runtimeStates,
+    registryResolver,
+  });
   return {
-    model: PRIMARY_MODEL,
+    model: registryDecision.actualModel || PRIMARY_MODEL,
     selectionReason: `primary:default:${queryType}`,
     fastPathUsed: false,
     highRiskTrigger: null,
@@ -130,6 +230,10 @@ export function pickModelForTaskDetailed({ persona, userInput, task }) {
     queryConfidence,
     persona: persona || 'unknown',
     task: task || 'general',
+    role: 'general',
+    registryMode: registryDecision.mode,
+    recommendedModel: registryDecision.recommendedModel,
+    registryDecision,
   };
 }
 
