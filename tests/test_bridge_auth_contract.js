@@ -138,10 +138,9 @@ assert.doesNotMatch(
     'health must remain public'
 );
 
-const corsIndex = source.indexOf('// CORS (iba lokálne; Launcher/DHZ)');
-const preflightIndex = source.indexOf("if (req.method === 'OPTIONS')", corsIndex);
-assert.ok(corsIndex !== -1 && preflightIndex !== -1);
-assert.ok(preflightIndex < apiAuthIndex, 'CORS preflight must run before auth');
+const corsIndex = source.indexOf('app.use(bridgeCors);');
+assert.notEqual(corsIndex, -1, 'CORS middleware must be registered');
+assert.ok(corsIndex < apiAuthIndex, 'CORS preflight must run before auth');
 assert.match(source, /app\.set\('trust proxy', false\)/);
 
 console.log('bridge auth contract: PASS');

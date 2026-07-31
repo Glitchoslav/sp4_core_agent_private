@@ -8,7 +8,7 @@
 //
 // Port: process.env.BRIDGE_PORT || 3002
 // Auth:  BRIDGE_AUTH_TOKEN je povinný; localhost bypass riadi BRIDGE_ALLOW_LOCALHOST_BYPASS
-// CORS:  process.env.BRIDGE_ALLOWED_ORIGIN (default '*')
+// CORS:  process.env.BRIDGE_ALLOWED_ORIGIN (comma-separated exact origins)
 // Endpoints:
 //   GET  /health                 → liveness + Ollama status
 //   POST /api/bridge/ask         → persona-aware LLM volanie (local-only)
@@ -17,6 +17,7 @@
 import express from 'express';
 import { distillAsync } from './bridge-distiller.js';
 import { shouldDistillConversation } from './bridge-distillation-policy.js';
+import { bridgeCors } from './bridge-cors.js';
 import {
     addGlossaryTerm,
     appendPersonalNote,
@@ -963,15 +964,8 @@ const app = express();
 app.set('trust proxy', false);
 app.use(express.json({ limit: '256kb' }));
 
-// CORS (iba lokálne; Launcher/DHZ)
-app.use((req, res, next) => {
-    const allowedOrigin = process.env.BRIDGE_ALLOWED_ORIGIN || '*';
-    res.header('Access-Control-Allow-Origin', allowedOrigin);
-    res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization');
-    res.header('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
-    if (req.method === 'OPTIONS') return res.sendStatus(200);
-    next();
-});
+// CORS/preflight musí byť spracovaný pred default-deny API auth.
+app.use(bridgeCors);
 
 // Request logger (len základ)
 app.use((req, _res, next) => {
