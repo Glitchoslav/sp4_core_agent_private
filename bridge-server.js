@@ -18,6 +18,7 @@ import express from 'express';
 import { distillAsync } from './bridge-distiller.js';
 import { shouldDistillConversation } from './bridge-distillation-policy.js';
 import { bridgeCors } from './bridge-cors.js';
+import { createBridgeRateLimiter } from './bridge-rate-limit.js';
 import {
     addGlossaryTerm,
     appendPersonalNote,
@@ -996,6 +997,29 @@ app.param('id', (req, res, next, id) => {
     }
 });
 
+// Authenticated credential buckets avoid spoofable proxy/IP identity.
+const inferenceRateLimit = createBridgeRateLimiter({
+    scope: 'inference',
+    maxRequestsEnv: 'BRIDGE_RATE_LIMIT_INFERENCE_MAX',
+    windowMsEnv: 'BRIDGE_RATE_LIMIT_INFERENCE_WINDOW_MS',
+    defaultMaxRequests: 20,
+    defaultWindowMs: 60_000
+});
+const writeRateLimit = createBridgeRateLimiter({
+    scope: 'write',
+    maxRequestsEnv: 'BRIDGE_RATE_LIMIT_WRITE_MAX',
+    windowMsEnv: 'BRIDGE_RATE_LIMIT_WRITE_WINDOW_MS',
+    defaultMaxRequests: 30,
+    defaultWindowMs: 60_000
+});
+const purgeRateLimit = createBridgeRateLimiter({
+    scope: 'purge',
+    maxRequestsEnv: 'BRIDGE_RATE_LIMIT_PURGE_MAX',
+    windowMsEnv: 'BRIDGE_RATE_LIMIT_PURGE_WINDOW_MS',
+    defaultMaxRequests: 5,
+    defaultWindowMs: 300_000
+});
+
 // ─────────────────────────────────────────────────────────────
 // GET /health
 // ─────────────────────────────────────────────────────────────
@@ -1026,7 +1050,7 @@ app.get('/health', async (_req, res) => {
 // Body: { text, memberId?, persona?, context?, source?, policy?, model?, temperature? }
 // Vracia kontrakt-compliant odpoveď.
 // ─────────────────────────────────────────────────────────────
-app.post('/api/bridge/ask', async (req, res) => {
+app.post('/api/bridge/ask', inferenceRateLimit, async (req, res) => {
     const started = Date.now();
     const body = req.body || {};
     const text = String(body.text || '').trim();
@@ -1436,7 +1460,7 @@ app.post('/api/bridge/ask', async (req, res) => {
 // POST /api/member/purge  (GDPR — reálne mazanie v1.1)
 // Body: { memberId }
 // ─────────────────────────────────────────────────────────────
-app.post('/api/member/purge', (req, res) => {
+app.post('/api/member/purge', purgeRateLimit, (req, res) => {
     if (req.body?.memberId === undefined || req.body?.memberId === null || req.body?.memberId === '') {
         return res.status(400).json({ ok: false, error: 'missing_memberId' });
     }
@@ -1478,7 +1502,7 @@ app.get('/api/member/:id/memory', (req, res) => {
 // PUT /api/member/:id/consent  — úprava consent toggle
 // Body: { collectiveContribution?: bool, personalNotes?: bool }
 // ─────────────────────────────────────────────────────────────
-app.put('/api/member/:id/consent', (req, res) => {
+app.put('/api/member/:id/consent', writeRateLimit, (req, res) => {
     const id = String(req.params.id);
     const patch = {};
     if (typeof req.body?.collectiveContribution === 'boolean') {
@@ -1502,7 +1526,7 @@ app.put('/api/member/:id/consent', (req, res) => {
 // POST /api/member/:id/note  — explicitná osobná nota (vyžaduje consent)
 // Body: { text, reason? }
 // ─────────────────────────────────────────────────────────────
-app.post('/api/member/:id/note', (req, res) => {
+app.post('/api/member/:id/note', writeRateLimit, (req, res) => {
     const id = String(req.params.id);
     const text = String(req.body?.text || '').trim();
     if (!text) return res.status(400).json({ ok: false, error: 'missing_text' });
@@ -1565,7 +1589,7 @@ app.get('/api/collective/search', (req, res) => {
 // POST /api/collective/tip  — explicitné prispenie tipu (od admina/kefyka)
 // Body: { topic, text, author? }
 // ─────────────────────────────────────────────────────────────
-app.post('/api/collective/tip', (req, res) => {
+app.post('/api/collective/tip', writeRateLimit, (req, res) => {
     const topic = String(req.body?.topic || '').trim();
     const text = String(req.body?.text || '').trim();
     if (!topic || !text) {
@@ -1607,7 +1631,7 @@ app.get('/api/glossary', (_req, res) => {
     }
 });
 
-app.post('/api/glossary', (req, res) => {
+app.post('/api/glossary', writeRateLimit, (req, res) => {
     const term = String(req.body?.term || '').trim();
     const def = String(req.body?.definition || '').trim();
     if (!term || !def) return res.status(400).json({ ok: false, error: 'missing_term_or_definition' });
