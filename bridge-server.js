@@ -36,7 +36,8 @@ import {
     readMeta,
     recordMemberInteraction,
     searchCollective,
-    setMemberConsent
+    setMemberConsent,
+    validateMemberId
 } from './bridge-memory.js';
 import { checkOllamaHealth, FAST_PATH_MODEL, PRIMARY_MODEL } from './sp4os/llmLocal.js';
 import { sp4LlmCall } from './src/llm/llmRouter.js';
@@ -979,6 +980,22 @@ app.use((req, _res, next) => {
 // CORS middleware vyššie vybaví OPTIONS ešte pred autentifikáciou.
 app.use('/api', requireBridgeAuth);
 
+function invalidMemberIdResponse(res) {
+    return res.status(400).json({ ok: false, error: 'invalid_memberId' });
+}
+
+app.param('id', (req, res, next, id) => {
+    try {
+        req.params.id = validateMemberId(id);
+        next();
+    } catch (error) {
+        if (error?.code === 'INVALID_MEMBER_ID') {
+            return invalidMemberIdResponse(res);
+        }
+        next(error);
+    }
+});
+
 // ─────────────────────────────────────────────────────────────
 // GET /health
 // ─────────────────────────────────────────────────────────────
@@ -1023,6 +1040,18 @@ app.post('/api/bridge/ask', async (req, res) => {
         });
     }
 
+    let memberId = null;
+    if (body.memberId !== undefined && body.memberId !== null && body.memberId !== '') {
+        try {
+            memberId = validateMemberId(body.memberId);
+        } catch (error) {
+            if (error?.code === 'INVALID_MEMBER_ID') {
+                return invalidMemberIdResponse(res);
+            }
+            throw error;
+        }
+    }
+
     // Crisis/self-harm safety rail — deterministický, beží PRED resolvePersona
     // a PRED akýmkoľvek LLM volaním. Pokrýva všetky persony jedným checkom.
     const crisis = detectCrisis(text);
@@ -1051,7 +1080,7 @@ app.post('/api/bridge/ask', async (req, res) => {
             uncertain: false,
             learnHint: null,
             memoryWritten: false,
-            memberId: body.memberId ? String(body.memberId) : null,
+            memberId,
             source: body.source || 'unknown',
             contract: CONTRACT_VERSION,
             crisisType: crisis.type,
@@ -1059,7 +1088,6 @@ app.post('/api/bridge/ask', async (req, res) => {
         });
     }
 
-    const memberId = body.memberId ? String(body.memberId) : null;
     const context = body.context && typeof body.context === 'object' ? body.context : null;
     const source = body.source || 'unknown';
 
@@ -1409,11 +1437,11 @@ app.post('/api/bridge/ask', async (req, res) => {
 // Body: { memberId }
 // ─────────────────────────────────────────────────────────────
 app.post('/api/member/purge', (req, res) => {
-    const memberId = req.body?.memberId ? String(req.body.memberId) : null;
-    if (!memberId) {
+    if (req.body?.memberId === undefined || req.body?.memberId === null || req.body?.memberId === '') {
         return res.status(400).json({ ok: false, error: 'missing_memberId' });
     }
     try {
+        const memberId = validateMemberId(req.body.memberId);
         const result = purgeMemberMemory(memberId);
         console.log(`[SP4_BRIDGE] purge member=${memberId} deletedFile=${result.deletedFile}`);
         res.json({
@@ -1425,6 +1453,9 @@ app.post('/api/member/purge', (req, res) => {
                 : 'per-member súbor neexistoval'
         });
     } catch (err) {
+        if (err?.code === 'INVALID_MEMBER_ID') {
+            return invalidMemberIdResponse(res);
+        }
         console.error('[SP4_BRIDGE] purge error:', err);
         res.status(500).json({ ok: false, error: err?.message || 'purge_failed' });
     }

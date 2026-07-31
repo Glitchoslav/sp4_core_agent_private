@@ -481,8 +481,33 @@ export function kbSummaryForPrompt(query) {
 // VRSTVA 3 — MEMBER MINIMAL
 // ─────────────────────────────────────────────────────────────
 
+const MEMBER_ID_PATTERN = /^[A-Za-z0-9_-]{1,64}$/;
+
+export function validateMemberId(memberId) {
+    const id = String(memberId);
+    if (!MEMBER_ID_PATTERN.test(id)) {
+        const error = new Error('invalid_memberId');
+        error.code = 'INVALID_MEMBER_ID';
+        throw error;
+    }
+    return id;
+}
+
 function memberFilePath(memberId) {
-    return path.join(MEMBERS_DIR, `${String(memberId)}.json`);
+    const id = validateMemberId(memberId);
+    const membersRoot = path.resolve(MEMBERS_DIR);
+    const resolvedPath = path.resolve(membersRoot, `${id}.json`);
+    const membersPrefix = membersRoot.endsWith(path.sep)
+        ? membersRoot
+        : membersRoot + path.sep;
+
+    if (!resolvedPath.startsWith(membersPrefix)) {
+        const error = new Error('invalid_memberId');
+        error.code = 'INVALID_MEMBER_ID';
+        throw error;
+    }
+
+    return resolvedPath;
 }
 
 function defaultMemberRecord(memberId) {
