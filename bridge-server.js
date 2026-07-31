@@ -978,9 +978,9 @@ app.use((req, _res, next) => {
     next();
 });
 
-// Member a collective dáta sú citlivé. Health zostáva verejný a bridge ask
-// používa rovnaký middleware explicitne pri registrácii svojho endpointu.
-app.use(['/api/member', '/api/collective'], requireBridgeAuth);
+// Default-deny pre celé API. Verejný zostáva iba /health mimo /api.
+// CORS middleware vyššie vybaví OPTIONS ešte pred autentifikáciou.
+app.use('/api', requireBridgeAuth);
 
 // ─────────────────────────────────────────────────────────────
 // GET /health
@@ -1012,7 +1012,7 @@ app.get('/health', async (_req, res) => {
 // Body: { text, memberId?, persona?, context?, source?, policy?, model?, temperature? }
 // Vracia kontrakt-compliant odpoveď.
 // ─────────────────────────────────────────────────────────────
-app.post('/api/bridge/ask', requireBridgeAuth, async (req, res) => {
+app.post('/api/bridge/ask', async (req, res) => {
     const started = Date.now();
     const body = req.body || {};
     const text = String(body.text || '').trim();

@@ -95,23 +95,27 @@ const remoteAuthorized = invoke({
 });
 assert.equal(remoteAuthorized.nextCalls, 1);
 
-const prefixAuth =
-    "app.use(['/api/member', '/api/collective'], requireBridgeAuth);";
-const prefixAuthIndex = source.indexOf(prefixAuth);
-assert.notEqual(prefixAuthIndex, -1, 'member and collective prefix auth must exist');
+const apiAuth = "app.use('/api', requireBridgeAuth);";
+const apiAuthIndex = source.indexOf(apiAuth);
+assert.notEqual(apiAuthIndex, -1, 'default-deny /api auth must exist');
 
-const protectedRoutePattern =
-    /app\.(?:get|post|delete)\('\/api\/(?:member|collective)[^']*'/g;
-const protectedRoutes = [...source.matchAll(protectedRoutePattern)];
-assert.equal(protectedRoutes.length, 9, 'all nine member/collective routes must be present');
+const apiRoutePattern =
+    /app\.(?:get|post|put|patch|delete)\('\/api\/[^']*'/g;
+const apiRoutes = [...source.matchAll(apiRoutePattern)];
+assert.equal(apiRoutes.length, 14, 'all fourteen API routes must be present');
 assert.ok(
-    protectedRoutes.every((match) => match.index > prefixAuthIndex),
-    'prefix auth must be registered before every member/collective route'
+    apiRoutes.every((match) => match.index > apiAuthIndex),
+    'default-deny auth must be registered before every API route'
 );
-assert.match(
+assert.doesNotMatch(
     source,
-    /app\.post\('\/api\/bridge\/ask', requireBridgeAuth,/,
-    'bridge ask must retain explicit auth middleware'
+    /app\.get\('\/health', requireBridgeAuth,/,
+    'health must remain public'
 );
+
+const corsIndex = source.indexOf('// CORS (iba lokálne; Launcher/DHZ)');
+const preflightIndex = source.indexOf("if (req.method === 'OPTIONS')", corsIndex);
+assert.ok(corsIndex !== -1 && preflightIndex !== -1);
+assert.ok(preflightIndex < apiAuthIndex, 'CORS preflight must run before auth');
 
 console.log('bridge auth contract: PASS');
