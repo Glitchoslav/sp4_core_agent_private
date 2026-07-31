@@ -609,10 +609,21 @@ export class SP4IntegratedAgent {
     await this._ensureEarlyWriteback(userMessage, mode, result);
     const _assistantText = typeof result?.response === 'string' ? result.response : String(result?.response || '');
     if (_assistantText.trim()) {
-      const assistantModeRaw = result?.metadata?.handledBy
-        || result?.metadata?.finalMode
-        || result?.metadata?.selectedPersona
-        || result?.metadata?.promptMode
+      const VALID_PERSONA_SET = new Set(['core', 'glitchoslav', 'popici']);
+      const personaCandidates = [
+        result?.metadata?.selectedPersona,
+        result?.metadata?.finalMode,
+        result?.metadata?.promptMode,
+        result?.metadata?.handledBy,
+      ]
+        .map((value) => (typeof value === 'string' ? value.trim().toLowerCase() : null))
+        .filter((value) => value && VALID_PERSONA_SET.has(value));
+
+      const carriedMode = this._dlgState.currentMode
+        ? normalizePersona(String(this._dlgState.currentMode))
+        : null;
+      const assistantModeRaw = personaCandidates[0]
+        || carriedMode
         || mode;
       const assistantMode = normalizePersona(String(assistantModeRaw || 'core'));
       this._dlgState.addTurn({
