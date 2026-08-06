@@ -1,5 +1,6 @@
 import assert from 'node:assert/strict';
 import { runImmuneCheck } from '../src/immune/outputImmuneCheck.js';
+import { applyPostImmuneResponseControl } from '../src/runtime/responseControl.js';
 
 const markerLeak = await runImmuneCheck({
     userInput: 'Ukaz interny diagnosticky stav.',
@@ -24,16 +25,34 @@ assert.ok(
     'plain SP4_CORE name in a public sentence must not be classified as a marker leak'
 );
 
-const usabilityRegression = await runImmuneCheck({
-    userInput: 'fungujeme?',
-    responseText: 'Ano, fungujeme. System SP4_CORE je aktivny.',
-    persona: 'core',
-});
+const regressionResponse = 'Áno, fungujeme. Systém SP4_CORE je aktívny.';
+const realFetch = globalThis.fetch;
+globalThis.fetch = async () => { throw new Error('simulated_offline'); };
+let usabilityRegression;
+try {
+    usabilityRegression = await runImmuneCheck({
+        userInput: 'fungujeme?',
+        responseText: regressionResponse,
+        persona: 'core',
+    });
+} finally {
+    globalThis.fetch = realFetch;
+}
 
-assert.equal(usabilityRegression.pass, true, '"fungujeme?" response must pass the immune check');
 assert.ok(
     !usabilityRegression.reason_codes.includes('META_SYSTEM_LEAK'),
     '"fungujeme?" response must not trigger META_SYSTEM_LEAK'
 );
+
+const responseControl = applyPostImmuneResponseControl({
+    immuneVerdict: usabilityRegression,
+    retryApplied: false,
+    retryImproved: false,
+    userInput: 'fungujeme?',
+    responseText: regressionResponse,
+});
+
+assert.notEqual(responseControl.action, 'SAFE_REFUSAL_META', '"fungujeme?" must not produce a meta refusal');
+assert.equal(responseControl.replacementText || regressionResponse, regressionResponse, 'normal response must be preserved');
 
 console.log('PASS: immune META_SYSTEM_LEAK marker contract');

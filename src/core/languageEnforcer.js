@@ -27,6 +27,23 @@ import { runtimeDebug, runtimeLog, runtimeWarn } from './runtimeLogging.js';
 const EN_WORD_THRESHOLD = 5; // Min EN words to trigger (lowered from 8)
 const SK_DIACRITICS_THRESHOLD = 2; // Max SK diacritics in EN text
 const TRANSLATOR_MODEL = 'llama3:8b';
+const SP4_ENGLISH_TAGLINE_WHITELIST = Object.freeze([
+    'Be real. Be free. Be SP4.',
+    'Support your LOCAL COMMUNITY GANG.',
+]);
+
+export function stripWhitelistedInjectedSp4Tagline(text) {
+    const source = String(text || '');
+
+    for (const tagline of SP4_ENGLISH_TAGLINE_WHITELIST) {
+        const injectedSuffix = `\n\n${tagline}`;
+        if (source.endsWith(injectedSuffix)) {
+            return source.slice(0, -injectedSuffix.length);
+        }
+    }
+
+    return source;
+}
 
 // TODO [COPILOT]:
 // Upraviť buildLanguageEnforcerPrompt takto:
@@ -214,7 +231,8 @@ function stripMetaPrefixes(text) {
  *   - usedFallback: boolean
  */
 export async function enforceSlovak(text, context = {}) {
-    const detection = detectEnglish(text || '');
+    const detectionText = stripWhitelistedInjectedSp4Tagline(text);
+    const detection = detectEnglish(detectionText);
     enforcementStats.totalChecks++;
 
     const englishRatio = detection?.ratio || 0;
