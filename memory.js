@@ -101,8 +101,10 @@ async function ensureDataDir() {
 
 export async function loadMemory() {
   await ensureDataDir();
+  let memoryFileRead = false;
   try {
     const raw = await fs.readFile(MEMORY_FILE, "utf-8");
+    memoryFileRead = true;
     const mem = JSON.parse(raw);
 
     // V0.3.1 migrácia: log → rawMemory, ourBond → relationshipModel
@@ -185,9 +187,14 @@ export async function loadMemory() {
     }
 
     return mem;
-  } catch {
-    // prvý štart → použijeme default
-    return JSON.parse(JSON.stringify(DEFAULT_MEMORY));
+  } catch (error) {
+    if (!memoryFileRead && error?.code === "ENOENT") {
+      // prvý štart → použijeme default
+      return JSON.parse(JSON.stringify(DEFAULT_MEMORY));
+    }
+
+    console.error("CRITICAL: Failed to load memory file:", MEMORY_FILE, error);
+    throw error;
   }
 }
 
