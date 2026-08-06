@@ -71,7 +71,7 @@ const META_SYSTEM_LEAK_PATTERNS = [
     /\bsystem prompt\b/i,
     /\bFIRE MODE\b/,
     /\bLANGUAGE ENFORCER\b/,
-    /\bSP4_(?:CORE|DEBUG|IDENTITY)\b/,
+    /(?:[\[<`]\s*SP4_(?:CORE|DEBUG|IDENTITY)\b|\bSP4_(?:CORE|DEBUG|IDENTITY)\s*[:=])/i,
 ];
 
 // ── HELPERS ─────────────────────────────────────────────────────────────────
