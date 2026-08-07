@@ -17,9 +17,9 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 import { archiveRawLogs, consolidateWeek, runDaily, runMonthly, runQuarterly } from './consolidationEngine.js';
 import { registerJob } from './scheduler.js';
+import { EPOCH_FILE } from './config/paths.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
-const EPOCH_LOG_PATH = path.join(__dirname, 'data', 'epochs.json');
 
 function verboseLog(...args) {
     if (process.env.SP4_VERBOSE === '1' || process.env.SP4_DEBUG === 'true') {
@@ -34,34 +34,41 @@ function verboseLog(...args) {
  * @param {Object} data - Job execution data
  */
 async function epochLog(jobName, data) {
+    let epochs = [];
     try {
-        let epochs = { jobs: [] };
-        try {
-            const content = await fs.readFile(EPOCH_LOG_PATH, 'utf-8');
-            epochs = JSON.parse(content);
-        } catch (err) {
-            // File doesn't exist yet, use empty structure
+        const content = await fs.readFile(EPOCH_FILE, 'utf-8');
+        const parsed = JSON.parse(content);
+        // Kanonická schéma: top-level array epoch objektov { timestamp, description, data, id }
+        if (Array.isArray(parsed)) {
+            epochs = parsed;
+        } else if (parsed && Array.isArray(parsed.jobs)) {
+            // Migrácia legacy formátu { jobs: [...] } → top-level array
+            epochs = parsed.jobs;
         }
-
-        if (!Array.isArray(epochs.jobs)) {
-            epochs.jobs = [];
-        }
-
-        epochs.jobs.push({
-            jobName,
-            timestamp: new Date().toISOString(),
-            ...data
-        });
-
-        // Keep only last 1000 job records
-        if (epochs.jobs.length > 1000) {
-            epochs.jobs = epochs.jobs.slice(-1000);
-        }
-
-        await fs.writeFile(EPOCH_LOG_PATH, JSON.stringify(epochs, null, 2), 'utf-8');
     } catch (err) {
-        console.error(`❌ epochLog failed: ${err.message}`);
+        if (err.code !== 'ENOENT') {
+            console.error(`❌ epochLog read failed: ${err.message}`);
+            throw err;
+        }
+        // ENOENT = nový súbor, pokračuj s prázdnym poľom
     }
+
+    epochs.push({
+        timestamp: new Date().toISOString(),
+        description: jobName,
+        data,
+        id: `epoch_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`
+    });
+
+    // Keep only last 1000 job records
+    if (epochs.length > 1000) {
+        epochs = epochs.slice(-1000);
+    }
+
+    // Atómový zápis: temp súbor → rename (žiadny polovičný JSON pre čitateľa)
+    const tmpPath = `${EPOCH_FILE}.${process.pid}.${Date.now()}.tmp`;
+    await fs.writeFile(tmpPath, JSON.stringify(epochs, null, 2), 'utf-8');
+    await fs.rename(tmpPath, EPOCH_FILE);
 }
 
 /**
