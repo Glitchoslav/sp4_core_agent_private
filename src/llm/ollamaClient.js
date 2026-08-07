@@ -36,6 +36,21 @@ const MAX_RETRIES = process.env.OLLAMA_MAX_RETRIES
 const HEALTH_CHECK_INTERVAL_MS = 5 * 60 * 1000; // 5 min
 const UNHEALTHY_COOLDOWN_MS = 3 * 60 * 1000; // 3 min cooldown when unhealthy
 
+// 🔥 Spoločné enforcement bloky (zdieľané callOllama aj callOllamaStream)
+const ENFORCEMENT_HEADER = `🇸🇰 JAZYKOVÁ POLITIKA:
+- ODPOVEDAJ VÝHRADNE PO SLOVENSKY
+- Technické termíny OK: API, JSON, LLM, HTTP
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+`;
+
+const ENFORCEMENT_FOOTER = `
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+⚠️ CRITICAL: FOLLOW YOUR PERSONA IDENTITY ABOVE.
+Target: 3-5 sentences UNLESS your persona requires longer format (e.g., GLITCHOSLAV philosophy).
+`;
+
 // 🛡️ HEALTH STATE
 let OLLAMA_UNHEALTHY = false;
 let unhealthySince = null;
@@ -157,19 +172,9 @@ export async function callOllama(options) {
 
             // 🔥 v1.3.1 FIX: PREPEND enforcement rules (not append)
             // Reasoning: Persona identity should have LAST WORD (recency bias favors end of prompt)
-            const enforcementHeader = `🇸🇰 JAZYKOVÁ POLITIKA:
-- ODPOVEDAJ VÝHRADNE PO SLOVENSKY
-- Technické termíny OK: API, JSON, LLM, HTTP
+            const enforcementHeader = ENFORCEMENT_HEADER;
 
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-`;
-
-            const enforcementFooter = `
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-
-⚠️ CRITICAL: FOLLOW YOUR PERSONA IDENTITY ABOVE.
-Target: 3-5 sentences UNLESS your persona requires longer format (e.g., GLITCHOSLAV philosophy).
-`;
+            const enforcementFooter = ENFORCEMENT_FOOTER;
 
             const enforcedSystem = system && typeof system === 'string' && system.trim().length > 0
                 ? `${enforcementHeader}${system}${enforcementFooter}`
@@ -368,17 +373,109 @@ Target: 3-5 sentences UNLESS your persona requires longer format (e.g., GLITCHOS
 }
 
 /**
- * 🩺 HEALTH CHECK - Ping Ollama /api/tags
- * 
- * Lightweight check to verify Ollama is responsive.
- * Called periodically by scheduler (jeden krát za 5 min).
- * 
- * @returns {Promise<Object>} Health status:
- *   - healthy: boolean
- *   - models: Array<Object> - Available models (if healthy)
- *   - timestamp: Date
- *   - error: string (if unhealthy)
+ * 🔥 STREAMING VARIANT: Call Ollama /api/chat so stream:true a posiela delty
+ * cez callback. Bez retries (stream + retry = komplikované; chyba → ok:false).
+ *
+ * @param {Object} options - rovnaké ako callOllama (model, prompt, system, temperature, num_predict, stop...)
+ * @param {Function} onDelta - callback (deltaText) pri každom kúsku
+ * @returns {Promise<Object>} { ok, text, durationMs, model, error? }
  */
+export async function callOllamaStream(options, onDelta = () => {}) {
+    const {
+        model,
+        prompt,
+        system = '',
+        temperature = 0.7,
+        num_predict = 512,
+        stop = [],
+        top_k = 40,
+        top_p = 0.9,
+        repeat_penalty = 1.1,
+        ...ollamaOptions
+    } = options;
+
+    const controller = new AbortController();
+    const timeoutMs = process.env.OLLAMA_TIMEOUT_MS ? Number(process.env.OLLAMA_TIMEOUT_MS) : 180000;
+    const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
+    const started = Date.now();
+
+    try {
+        const enforcedSystem = system && typeof system === 'string' && system.trim().length > 0
+            ? `${ENFORCEMENT_HEADER}${system}${ENFORCEMENT_FOOTER}`
+            : '🇸🇰 RESPOND IN SLOVAK. Be concise (max 3-5 sentences). Follow instructions exactly.';
+
+        const messages = [
+            { role: 'system', content: enforcedSystem },
+            { role: 'user', content: String(prompt || '') }
+        ];
+
+        const response = await fetch(`${OLLAMA_HOST}/api/chat`, {
+            method: 'POST',
+            signal: controller.signal,
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                model,
+                messages,
+                stream: true,
+                keep_alive: '10m',
+                options: {
+                    temperature: temperature || 0.5,
+                    num_predict: num_predict || 512,
+                    stop,
+                    top_k,
+                    top_p,
+                    repeat_penalty,
+                    ...ollamaOptions
+                }
+            })
+        });
+
+        if (!response.ok) {
+            throw new Error(`Ollama HTTP ${response.status}: ${response.statusText}`);
+        }
+
+        const reader = response.body.getReader();
+        const decoder = new TextDecoder();
+        let buffer = '';
+        let fullText = '';
+
+        while (true) {
+            const { done, value } = await reader.read();
+            if (done) break;
+            buffer += decoder.decode(value, { stream: true });
+            const lines = buffer.split('\n');
+            buffer = lines.pop();
+            for (const line of lines) {
+                const t = line.trim();
+                if (!t.startsWith('{')) continue;
+                try {
+                    const chunk = JSON.parse(t);
+                    const delta = chunk.message?.content || '';
+                    if (delta) {
+                        fullText += delta;
+                        onDelta(delta, chunk);
+                    }
+                } catch (_) { /* preskoč neúplný riadok */ }
+            }
+        }
+
+        clearTimeout(timeoutId);
+        return {
+            ok: true,
+            text: fullText.trim(),
+            durationMs: Date.now() - started,
+            model
+        };
+    } catch (err) {
+        clearTimeout(timeoutId);
+        return {
+            ok: false,
+            error: String(err),
+            durationMs: Date.now() - started,
+            model
+        };
+    }
+}
 export async function ollamaHealthCheck() {
     const started = Date.now();
 

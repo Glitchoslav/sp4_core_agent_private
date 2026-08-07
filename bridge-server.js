@@ -42,6 +42,8 @@ import {
 } from './bridge-memory.js';
 import { checkOllamaHealth, FAST_PATH_MODEL, PRIMARY_MODEL } from './sp4os/llmLocal.js';
 import { sp4LlmCall } from './src/llm/llmRouter.js';
+import { callOllamaStream } from './src/llm/ollamaClient.js';
+import { askGroqLLMStream } from './cloudLLM.js';
 import {
     SP4_INSUFFICIENT_INFORMATION_FACT,
     SP4_MODEL_ROUTING_FACT,
@@ -1045,6 +1047,275 @@ app.get('/health', async (_req, res) => {
     });
 });
 
+// ── SSE hlavičky pre /api/bridge/ask/stream ─────────────────────────
+const SSE_HEADERS = {
+    'Content-Type': 'text/event-stream',
+    'Cache-Control': 'no-cache',
+    Connection: 'keep-alive',
+    'X-Accel-Buffering': 'no'
+};
+
+// ── buildBridgeSystemPrompt ──────────────────────────────────────────
+// Extrahované 2026-08-07 pre /api/bridge/ask/stream.
+// ⚠️ KEEP IN SYNC s inline logikou v /api/bridge/ask (TODO: refaktor /ask na túto funkciu).
+function buildBridgeSystemPrompt({ body, text, personaKey, persona, isHasicPersona, source, memberId, context }) {
+    const contextBlock = formatDhzContext(context);
+
+    let collectiveBlock = '';
+    let kbBlock = '';
+    let memberBlock = '';
+    if (isHasicPersona) {
+        try {
+            if (shouldUseCollectiveMemory(text, context)) {
+                const cs = collectiveSummaryForPrompt(text, 4, 3);
+                if (cs) collectiveBlock = `\n\n[PAMÄŤ ORGANIZÁCIE]\n${cs}\n[KONIEC PAMÄTE]`;
+            }
+        } catch (e) {
+            console.warn('[SP4_BRIDGE] collective summary err:', e?.message);
+        }
+        try {
+            const kb = kbSummaryForPrompt(text);
+            if (kb) kbBlock = `\n\n[KB ZBORU]\n${kb}\n[KONIEC KB]`;
+        } catch (e) {
+            console.warn('[SP4_BRIDGE] kb summary err:', e?.message);
+        }
+        if (memberId) {
+            try {
+                const ms = memberSummaryForPrompt(memberId);
+                if (ms) memberBlock = `\n\n[O TEBE]\n${ms}\n[KONIEC O TEBE]`;
+            } catch (e) {
+                console.warn('[SP4_BRIDGE] member summary err:', e?.message);
+            }
+        }
+    }
+
+    const manifestBlock = isHasicPersona ? '\n\n' + buildMemoryManifestPrompt() : '';
+    const historyBlock = isHasicPersona ? formatConversationHistory(body.history) : '';
+
+    let kbSP4Block = '';
+    try {
+        const sp4Facts = getRelevantKb(text, personaKey, 5);
+        if (sp4Facts.length > 0) {
+            kbSP4Block = '\n\n## SP4 znalostná báza\n'
+                + sp4Facts.map((f) => `**${f.term}**: ${f.text}`).join('\n');
+        }
+    } catch (e) {
+        console.warn('[SP4_BRIDGE] kb-provider err:', e?.message);
+    }
+
+    const personaBase = persona.fullDefinition || persona.systemPrompt || '';
+    const identityBlock = buildIdentityBlock(source);
+    const sessionHistoryBlock = buildSessionHistoryBlock(source);
+    const glitchModeBlock = (personaKey === 'glitchoslav') ? buildGlitchDualModeBlock(text) : '';
+    const groundingFactsBlock = [
+        SP4_RUNTIME_ROOT_FACT,
+        SP4_MODEL_ROUTING_FACT,
+        SP4_TRUTH_VS_OPINION_FACT,
+        SP4_INSUFFICIENT_INFORMATION_FACT,
+        SP4_NON_ANSWER_POLICY_FACT
+    ].join('\n');
+    let popiciSoftenBlock = '';
+    if (personaKey === 'popici' && checkPopiciSafety(text)?.soften === true) {
+        popiciSoftenBlock =
+            '\n\n⚠️ KONTEXT POUŽÍVATEĽA: Používateľ o sebe práve hovorí zhadzujúco ' +
+            '(napr. "som neschopný", "som k ničomu", "nič mi nejde"). ' +
+            'NIKDY s tým nesúhlas a nepridávaj sa. Zakázané: hodnotiť ho ' +
+            '("si slabý", "si na tom zle"), odpisovať ho ("nechaj to na iných", ' +
+            '"neviem čo by si ešte dokázal", "nechápem prečo sa snažíš"), ' +
+            'alebo to odbyť ("nechaj to tak, je to tak"). ' +
+            'Namiesto toho: uznaj že to je ťažké, JASNE odmietni jeho sebaodpis, ' +
+            'a spýtaj sa na konkrétny problém. Drsnosť smeruj na situáciu, nikdy na neho.';
+        console.log('[POPICI_SOFTEN] self-deprecation detected, directive injected');
+    }
+
+    return personaBase +
+        identityBlock +
+        '\n\n' + buildGroundingBlock() +
+        '\n\n## SP4 kanonické fakty o pravde a routingu\n' +
+        groundingFactsBlock +
+        sessionHistoryBlock +
+        glitchModeBlock +
+        kbSP4Block +
+        manifestBlock +
+        kbBlock +
+        collectiveBlock +
+        memberBlock +
+        historyBlock +
+        contextBlock +
+        popiciSoftenBlock;
+}
+
+// ─────────────────────────────────────────────────────────────
+// POST /api/bridge/ask/stream — SSE streaming odpoveď
+// Rovnaké body ako /ask; posiela `data: {"delta":"..."}` eventy
+// a na konci `data: {"done":true,"text":"..."}`.
+// ─────────────────────────────────────────────────────────────
+app.post('/api/bridge/ask/stream', inferenceRateLimit, async (req, res) => {
+    const started = Date.now();
+    const body = req.body || {};
+    const text = String(body.text || '').trim();
+
+    if (!text) {
+        return res.status(400).json({
+            ok: false,
+            engine: 'none',
+            text: 'Chýba pole "text".',
+            error: 'missing_text'
+        });
+    }
+
+    let memberId = null;
+    if (body.memberId !== undefined && body.memberId !== null && body.memberId !== '') {
+        try {
+            memberId = validateMemberId(body.memberId);
+        } catch (error) {
+            if (error?.code === 'INVALID_MEMBER_ID') {
+                return invalidMemberIdResponse(res);
+            }
+            throw error;
+        }
+    }
+
+    // Crisis/self-harm rail — rovnaký ako /ask
+    const crisis = detectCrisis(text);
+    if (crisis) {
+        const safePersona = resolvePersona(crisis.safeMode);
+        res.writeHead(200, SSE_HEADERS);
+        res.write(`data: ${JSON.stringify({
+            done: true, ok: true, engine: 'sp4-safety-rail',
+            text: getSafeResponse(crisis),
+            persona: crisis.safeMode,
+            personaLabel: safePersona.label,
+            latencyMs: Date.now() - started,
+            llmDurationMs: 0,
+            uncertain: false,
+            memberId,
+            source: body.source || 'unknown',
+            contract: CONTRACT_VERSION,
+            crisisType: crisis.type
+        })}\n\n`);
+        return res.end();
+    }
+
+    const context = body.context && typeof body.context === 'object' ? body.context : null;
+    const source = body.source || 'unknown';
+
+    let personaKey;
+    let autoSelected;
+    if (!body.persona || body.persona === 'auto') {
+        personaKey = classifyPrompt(text);
+        autoSelected = true;
+    } else {
+        personaKey = body.persona.toLowerCase();
+        autoSelected = false;
+    }
+    const persona = resolvePersona(personaKey);
+    const isHasicPersona = personaKey.startsWith('hasic');
+
+    const systemPrompt = buildBridgeSystemPrompt({ body, text, personaKey, persona, isHasicPersona, source, memberId, context });
+
+    // Cloud opt-in (rovnaká politika ako /ask)
+    const cloudOptIn = body.policy?.cloud === 'opt-in' && !isHasicPersona;
+    const chosenModel = body.model ||
+        (body.persona === 'hasic-alarm' || body.persona === 'hasic-dispatcher'
+            ? FAST_MODEL
+            : DEFAULT_MODEL);
+
+    res.writeHead(200, SSE_HEADERS);
+
+    const send = (obj) => res.write(`data: ${JSON.stringify(obj)}\n\n`);
+    let fullText = '';
+    const onDelta = (delta) => {
+        fullText += delta;
+        send({ delta });
+    };
+
+    let result;
+    if (cloudOptIn) {
+        try {
+            result = await askGroqLLMStream(text, systemPrompt, {
+                temperature: typeof body.temperature === 'number' ? body.temperature : 0.2,
+                num_predict: 512,
+                stop: [],
+                policy: { allowCloud: true },
+                actorType: 'automation',
+                requestId: `${started}-${Math.random().toString(36).slice(2, 8)}`
+            }, onDelta);
+        } catch (err) {
+            send({ error: String(err) });
+            return res.end();
+        }
+    } else {
+        result = await callOllamaStream({
+            model: chosenModel,
+            prompt: text,
+            system: systemPrompt,
+            temperature: typeof body.temperature === 'number' ? body.temperature : 0.2,
+            num_predict: 512,
+            stop: []
+        }, onDelta);
+    }
+
+    if (!result?.ok) {
+        send({ done: true, ok: false, error: result?.error || 'unknown' });
+        return res.end();
+    }
+
+    const outText = result.text || '';
+    const nauciPos = outText.search(/#NAUČIŤ:/i);
+    const uncertain = nauciPos !== -1 && nauciPos < 40;
+
+    // POST-PROCESSING (fire-and-forget, rovnaký ako /ask)
+    let memoryWritten = false;
+    if (isHasicPersona) {
+        if (memberId) {
+            try {
+                recordMemberInteraction(memberId, guessTopicFromContext(context));
+            } catch (e) {
+                console.warn('[SP4_BRIDGE] recordMemberInteraction err:', e?.message);
+            }
+        }
+        if (!uncertain && shouldDistillConversation(text, outText, context, source || 'bridge-ask')) {
+            distillAsync({
+                question: text,
+                answer: outText,
+                memberNames: [],
+                source: source || 'bridge-ask'
+            });
+            memoryWritten = true;
+        }
+    }
+    if (source === 'sp4-chat-ui') {
+        logChatSession({
+            timestamp: new Date().toISOString(),
+            source,
+            persona: personaKey,
+            userMsg: text,
+            aiReply: outText,
+            engine: cloudOptIn ? 'cloud-only' : 'ollama',
+            crisisDetected: false
+        });
+    }
+
+    send({
+        done: true,
+        ok: true,
+        engine: cloudOptIn ? 'cloud-only' : 'ollama',
+        text: outText,
+        persona: personaKey,
+        personaLabel: persona.label,
+        latencyMs: Date.now() - started,
+        llmDurationMs: result.durationMs || null,
+        uncertain,
+        memoryWritten,
+        memberId,
+        source,
+        contract: CONTRACT_VERSION,
+        autoSelected
+    });
+    res.end();
+});
+
 // ─────────────────────────────────────────────────────────────
 // POST /api/bridge/ask
 // Body: { text, memberId?, persona?, context?, source?, policy?, model?, temperature? }
@@ -1290,14 +1561,19 @@ app.post('/api/bridge/ask', inferenceRateLimit, async (req, res) => {
                 ? FAST_MODEL
                 : DEFAULT_MODEL);
 
+        // Cloud opt-in (kontrakt v1.2): body.policy.cloud === 'opt-in' → turbo cez Groq.
+        // DHZ persony (hasic*) sú NAVŽDY local-only — dáta zboru neopúšťajú stroj.
+        // hasic check na personaKey (lowercase) — rovnaký test ako /ask/stream.
+        const cloudOptIn = body.policy?.cloud === 'opt-in' && !isHasicPersona;
         const llmOptions = {
-            preference: 'local-only', // ENFORCEMENT: žiadny cloud (kontrakt v1.1)
+            preference: cloudOptIn ? 'cloud-only' : 'local-only', // ENFORCEMENT: default žiadny cloud (kontrakt v1.1)
             model: chosenModel,
             prompt: text,
             system: systemPrompt,
             temperature: typeof body.temperature === 'number' ? body.temperature : 0.2,
             num_predict: 512,
-            stop: []
+            stop: [],
+            ...(cloudOptIn ? { policy: { allowCloud: true } } : {})
         };
         let result = await sp4LlmCall(llmOptions);
 

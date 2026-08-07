@@ -56,18 +56,25 @@ export async function askGroqLLM(userMessage, systemPrompt = '', options = {}) {
         });
     }
 
+    // ZÁVOJ: redakcia citlivých vzorov pred odchodom do cloudu (SP4-AI-FIREWALL).
+    // Firewall offline/chyba → ticho pôvodný text (neblokuje, len znižuje riziko).
+    const [redactedUser, redactedSystem] = await Promise.all([
+        redactForCloud(userMessage),
+        redactForCloud(systemPrompt || '')
+    ]);
+
     const messages = [];
 
-    if (systemPrompt) {
+    if (redactedSystem) {
         messages.push({
             role: 'system',
-            content: systemPrompt
+            content: redactedSystem
         });
     }
 
     messages.push({
         role: 'user',
-        content: userMessage
+        content: redactedUser
     });
     
     // Use num_predict from options if provided (for consistency with Ollama)
@@ -77,9 +84,8 @@ export async function askGroqLLM(userMessage, systemPrompt = '', options = {}) {
         'Thank you for your prompt',
         'Dobrý deň',
         'Vážený',
-        'I apologize',
-        'As an AI assistant'
-    ];
+        'I apologize'
+    ]; // GROQ limit: max 4 stop items
 
     try {
         const response = await fetch(GROQ_ENDPOINT, {
@@ -117,6 +123,118 @@ export async function askGroqLLM(userMessage, systemPrompt = '', options = {}) {
     }
 }
 
+async function redactForCloud(text) {
+    try {
+        const res = await fetch(FIREWALL_REDACT_URL, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ text: String(text || '') }),
+            signal: AbortSignal.timeout(FIREWALL_TIMEOUT_MS)
+        });
+        if (!res.ok) return text;
+        const data = await res.json();
+        return data?.ok && typeof data.redacted === 'string' ? data.redacted : text;
+    } catch (_) {
+        return text;
+    }
+}
+
+/**
+ * 🌐 STREAMING VARIANT: Groq chat completions so stream:true.
+ * Rovnaké gate (constitution/egress) a závoj (redactForCloud) ako askGroqLLM.
+ * @returns {Promise<{ok:boolean, text?:string, error?:string}>}
+ */
+export async function askGroqLLMStream(userMessage, systemPrompt = '', options = {}, onDelta = () => {}) {
+    if (!GROQ_API_KEY) {
+        throw new Error('GROQ_API_KEY not configured');
+    }
+
+    const policyProvided = options.policy !== undefined && options.policy !== null;
+    const policyAllowCloud = policyProvided ? options.policy.allowCloud === true : undefined;
+    const egressCheck = mayEgress('conversation_text', 'groq_api', {
+        actorType: options.actorType || 'automation',
+        policyAllowCloud,
+        requestId: options.requestId,
+        callerFile: 'cloudLLM.js:askGroqLLMStream'
+    });
+    if (egressCheck.decision !== 'ALLOW') {
+        throw new ConstitutionalBlockError(egressCheck.reason, {
+            category: 'conversation_text',
+            sink: 'groq_api'
+        });
+    }
+
+    // ZÁVOJ (rovnaký ako askGroqLLM)
+    const [redactedUser, redactedSystem] = await Promise.all([
+        redactForCloud(userMessage),
+        redactForCloud(systemPrompt || '')
+    ]);
+
+    const messages = [];
+    if (redactedSystem) messages.push({ role: 'system', content: redactedSystem });
+    messages.push({ role: 'user', content: redactedUser });
+
+    const maxTokens = options.num_predict || MAX_TOKENS;
+    const temperature = options.temperature !== undefined ? options.temperature : TEMPERATURE;
+    const stopSequences = options.stop || [
+        'Thank you for your prompt',
+        'Dobrý deň',
+        'Vážený',
+        'I apologize'
+    ];
+
+    const response = await fetch(GROQ_ENDPOINT, {
+        method: 'POST',
+        headers: {
+            'Authorization': `Bearer ${GROQ_API_KEY}`,
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+            model: GROQ_MODEL,
+            messages,
+            max_tokens: maxTokens,
+            temperature,
+            top_p: 0.9,
+            stop: stopSequences,
+            stream: true
+        })
+    });
+
+    if (!response.ok) {
+        const error = await response.text();
+        throw new Error(`GROQ API error: ${response.status} - ${error}`);
+    }
+
+    const reader = response.body.getReader();
+    const decoder = new TextDecoder();
+    let buffer = '';
+    let fullText = '';
+
+    while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        buffer += decoder.decode(value, { stream: true });
+        const parts = buffer.split('\n\n');
+        buffer = parts.pop();
+        for (const part of parts) {
+            const line = part.split('\n').find(l => l.startsWith('data:'));
+            if (!line) continue;
+            const payload = line.slice(5).trim();
+            if (payload === '[DONE]') continue;
+            try {
+                const j = JSON.parse(payload);
+                const delta = j.choices?.[0]?.delta?.content || '';
+                if (delta) {
+                    fullText += delta;
+                    onDelta(delta);
+                }
+            } catch (_) { /* preskoč */ }
+        }
+    }
+
+    return { ok: true, text: fullText.trim() };
+}
+
 /**
  * Check if cloud LLM is available
  */
@@ -142,6 +260,7 @@ export function getCloudLLMInfo() {
 // NEVYNUCUJE — slúži na logovanie a budúce smerovanie. Kým firewall beží v DRY_RUN,
 // jeho BLOCK ignorujeme a vždy pokračujeme vlastnou logikou.
 const FIREWALL_DECIDE_URL = process.env.SP4_FIREWALL_URL || 'http://localhost:3003/api/decide';
+const FIREWALL_REDACT_URL = process.env.SP4_REDACT_URL || 'http://localhost:3003/api/redact';
 const FIREWALL_TIMEOUT_MS = parseInt(process.env.SP4_FIREWALL_TIMEOUT_MS || '2000');
 
 /**
