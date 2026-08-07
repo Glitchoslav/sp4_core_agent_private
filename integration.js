@@ -52,6 +52,7 @@ import { getSignatureLine, isVisionQuestion, needsSignature } from './src/core/q
 import { getCleanRefusal } from './src/core/responseFilter.js';
 import { applyRhythm, detectRhythm } from './src/core/responseRhythm.js'; // v0.10.0: Response rhythm system
 import { runtimeDebug, runtimeLog, runtimeWarn } from './src/core/runtimeLogging.js';
+import { detectWorkMode } from './src/core/modeCompass.js';
 import { detectSP4Query, getGroundedFallbackAnswer, getGroundingPrompt } from './src/core/sp4GroundingKnowledge.js'; // v1.4.2: SP4 factual grounding (anti-hallucination)
 import { getRelevantKb } from './src/core/kb-provider.js'; // sp4-kb ecosystem facts (2026-06-26)
 import { getRandomSp4Tagline, getRandomVisionWhisper } from './src/core/sp4Manifest.js'; // v0.8.7: SP4 tone filter
@@ -1468,6 +1469,10 @@ export class SP4IntegratedAgent {
       mode = normalizePersona(mode);
       runtimeLog(`✅ MODE NORMALIZED: ${mode}`);
       const selectedPersona = mode;
+      const workModeContext = detectWorkMode(userMessage, selectedPersona);
+      if (workModeContext.workMode) {
+        runtimeLog(`WORK MODE DETECTED: ${workModeContext.workMode}`);
+      }
 
       // 🇸🇰 v1.3.0: Early language hint detection (before buildPrompt)
       const langHint = detectLanguageHint(userMessage);
@@ -1987,6 +1992,7 @@ export class SP4IntegratedAgent {
       // Build lightweight job context for buildPrompt
       const jobContext = {
         intent: detectedIntent,
+        workModeContext,
         forceSlovak: langHint.forceSlovak,
         languageHint: langHint.languageHint,
         useSlovakManifest: detectedIntent === 'explain_sp4_sk',

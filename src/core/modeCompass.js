@@ -8,6 +8,71 @@ import { dialectAnalyzer } from './dialectAnalyzer.js';
 import { emotionalProcessor } from './emotionalProcessor.js';
 import { quickAnalyze, quickDetect } from './quickAnalyzer.js';
 
+export const WORK_MODES = Object.freeze(['code', 'debug', 'review', 'plan']);
+
+const WORK_MODE_DIRECTIVES = Object.freeze({
+    code: 'WORK MODE: CODE\nProduce implementation-ready code with clear error handling. Avoid placeholders.',
+    debug: 'WORK MODE: DEBUG\nIdentify the root cause, trace the failing path, and propose a verified fix.',
+    review: 'WORK MODE: REVIEW\nPrioritize correctness, regressions, security risks, and missing tests.',
+    plan: 'WORK MODE: PLAN\nProvide an ordered implementation plan with dependencies, risks, and verification.'
+});
+
+function createWorkModeContext(workMode, confidence, reason) {
+    return Object.freeze({
+        persona: 'CORE',
+        workMode,
+        confidence,
+        reason
+    });
+}
+
+/**
+ * Resolve an explicit CORE capability without changing persona routing.
+ * The persona field identifies the only authority allowed to activate workMode.
+ */
+export function detectWorkMode(input, selectedPersona) {
+    if (String(selectedPersona || '').trim().toLowerCase() !== 'core') {
+        return createWorkModeContext(null, 1, 'persona_not_core');
+    }
+
+    const text = String(input || '').trim();
+    if (!text) {
+        return createWorkModeContext(null, 0, 'empty_input');
+    }
+
+    const explicitPrefix = text.match(/^(?:core\s*)?:([a-z]+)(?=$|[\s,.;!?])/i);
+    if (!explicitPrefix) {
+        return createWorkModeContext(null, 0, 'no_explicit_work_mode');
+    }
+
+    const workMode = explicitPrefix[1].toLowerCase();
+    if (!WORK_MODES.includes(workMode)) {
+        return createWorkModeContext(null, 1, 'unsupported_explicit_work_mode');
+    }
+
+    return createWorkModeContext(workMode, 1, 'explicit_work_mode_prefix');
+}
+
+/**
+ * Return prompt directives only when both routing persona and context authorize CORE.
+ */
+export function getWorkModeDirectives(workModeContext, selectedPersona) {
+    const isCorePersona = String(selectedPersona || '').trim().toLowerCase() === 'core';
+    const isCoreContext = workModeContext?.persona === 'CORE';
+    const workMode = workModeContext?.workMode;
+    const hasValidConfidence = Number.isFinite(workModeContext?.confidence)
+        && workModeContext.confidence >= 0
+        && workModeContext.confidence <= 1;
+    const hasReason = typeof workModeContext?.reason === 'string'
+        && workModeContext.reason.length > 0;
+
+    if (!isCorePersona || !isCoreContext || !hasValidConfidence || !hasReason || !WORK_MODES.includes(workMode)) {
+        return '';
+    }
+
+    return WORK_MODE_DIRECTIVES[workMode];
+}
+
 /**
  * Detekuje explicitný režim z prefixu v správe.
  * Priorita: SP4_CORE > Glitchoslav > Popiči > null

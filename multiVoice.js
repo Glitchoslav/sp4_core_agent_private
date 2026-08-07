@@ -10,7 +10,7 @@ import { ruleMiner } from './ruleMiner.js'; // v1.0: Auto-learning Rule Miner
 import { askLocalLLM } from './sp4os/llmLocal.js';
 import { getRandomGlitchTagline, getRandomRune } from './src/core/glitchRunes.js'; // v0.9.0: Glitchoslav soul
 import { getGlitchoslavTruth } from './src/core/identityVault.js'; // v1.3.0: Deep identity vault (GLITCHOSLAV ONLY)
-import { analyzeMode, pickMode } from './src/core/modeCompass.js';
+import { analyzeMode, getWorkModeDirectives, pickMode } from './src/core/modeCompass.js';
 import { getShortVisionAnswer, isVisionQuestion } from './src/core/questionDetector.js'; // v0.8.8.1: vision shortcut
 import { runtimeLog, runtimeWarn } from './src/core/runtimeLogging.js';
 import { SP4_DEFINITION_SK, SP4_EXPLAIN_SK_FALLBACK, SP4_GOALS_SK, SP4_MANTRA_SK, SP4_VISION_SK } from './src/core/sp4Manifest.js'; // v1.3.0: Slovak manifest
@@ -99,13 +99,15 @@ export async function buildPrompt({ mode = 'core', state = {}, userMessage = '',
     runtimeLog(`🧭 MODE COMPASS: ${selectedMode.toUpperCase()} (${modeAnalysis.reason})`);
   }
 
+  const hasActiveWorkMode = Boolean(getWorkModeDirectives(job?.workModeContext, selectedMode));
+
   // 🔥 FIX 3: MANIFEST REQUEST DETECTION
   // If this is a manifest/explain_sp4_sk request, use mini-system (avoid timeout)
   const isManifestRequest = job?.intent === 'explain_sp4_sk' ||
     job?.useSlovakManifest === true ||
     /\b(manifest|vizi|cieľ|čo je sp4)\b/i.test(userMessage);
 
-  if (isManifestRequest) {
+  if (isManifestRequest && !hasActiveWorkMode) {
     runtimeLog('   📜 Manifest request detected → using mini-system prompt');
     const miniSystemPrompt = `
 Si SP4 hlas. Odpovedaj VÝLUČNE po slovensky.
@@ -136,7 +138,7 @@ ${groundingKnowledge ? `\n\n${groundingKnowledge}` : ''}
     ? { ...(inferredDecisionContract || {}), ...job.decisionContract, enabled: true }
     : inferredDecisionContract;
 
-  if (decisionContract?.enabled === true) {
+  if (decisionContract?.enabled === true && !hasActiveWorkMode) {
     runtimeLog(`   🔪 Decision contract detected (${decisionContract.type || job?.intent}) → using decision CORE prompt`);
     const decisionPrompt = buildDecisionSystemPrompt({ decisionContract, groundingKnowledge });
     return {
@@ -164,7 +166,7 @@ ${groundingKnowledge ? `\n\n${groundingKnowledge}` : ''}
   const queryInfo = classifyQueryTypeDetailed(userMessage);
   const isShortPureTechQuery = shouldUseShortTechPrompt({ selectedMode, userMessage, queryInfo });
 
-  if (isShortPureTechQuery) {
+  if (isShortPureTechQuery && !hasActiveWorkMode) {
     runtimeLog('   ⚡ Short tech query → lightweight CORE prompt (TASK-C)');
     const shortTechRules = [
       'Krátka technická odpoveď, 2–4 vety.',
@@ -208,7 +210,7 @@ ${groundingKnowledge ? `\n\n${groundingKnowledge}` : ''}`.trim();
   const isVisionQ = isVisionQuestion(userMessage);
   const isGlitchMode = (selectedMode === 'glitch' || selectedMode === 'glitchoslav');
 
-  if (isVisionQ && !isGlitchMode && !userMessage.includes('/vision')) {
+  if (isVisionQ && !isGlitchMode && !userMessage.includes('/vision') && !hasActiveWorkMode) {
     runtimeLog('   🔥 Vision question detected → short answer mode');
 
     // 🔥 v1.3.1: Unified metadata contract for vision shortcut
@@ -275,6 +277,7 @@ export function buildSystemPrompt(mode = 'core', state = {}, extraDirectives = '
 
   const profile = getAgentProfile(normalizedMode);
   const kernelLayer = buildKernelLayer(normalizedMode); // PHASE 3: kernel-first injection
+  const workModeLayer = getWorkModeDirectives(job?.workModeContext, normalizedMode);
   const core = buildCoreLayer();
   const agent = buildAgentLayer(profile, normalizedMode, job); // metadata + style header
   const flavor = buildFlavorLayer(normalizedMode, job);         // PHASE 4: lore/rune/echo/coloring
@@ -305,8 +308,8 @@ export function buildSystemPrompt(mode = 'core', state = {}, extraDirectives = '
 ${fireDirective}`;
   }
 
-  // PHASE 4 layer order: kernel → safety → facts → context → agent(header) → flavor(lore) → style
-  return [kernelLayer, safety, core, context, agent, flavor, style]
+  // PHASE 4 layer order: kernel → safety → work mode → facts → context → agent(header) → flavor(lore) → style
+  return [kernelLayer, safety, workModeLayer, core, context, agent, flavor, style]
     .filter(s => s && s.trim())
     .join('\n\n')
     .trim() + fireModeBlock;
