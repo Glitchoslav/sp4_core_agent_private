@@ -69,3 +69,16 @@ node
 # === Test vstupy/vystupy ===
 TESTY odpovede.txt
 test_input.txt
+
+# Agent state / runtime — nikdy necommitovat (mozu obsahovat secrets)
+.pi/
+.openclaw/
+.npm/
+.cache/
+.local/
+downloads/
+openclaw-src/
+sp4/
+
+# Zalohy a artefakty
+*.bak-*
