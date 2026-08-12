@@ -256,7 +256,7 @@ Target: 3-5 sentences UNLESS your persona requires longer format (e.g., GLITCHOS
                 model: effectiveModel,
                 messages,
                 stream,
-                keep_alive: isTestMode ? '5m' : '10m',
+                keep_alive: isTestMode ? '5m' : '30m',
                 options: {
                     temperature: isTestMode ? optimizedTemperature : (temperature || 0.5),
                     num_predict: isTestMode ? optimizedNumPredict : (num_predict || 512),

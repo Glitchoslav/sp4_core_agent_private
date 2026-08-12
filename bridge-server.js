@@ -19,6 +19,7 @@ import { distillAsync } from './bridge-distiller.js';
 import { shouldDistillConversation } from './bridge-distillation-policy.js';
 import { bridgeCors } from './bridge-cors.js';
 import { createBridgeRateLimiter } from './bridge-rate-limit.js';
+import { isUnpredictableFuture } from './src/routing/unpredictabilityGuard.js';
 import {
     addGlossaryTerm,
     appendPersonalNote,
@@ -1086,6 +1087,7 @@ app.post('/api/bridge/ask', inferenceRateLimit, async (req, res) => {
     const started = Date.now();
     const body = req.body || {};
     const text = String(body.text || '').trim();
+    const predicted = isUnpredictableFuture(text);
 
     if (!text) {
         return res.status(400).json({
@@ -1252,7 +1254,8 @@ app.post('/api/bridge/ask', inferenceRateLimit, async (req, res) => {
         memberBlock +
         historyBlock +
         contextBlock +
-        popiciSoftenBlock;
+        popiciSoftenBlock +
+        (predicted ? '\n\n## Nepredvídateľná budúcnosť\nTáto otázka sa týka budúcnosti, ktorá sa NEDÁ vedieť. Jasne povedz, že to nevieš („neviem“ / „nedá sa predpovedať“). Ak chceš, môžeš uviesť, že ide len o tvoj TIP — nikdy nepredkladaj tip ako fakt.' : '');
 
     const deterministicSystemInfo = getDeterministicSystemInfoResponse(text) || getDeterministicPublicContextResponse(text);
     if (deterministicSystemInfo) {
@@ -1328,7 +1331,7 @@ app.post('/api/bridge/ask', inferenceRateLimit, async (req, res) => {
             prompt: text,
             system: systemPrompt,
             temperature: typeof body.temperature === 'number' ? body.temperature : 0.2,
-            num_predict: 512,
+            num_predict: 320,
             // POPICI: lower cap and higher repetition penalty reduce degeneration.
             ...(personaKey === 'popici' ? { num_predict: 280, repeat_penalty: 1.3 } : {}),
             stop: []
@@ -1441,7 +1444,7 @@ app.post('/api/bridge/ask', inferenceRateLimit, async (req, res) => {
             ? outText.match(/#NAUČIŤ:\s*([^\n]+)/i)?.[1]?.trim() || null
             : null;
         const nauciPos = outText.search(/#NAUČIŤ:/i);
-        const uncertain = nauciPos !== -1 && nauciPos < 40;
+        const uncertain = (nauciPos !== -1 && nauciPos < 40) || predicted;
 
         // POST-PROCESSING — fire-and-forget, neblokuje odpoveď
         let memoryWritten = false;
@@ -1492,6 +1495,8 @@ app.post('/api/bridge/ask', inferenceRateLimit, async (req, res) => {
             uncertain,
             learnHint,
             memoryWritten,
+            memoryScope: isHasicPersona ? 'dhz-active' : 'dhz-only',
+            kbHits: sp4Facts.length,
             memberId,
             source,
             contract: CONTRACT_VERSION,
