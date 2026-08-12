@@ -23,10 +23,29 @@ import 'dotenv/config';
 import { recordEpoch } from '../core/epochKeeper.js';
 
 // 🔧 CONFIGURATION (ENV overrides)
+function ensureDefaultPort(value) {
+    // Ollama default port (11434), ak URL nema explicitny port —
+    // OLLAMA_HOST moze byt len host (napr. "localhost" alebo bind "0.0.0.0").
+    const m = /^(https?:\/\/[^/]+)(\/.*)?$/i.exec(value);
+    if (m && !/:\d+$/.test(m[1])) {
+        return `${m[1]}:11434${m[2] || ''}`;
+    }
+    return value;
+}
+
 function normalizeHost(host) {
     const trimmed = String(host || '').trim().replace(/\/+$/, '');
     if (!trimmed) return null;
-    return /^https?:\/\//i.test(trimmed) ? trimmed : `http://${trimmed}`;
+    let value = /^https?:\/\//i.test(trimmed) ? trimmed : `http://${trimmed}`;
+    // OLLAMA_HOST sa používa aj ako BIND adresa daemona (0.0.0.0 / :: / [::]),
+    // napr. `OLLAMA_HOST=0.0.0.0 ollama serve`. Bind adresa nie je connect adresa
+    // — pre klienta znamená localhost. Bez tohto by health check a fetch volania
+    // išli na http://0.0.0.0:11434 a zlyhali ("Ollama offline" pri bežiacej Ollame).
+    value = value.replace(
+        /^https?:\/\/(0\.0\.0\.0|\[?::\]?)(?=:|\/|$)/i,
+        'http://127.0.0.1'
+    );
+    return ensureDefaultPort(value);
 }
 
 function configuredHosts() {
