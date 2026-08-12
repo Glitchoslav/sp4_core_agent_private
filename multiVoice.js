@@ -9,7 +9,7 @@ import { getAgentProfile } from './agents.js';
 import { ruleMiner } from './ruleMiner.js'; // v1.0: Auto-learning Rule Miner
 import { askLocalLLM } from './sp4os/llmLocal.js';
 import { getRandomGlitchTagline, getRandomRune } from './src/core/glitchRunes.js'; // v0.9.0: Glitchoslav soul
-import { getGlitchoslavTruth } from './src/core/identityVault.js'; // v1.3.0: Deep identity vault (GLITCHOSLAV ONLY)
+import { getGlitchoslavTruth, getPopiciTruth } from './src/core/identityVault.js'; // v1.3.0: Persona lore vault
 import { analyzeMode, getWorkModeDirectives, pickMode } from './src/core/modeCompass.js';
 import { getShortVisionAnswer, isVisionQuestion } from './src/core/questionDetector.js'; // v0.8.8.1: vision shortcut
 import { runtimeLog, runtimeWarn } from './src/core/runtimeLogging.js';
@@ -554,13 +554,7 @@ ${identityVault || ''}`.trim();
   }
 
   if (resolvedMode === 'popici') {
-    return `━━━━━━━━━━━━━━━━━━━━
-💥 POPICI LORE ASSET (flavor — not identity authority)
-━━━━━━━━━━━━━━━━━━━━
-
-- Humor a krcmove prirovnania maju sluzit pravde.
-- Nadavky pouzivaj presne tam, kde treba - nie ako chaos pre chaos.
-- Ak to situacia pyta, zakonci pointou, co ostane visiet v hlave.`;
+    return getPopiciTruth();
   }
 
   return '';

@@ -5,8 +5,9 @@
  * a fallbackuje na legacy fragmenty len ako safety vrstvu.
  * 
  * CRITICAL RULE:
- * - Použitie IBA pre GLITCHOSLAV personu
- * - CORE, Popiči, Validator NEMAJÚ prístup k týmto súborom
+ * - GLITCHOSLAV používa celý bundle
+ * - Popiči používa iba svoj `popici_prompt` slot
+ * - CORE a Validator NEMAJÚ prístup k týmto súborom
  * - Ostatní agenti používajú sp4Facts.js + sp4Manifest.js (nie vault)
  * 
  * @module identityVault
@@ -183,6 +184,7 @@ function loadIdentitySlot(slot) {
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 let cachedTruth = null;
+let cachedPopiciTruth = null;
 
 /**
  * 🌀 GET GLITCHOSLAV TRUTH
@@ -225,6 +227,25 @@ export function getGlitchoslavTruth() {
   verboseLog(`🔒 [identityVault] Total size: ${cachedTruth.length} chars\n`);
 
   return cachedTruth;
+}
+
+/**
+ * Vráti iba Popiči prompt slot cez rovnaký canonical-first fallback ako vault.
+ * Chýbajúci alebo nečitateľný slot je bezpečný prázdny flavor, nie pád requestu.
+ */
+export function getPopiciTruth() {
+  if (cachedPopiciTruth !== null) {
+    return cachedPopiciTruth;
+  }
+
+  const popiciSlot = IDENTITY_SLOTS.find((slot) => slot.id === 'popici_prompt');
+  const loadedSlot = popiciSlot ? loadIdentitySlot(popiciSlot) : null;
+
+  cachedPopiciTruth = loadedSlot
+    ? loadedSlot.parts.map((part) => renderBundlePart(part.label, part.content)).join('\n')
+    : '';
+
+  return cachedPopiciTruth;
 }
 
 /**
