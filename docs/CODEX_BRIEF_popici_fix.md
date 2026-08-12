@@ -1,5 +1,15 @@
 # CODEX BRIEF — Popiči fix (kvalita odpovedí) — 2026-08-12
 
+## ⚠️ AUTORIZÁCIA (explicitné polia, schválil OWNER 2026-08-12)
+
+- **Režim:** IMPLEMENTUJ
+- **Hranica:** `C:\SP4KULT\sp4_core_agent`
+- **Rozsah:** presne 3 fixy podľa tohto briefu, všetky v `bridge-server.js`
+- **Povolené:** `git fetch`, `git checkout sp4/popici-quality-fix-v1`, implementácia 3 fixov, bridge testy, `git commit`, `git push`, vytvorenie **draft PR**
+- **ZAKÁZANÉ:** `merge` (merge schvaľuje OWNER/pi), zmeny mimo rozsahu, secrets v commite, zmeny v iných súboroch
+
+---
+
 **Od:** Rudo (SP4TECH, zbrojnica) — na základe live testov OWNERA
 **Pre:** Codex (writer pre `sp4_core_agent_private`)
 **Priorita:** vysoká — OWNER testoval naživo, kvalita odpovedí popiči je zlá
