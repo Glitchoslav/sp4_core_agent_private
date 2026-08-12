@@ -290,6 +290,34 @@ function isPopiciEcho(responseText, systemPromptText) {
     return forbiddenLeaks.some((phrase) => respNorm.includes(norm(phrase)));
 }
 
+// POPICI: keep the first occurrence and cut output when generation starts looping.
+function repetitionLoopCutIndex(text) {
+    const words = text.trim().split(/\s+/);
+    for (let i = 0; i < words.length - 4; i++) {
+        const word = words[i].toLowerCase();
+        if (word.length > 2 && words.slice(i, i + 5).every((item) => item.toLowerCase() === word)) {
+            return i + 1;
+        }
+    }
+    for (let i = 0; i < words.length - 8; i++) {
+        const trigram = words.slice(i, i + 3).map((item) => item.toLowerCase()).join(' ');
+        const second = words.slice(i + 3, i + 6).map((item) => item.toLowerCase()).join(' ');
+        const third = words.slice(i + 6, i + 9).map((item) => item.toLowerCase()).join(' ');
+        if (second === trigram && third === trigram) return i + 3;
+    }
+    return -1;
+}
+
+function hasRepetitionLoop(text) {
+    return repetitionLoopCutIndex(text) !== -1;
+}
+
+function truncateRepetitionLoop(text) {
+    const words = text.trim().split(/\s+/);
+    const cutIndex = repetitionLoopCutIndex(text);
+    return cutIndex === -1 ? text : `${words.slice(0, cutIndex).join(' ')}…`;
+}
+
 function buildPopiciSystemPrompt() {
     const examples = pickRandom(POPICI_VOICE_EXAMPLES, 4)
         .map((e) => `- "${e}"`)
@@ -310,9 +338,9 @@ function buildPopiciSystemPrompt() {
         '',
         'Východniarske slová a nadávky sú KORENIE, nie hlavné jedlo — použi ich zriedka, tam kde to príde prirodzene, nikdy nie v každej vete. Nadávky (kokot, kurva, doprdele) mieria na situáciu/systém/seba, NIKDY na človeka pred sebou.',
         'Pred odoslaním skontroluj každú nadávku: jej cieľom smie byť iba situácia, systém alebo ty sám; ak cieli na používateľa, vetu vynechaj.',
-        'ODPOVEĎ MUSÍ MAŤ MINIMÁLNE 3-5 VIET (nie jednoslovné odpovede!). Štruktúra: 1) otvorenie humorom alebo sebairóniou 2) jadro = pravda na rovinu, bez omáčky 3) záver = konkrétny jednoduchý krok alebo punchline.',
+        'ODPOVEĎ MUSÍ MAŤ MINIMÁLNE 3-5 VIET (nie jednoslovné odpovede!). Štruktúra v súvislom texte: najprv otvorenie humorom alebo sebairóniou, potom jadro — pravda na rovinu bez omáčky, na záver konkrétny jednoduchý krok alebo pointa.',
         'Keď sa pýtajú, kto si alebo čo robíš v SP4: ROZVIŇ to konkrétne (nie len "som Popiči") — si východniarsky brat z krčmy, čo drží ľuďom zrkadlo a sprevádza ich SP4 glitch-svetom; pravda s láskou a iróniou.',
-        'Žiadne zoznamy, bulletpointy ani akademické rozbory. Píš po slovensky; slang vítaný, celé vety v angličtine zakázané (okrem názvov: API, JSON, SP4).',
+        'NIKDY nepoužívaj číslovanie (1), 2), 3)...), odrážky, bulletpointy ani nadpisy. Odpoveď je JEDEN súvislý text. Píš po slovensky; slang vítaný, celé vety v angličtine zakázané (okrem názvov: API, JSON, SP4).',
         'Motivačné klišé (ver v seba, nevzdávaj sa) aj korporátny bullshit sú zakázané — povedz to, čo treba, po svojom.',
         '',
         'PRÍKLADY ŠTÝLU (nekopíruj doslovne, sú len ukážka tónu a hustoty):',
@@ -1301,6 +1329,8 @@ app.post('/api/bridge/ask', inferenceRateLimit, async (req, res) => {
             system: systemPrompt,
             temperature: typeof body.temperature === 'number' ? body.temperature : 0.2,
             num_predict: 512,
+            // POPICI: lower cap and higher repetition penalty reduce degeneration.
+            ...(personaKey === 'popici' ? { num_predict: 280, repeat_penalty: 1.3 } : {}),
             stop: []
         };
         let result = await sp4LlmCall(llmOptions);
@@ -1375,6 +1405,30 @@ app.post('/api/bridge/ask', inferenceRateLimit, async (req, res) => {
                     ...result,
                     text: pickRandom(POPICI_SAFE_FALLBACKS, 1)[0]
                 };
+            }
+
+            if (hasRepetitionLoop(result.text)) {
+                console.warn('[POPICI_LOOP] detected, retrying once');
+                const retryResult = await sp4LlmCall({
+                    ...llmOptions,
+                    system: systemPrompt +
+                        '\n\nNEOPAKUJ slová ani frázy. Ak sa opakuješ, prestaň a ukonči vetu.',
+                    temperature: 0.1,
+                    repeat_penalty: 1.5
+                });
+
+                if (retryResult?.ok && !hasRepetitionLoop(retryResult.text)) {
+                    result = retryResult;
+                } else {
+                    const loopingResult = retryResult?.ok ? retryResult : result;
+                    console.warn(retryResult?.ok
+                        ? '[POPICI_LOOP] retry still looping, truncating response'
+                        : '[POPICI_LOOP] retry transport failed, truncating original response');
+                    result = {
+                        ...loopingResult,
+                        text: truncateRepetitionLoop(loopingResult.text)
+                    };
+                }
             }
         }
 
