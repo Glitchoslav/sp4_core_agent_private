@@ -23,7 +23,31 @@ import 'dotenv/config';
 import { recordEpoch } from '../core/epochKeeper.js';
 
 // 🔧 CONFIGURATION (ENV overrides)
-const OLLAMA_HOST = process.env.OLLAMA_HOST || 'http://localhost:11434';
+function normalizeHost(host) {
+    const trimmed = String(host || '').trim().replace(/\/+$/, '');
+    if (!trimmed) return null;
+    return /^https?:\/\//i.test(trimmed) ? trimmed : `http://${trimmed}`;
+}
+
+function configuredHosts() {
+    const raw = process.env.OLLAMA_HOSTS || process.env.OLLAMA_HOST || 'http://localhost:11434';
+    const unique = [];
+    for (const value of raw.split(',')) {
+        const host = normalizeHost(value);
+        if (host && !unique.includes(host)) unique.push(host);
+    }
+    return unique.length > 0 ? unique : ['http://localhost:11434'];
+}
+
+const OLLAMA_HOSTS = Object.freeze(configuredHosts());
+const SECONDARY_TIMEOUT_MS = 90000;
+
+function modelForHost(model, hostIndex) {
+    if (hostIndex === 0) return model;
+    if (model === 'gemma3:4b' || model === 'gemma3:12b') return model;
+    if (model === 'qwen2.5:7b' || model === 'qwen2.5-coder:7b') return 'qwen3:8b';
+    return 'qwen3:8b';
+}
 
 const DEFAULT_TIMEOUT_MS = process.env.OLLAMA_TIMEOUT_MS
     ? Number(process.env.OLLAMA_TIMEOUT_MS)
@@ -41,6 +65,7 @@ let OLLAMA_UNHEALTHY = false;
 let unhealthySince = null;
 let lastHealthCheck = null;
 let consecutiveFailures = 0;
+let lastUsedHost = null;
 
 /**
  * 🔥 CORE FUNCTION: Call Ollama with timeout + retry
@@ -124,18 +149,25 @@ export async function callOllama(options) {
         }
     }
 
-    // 🔁 RETRY LOOP
+    // 🔁 FINITE FALLBACK CHAIN: primary with retries, secondary once.
     let lastError = null;
     let totalRetries = 0;
 
-    for (let attempt = 1; attempt <= effectiveMaxRetries + 1; attempt++) {
-        const isRetry = attempt > 1;
+    const hostChain = OLLAMA_HOSTS.slice(0, 2);
+    for (let hostIndex = 0; hostIndex < hostChain.length; hostIndex++) {
+      const host = hostChain[hostIndex];
+      const effectiveModel = modelForHost(model, hostIndex);
+      const attemptsForHost = hostIndex === 0 ? effectiveMaxRetries + 1 : 1;
+
+      for (let attempt = 1; attempt <= attemptsForHost; attempt++) {
+        const isRetry = hostIndex === 0 && attempt > 1;
         const controller = new AbortController();
 
-        // 🎯 DYNAMIC TIMEOUT: TEST MODE = 20s (option testMode alebo env SP4_TEST), Slovak models = 150s, others = 90s
-        let timeoutMs = perCallTimeoutMs || (isTestMode ? optimizedTimeout : DEFAULT_TIMEOUT_MS);
+        // Primary keeps the configured 60s default; secondary gets 90s for cold model load.
+        let timeoutMs = perCallTimeoutMs
+            || (isTestMode ? optimizedTimeout : (hostIndex === 0 ? DEFAULT_TIMEOUT_MS : SECONDARY_TIMEOUT_MS));
         if (!isTestMode && !perCallTimeoutMs) {
-            if (model.includes('mistral-sk') || model.includes('OpenEuroLLM')) {
+            if (hostIndex === 0 && (effectiveModel.includes('mistral-sk') || effectiveModel.includes('OpenEuroLLM'))) {
                 timeoutMs = 150000; // 2.5 min
             }
         }
@@ -145,12 +177,14 @@ export async function callOllama(options) {
 
         try {
             // 🔄 Progress indicator for slow models
-            if (model.includes('70b') && !isRetry && !isTestMode) {
-                console.log(`🐢 Loading ${model} (${prompt.length + system.length} chars)... up to 3 min`);
+            if (effectiveModel.includes('70b') && !isRetry && !isTestMode) {
+                console.log(`🐢 Loading ${effectiveModel} (${prompt.length + system.length} chars)... up to 3 min`);
             }
 
             if (isRetry) {
-                console.log(`🔄 Retry ${attempt - 1}/${effectiveMaxRetries} for ${model}...`);
+                console.log(`🔄 Retry ${attempt - 1}/${effectiveMaxRetries} for ${effectiveModel} on ${host}...`);
+            } else if (hostIndex > 0) {
+                console.log(`🔄 Ollama fallback: ${host} model=${effectiveModel}`);
             }
 
             const messages = [];
@@ -196,32 +230,37 @@ Target: 3-5 sentences UNLESS your persona requires longer format (e.g., GLITCHOS
             if (process.env.SP4_DEBUG === 'true') {
                 const promptLen = messages.map(m => m.content?.length || 0).reduce((a, b) => a + b, 0);
                 const systemPromptLen = messages.find(m => m.role === 'system')?.content?.length || 0;
-                console.log(`📌 OLLAMA_CALL: model=${model} provider=local_ollama temp=${isTestMode ? optimizedTemperature : (temperature || 0.5)} num_predict=${isTestMode ? optimizedNumPredict : (num_predict || 512)} timeout=${isTestMode ? optimizedTimeout : DEFAULT_TIMEOUT_MS}ms promptLen=${promptLen} systemLen=${systemPromptLen}`);
+                console.log(`📌 OLLAMA_CALL: host=${host} model=${effectiveModel} provider=local_ollama temp=${isTestMode ? optimizedTemperature : (temperature || 0.5)} num_predict=${isTestMode ? optimizedNumPredict : (num_predict || 512)} timeout=${timeoutMs}ms promptLen=${promptLen} systemLen=${systemPromptLen}`);
             }
 
-            const response = await fetch(`${OLLAMA_HOST}/api/chat`, {
+            const requestBody = {
+                model: effectiveModel,
+                messages,
+                stream,
+                keep_alive: isTestMode ? '5m' : '10m',
+                options: {
+                    temperature: isTestMode ? optimizedTemperature : (temperature || 0.5),
+                    num_predict: isTestMode ? optimizedNumPredict : (num_predict || 512),
+                    stop,
+                    penalize_newline,
+                    top_k,
+                    top_p,
+                    repeat_penalty,
+                    ...ollamaOptions,
+                },
+                ...rest,
+            };
+
+            // qwen3 without this may return only thinking tokens and an empty response.
+            if (effectiveModel.startsWith('qwen3')) requestBody.think = false;
+
+            const response = await fetch(`${host}/api/chat`, {
                 method: 'POST',
                 signal: controller.signal,
                 headers: {
                     'Content-Type': 'application/json',
                 },
-                body: JSON.stringify({
-                    model,
-                    messages,
-                    stream,
-                    keep_alive: isTestMode ? '5m' : '10m',
-                    options: {
-                        temperature: isTestMode ? optimizedTemperature : (temperature || 0.5),
-                        num_predict: isTestMode ? optimizedNumPredict : (num_predict || 512),
-                        stop,
-                        penalize_newline,
-                        top_k,
-                        top_p,
-                        repeat_penalty,
-                        ...ollamaOptions,
-                    },
-                    ...rest,
-                }),
+                body: JSON.stringify(requestBody),
             });
 
             clearTimeout(timeoutId);
@@ -284,6 +323,9 @@ Target: 3-5 sentences UNLESS your persona requires longer format (e.g., GLITCHOS
                 console.log(`✅ Ollama recovered after ${consecutiveFailures} failures`);
                 consecutiveFailures = 0;
             }
+            OLLAMA_UNHEALTHY = false;
+            unhealthySince = null;
+            lastUsedHost = host;
 
             return {
                 ok: true,
@@ -291,7 +333,9 @@ Target: 3-5 sentences UNLESS your persona requires longer format (e.g., GLITCHOS
                 durationMs: duration,
                 raw: data,
                 retries: totalRetries,
-                model
+                model: effectiveModel,
+                requestedModel: model,
+                host,
             };
 
         } catch (err) {
@@ -309,7 +353,9 @@ Target: 3-5 sentences UNLESS your persona requires longer format (e.g., GLITCHOS
             // 📊 EPOCH KEEPER LOG
             const epochData = {
                 attempt,
-                model,
+                model: effectiveModel,
+                requestedModel: model,
+                host,
                 error: String(err),
                 errorType,
                 elapsedMs: duration,
@@ -321,15 +367,20 @@ Target: 3-5 sentences UNLESS your persona requires longer format (e.g., GLITCHOS
             console.warn(`[OLLAMA_${errorType}]`, epochData);
 
             // 🔥 RECORD TO EPOCH KEEPER (only on final failure)
-            if (attempt >= effectiveMaxRetries + 1) {
+            const isFinalChainAttempt = hostIndex === hostChain.length - 1
+                && attempt >= attemptsForHost;
+            if (isFinalChainAttempt) {
                 await recordEpoch(
-                    `Ollama ${errorType}: ${model} failed after ${effectiveMaxRetries} retries`,
+                    `Ollama ${errorType}: fallback chain failed for ${model}`,
                     { ...epochData, finalFailure: true }
-                ).catch(() => { }); // Don't crash if epoch save fails
+                ).catch((epochError) => {
+                    console.warn(`⚠️ Ollama epoch log failed: ${epochError.message}`);
+                    return null;
+                });
             }
 
             // 🔁 RETRY DECISION
-            if (attempt < effectiveMaxRetries + 1) {
+            if (attempt < attemptsForHost) {
                 // Retry if timeout or network error
                 if (isTimeout || isNetworkError) {
                     console.log(`⚠️ ${errorType} - retry in progress...`);
@@ -341,29 +392,32 @@ Target: 3-5 sentences UNLESS your persona requires longer format (e.g., GLITCHOS
                 }
             }
         }
+      }
     }
 
-    // ❌ ALL RETRIES FAILED
+    // ❌ ALL CONFIGURED HOSTS FAILED
     consecutiveFailures++;
-
-    // 🛡️ MARK UNHEALTHY after 3+ consecutive failures
-    if (consecutiveFailures >= 3 && !OLLAMA_UNHEALTHY) {
+    if (!OLLAMA_UNHEALTHY) {
         OLLAMA_UNHEALTHY = true;
         unhealthySince = Date.now();
-        console.error(`🔴 Ollama marked UNHEALTHY (${consecutiveFailures} failures)`);
+        console.error(`🔴 Ollama marked UNHEALTHY (all ${hostChain.length} configured hosts failed)`);
 
         await recordEpoch(
-            'Ollama marked UNHEALTHY - switching to cloud fallback',
-            { consecutiveFailures, unhealthySince }
-        ).catch(() => { });
+            'Ollama marked UNHEALTHY - all configured hosts failed',
+            { consecutiveFailures, unhealthySince, hosts: hostChain }
+        ).catch((epochError) => {
+            console.warn(`⚠️ Ollama unhealthy epoch log failed: ${epochError.message}`);
+            return null;
+        });
     }
 
     return {
         ok: false,
-        error: lastError ? String(lastError) : 'Unknown Ollama error',
+        error: 'OLLAMA_UNHEALTHY',
+        cause: lastError ? String(lastError) : 'Unknown Ollama error',
         retries: totalRetries,
         model,
-        healthStatus: OLLAMA_UNHEALTHY ? 'unhealthy' : 'degraded'
+        healthStatus: 'unhealthy'
     };
 }
 
@@ -381,12 +435,15 @@ Target: 3-5 sentences UNLESS your persona requires longer format (e.g., GLITCHOS
  */
 export async function ollamaHealthCheck() {
     const started = Date.now();
+    let lastError = null;
 
-    try {
+    for (const host of OLLAMA_HOSTS.slice(0, 2)) {
+      let timeoutId = null;
+      try {
         const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), 5000); // 5s timeout
+        timeoutId = setTimeout(() => controller.abort(), 5000); // 5s timeout
 
-        const response = await fetch(`${OLLAMA_HOST}/api/tags`, {
+        const response = await fetch(`${host}/api/tags`, {
             signal: controller.signal
         });
 
@@ -396,6 +453,7 @@ export async function ollamaHealthCheck() {
         if (response.ok) {
             const data = await response.json();
             lastHealthCheck = new Date();
+            lastUsedHost = host;
 
             // 🔄 Reset UNHEALTHY flag if health check passes
             if (OLLAMA_UNHEALTHY) {
@@ -407,29 +465,38 @@ export async function ollamaHealthCheck() {
                 await recordEpoch('Ollama recovered - health check passed', {
                     durationMs: duration,
                     models: data.models?.length || 0
-                }).catch(() => { });
+                }).catch((epochError) => {
+                    console.warn(`⚠️ Ollama recovery epoch log failed: ${epochError.message}`);
+                    return null;
+                });
             }
 
             return {
                 healthy: true,
                 models: data.models || [],
                 timestamp: lastHealthCheck,
-                durationMs: duration
+                durationMs: duration,
+                host,
             };
         }
 
         throw new Error(`HTTP ${response.status}`);
 
-    } catch (err) {
-        console.warn(`⚠️ Ollama health check failed: ${err.message}`);
-
-        return {
-            healthy: false,
-            error: String(err),
-            timestamp: new Date(),
-            consecutiveFailures
-        };
+      } catch (err) {
+        lastError = err;
+        console.warn(`⚠️ Ollama health check failed for ${host}: ${err.message}`);
+      } finally {
+        if (timeoutId) clearTimeout(timeoutId);
+      }
     }
+
+    return {
+        healthy: false,
+        error: lastError ? String(lastError) : 'OLLAMA_UNHEALTHY',
+        timestamp: new Date(),
+        consecutiveFailures,
+        hosts: OLLAMA_HOSTS.slice(0, 2),
+    };
 }
 
 /**
@@ -465,7 +532,10 @@ export function resetOllamaHealth() {
     recordEpoch('Ollama health manually reset', {
         resetBy: 'user',
         timestamp: new Date()
-    }).catch(() => { });
+    }).catch((epochError) => {
+        console.warn(`⚠️ Ollama reset epoch log failed: ${epochError.message}`);
+        return null;
+    });
 }
 
 /**
@@ -475,8 +545,13 @@ export function resetOllamaHealth() {
  */
 export function getOllamaConfig() {
     return {
-        host: OLLAMA_HOST,
+        host: lastUsedHost || OLLAMA_HOSTS[0],
+        hosts: [...OLLAMA_HOSTS],
+        primaryHost: OLLAMA_HOSTS[0],
+        secondaryHost: OLLAMA_HOSTS[1] || null,
+        activeHost: lastUsedHost,
         timeoutMs: DEFAULT_TIMEOUT_MS,
+        secondaryTimeoutMs: SECONDARY_TIMEOUT_MS,
         maxRetries: MAX_RETRIES,
         healthCheckIntervalMs: HEALTH_CHECK_INTERVAL_MS,
         unhealthyCooldownMs: UNHEALTHY_COOLDOWN_MS

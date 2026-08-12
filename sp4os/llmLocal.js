@@ -18,7 +18,6 @@ import {
 
 export const PRIMARY_MODEL = process.env.PRIMARY_MODEL || 'gemma3:4b';
 export const FAST_PATH_MODEL = process.env.FAST_PATH_MODEL || 'llama3.2:3b';
-const OLLAMA_HOST = process.env.OLLAMA_HOST || 'http://localhost:11434';
 let availableModelsCache = [];
 let lastHealthCheck = null;
 let lastHealthSnapshot = null;
@@ -515,7 +514,7 @@ export async function getModelDiagnostics() {
 
   const diagnostics = {
     server: {
-      host: OLLAMA_HOST,
+      host: ollamaConfig.activeHost || ollamaConfig.primaryHost,
       status: health.healthy ? '✅ ONLINE' : '❌ OFFLINE',
       lastCheck: health.timestamp || 'Never',
       availableModels: health.models?.map(m => ({

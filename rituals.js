@@ -13,6 +13,7 @@ import { formatRelationshipStatus } from "./relationshipEvolution.js";
 import {
   askLocalLLM,
   FAST_PATH_MODEL,
+  getOllamaConfig,
   getModelRegistry,
   PRIMARY_MODEL
 } from "./sp4os/llmLocal.js";
@@ -51,16 +52,19 @@ function buildDeterministicTodaySummary(todayLogs = [], todayNotes = []) {
   ].join('\n');
 }
 
-async function isOllamaReachableForToday() {
-  const host = process.env.OLLAMA_HOST || 'http://localhost:11434';
-  try {
-    const response = await fetch(`${host}/api/tags`, {
-      signal: AbortSignal.timeout(1500),
-    });
-    return response.ok;
-  } catch (_) {
-    return false;
+export async function isOllamaReachableForToday() {
+  const hosts = getOllamaConfig().hosts.slice(0, 2);
+  for (const host of hosts) {
+    try {
+      const response = await fetch(`${host}/api/tags`, {
+        signal: AbortSignal.timeout(1500),
+      });
+      if (response.ok) return true;
+    } catch (_) {
+      continue;
+    }
   }
+  return false;
 }
 
 // ──────────────────────────────
