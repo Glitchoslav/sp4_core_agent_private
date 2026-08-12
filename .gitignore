@@ -73,12 +73,19 @@ test_input.txt
 # Agent state / runtime — nikdy necommitovat (mozu obsahovat secrets)
 .pi/
 .openclaw/
+.secrets/
+auth.json
 .npm/
 .cache/
 .local/
 downloads/
 openclaw-src/
 sp4/
+
+# Syncthing artefakty
+Pi agent/
+SP4 Core Data/
+SP4 Knowledge Base/
 
 # Zalohy a artefakty
 *.bak-*
