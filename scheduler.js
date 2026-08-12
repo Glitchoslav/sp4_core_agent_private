@@ -368,10 +368,10 @@ export function registerOllamaHealthCheckJob(healthCheckHandler) {
             try {
                 const result = await healthCheckHandler();
                 if (!result.healthy) {
-                    logScheduler(`⚠️ Ollama health check FAILED: ${result.error || 'unknown'}`);
+                    log(`⚠️ Ollama health check FAILED: ${result.error || 'unknown'}`);
                 }
             } catch (err) {
-                logScheduler(`❌ Ollama health check error: ${err.message}`);
+                log(`❌ Ollama health check error: ${err.message}`);
             }
         },
         description: 'Ollama health check (5 min interval)'
