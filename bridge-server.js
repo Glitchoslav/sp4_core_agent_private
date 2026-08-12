@@ -1204,8 +1204,10 @@ app.post('/api/bridge/ask', inferenceRateLimit, async (req, res) => {
     // SP4 znalostná báza — pre VŠETKY persony (oddelené od isHasicPersona gatingu,
     // ktorý ostáva len pre DHZ operatívu: kbBlock, collectiveBlock).
     let kbSP4Block = '';
+    let kbHits = 0;
     try {
         const sp4Facts = getRelevantKb(text, personaKey, 5);
+        kbHits = sp4Facts.length;
         if (sp4Facts.length > 0) {
             kbSP4Block = '\n\n## SP4 znalostná báza\n'
                 + sp4Facts.map((f) => `**${f.term}**: ${f.text}`).join('\n');
@@ -1496,7 +1498,7 @@ app.post('/api/bridge/ask', inferenceRateLimit, async (req, res) => {
             learnHint,
             memoryWritten,
             memoryScope: isHasicPersona ? 'dhz-active' : 'dhz-only',
-            kbHits: sp4Facts.length,
+            kbHits,
             memberId,
             source,
             contract: CONTRACT_VERSION,
