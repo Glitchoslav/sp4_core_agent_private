@@ -2,7 +2,7 @@
 set -u
 
 LOG_FILE="${SP4_WATCHDOG_LOG:-/tmp/sp4-watchdog.log}"
-SERVICE_CONFIG="${SP4_WATCHDOG_CONFIG:-/home/dhzpc/sp4/services.linux.json}"
+SERVICE_CONFIG="${SP4_WATCHDOG_CONFIG:-/home/dhzpc/sp4/SP4-Launcher/services.linux.json}"
 CORE_PORTS=(3002 3003 9010 9000)
 
 # Cron does not always provide the user systemd environment.
@@ -51,8 +51,10 @@ try:
     with open(path, encoding="utf-8") as handle:
         payload = json.load(handle)
     services = payload.get("services", payload) if isinstance(payload, dict) else payload
-    if not isinstance(services, list):
-        raise ValueError("expected a services array")
+    if isinstance(services, dict):
+        services = services.values()
+    elif not isinstance(services, list):
+        raise ValueError("expected services to be an object or array")
     for service in services:
         if not isinstance(service, dict):
             continue
