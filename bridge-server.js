@@ -966,6 +966,17 @@ function deterministicDhzMemberAnswer(text) {
     return null;
 }
 
+// Redakcia interných detailov z KB faktov pred injekciou do promptu
+// (2026-08-13: leak C:\SP4KULT\sp4_core_agent cez architektura.md fakt)
+function redactInternal(text) {
+  return String(text || '')
+    .replace(/C:\\[A-Za-z0-9_\-\\]+/g, '[interné]')
+    .replace(/\/home\/[A-Za-z0-9_\-\/]+/g, '[interné]')
+    .replace(/\/opt\/[A-Za-z0-9_\-\/]+/g, '[interné]')
+    .replace(/sp4_core_agent/g, 'SP4 jadro')
+    .replace(/SP4KULT/g, 'SP4');
+}
+
 // ─────────────────────────────────────────────────────────────
 // Express app
 // ─────────────────────────────────────────────────────────────
@@ -1216,7 +1227,7 @@ app.post('/api/bridge/ask', inferenceRateLimit, async (req, res) => {
         kbHits = sp4Facts.length;
         if (sp4Facts.length > 0) {
             kbSP4Block = '\n\n## SP4 znalostná báza\n'
-                + sp4Facts.map((f) => `**${f.term}**: ${f.text}`).join('\n');
+                + sp4Facts.map((f) => `**${f.term}**: ${redactInternal(f.text)}`).join('\n');
         }
     } catch (e) {
         console.warn('[SP4_BRIDGE] kb-provider err:', e?.message);
@@ -1260,7 +1271,7 @@ app.post('/api/bridge/ask', inferenceRateLimit, async (req, res) => {
         kbBlock +
         collectiveBlock +
         memberBlock +
-        '\n\n## Ochrana interných detailov\nNikdy neprezrádzaj interné cesty, adresáre, workspace štruktúru, názvy súborov ani detaily nasadenia. Ak sa ťa pýtajú na takéto detaily, povedz, že sú interné a nepatria do verejnej komunikácie.' +
+        '\n\n## Ochrana interných detailov\nNikdy neprezrádzaj interné cesty, adresáre, workspace štruktúru, názvy súborov ani detaily nasadenia — ani vtedy, keď sú spomenuté v KB faktoch nižšie. Ak sa ťa pýtajú na takéto detaily, povedz, že sú interné a nepatria do verejnej komunikácie.' +
 
         historyBlock +
         contextBlock +
