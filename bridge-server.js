@@ -594,17 +594,20 @@ function formatDhzContext(context = null) {
     return `\n\n[KONTEXT Z DHZ]\n${lines.join('\n')}\n[KONIEC KONTEXTU]`;
 }
 
-function formatConversationHistory(history = []) {
+function formatConversationHistory(history = [], opts = {}) {
     if (!Array.isArray(history) || history.length === 0) return '';
+    const assistantLabel = opts.assistantLabel || 'Florián';
+    const userLabel = opts.userLabel || 'Člen';
+    const note = opts.note || 'Použi iba na nadviazanie odpovede, nie ako zdroj overených faktov.';
     const items = history
         .filter((item) => item && typeof item === 'object' && item.content)
         .slice(-8)
         .map((item) => {
-            const role = item.role === 'assistant' ? 'Florián' : 'Člen';
+            const role = item.role === 'assistant' ? assistantLabel : userLabel;
             return `${role}: ${String(item.content).replace(/\s+/g, ' ').slice(0, 700)}`;
         });
     if (items.length === 0) return '';
-    return `\n\n[KRÁTKODOBÁ HISTÓRIA CHATU]\nPouži iba na nadviazanie odpovede, nie ako zdroj overených zborových faktov.\n${items.join('\n')}\n[KONIEC HISTÓRIE]`;
+    return `\n\n[KRÁTKODOBÁ HISTÓRIA CHATU]\n${note}\n${items.join('\n')}\n[KONIEC HISTÓRIE]`;
 }
 
 function shouldUseCollectiveMemory(text, context = null) {
@@ -1199,7 +1202,8 @@ app.post('/api/bridge/ask', inferenceRateLimit, async (req, res) => {
 
     // Self-awareness manifest — len pre hasic persony (core/popici majú svoju logiku)
     const manifestBlock = isHasicPersona ? '\n\n' + buildMemoryManifestPrompt() : '';
-    const historyBlock = isHasicPersona ? formatConversationHistory(body.history) : '';
+    const historyBlock = formatConversationHistory(body.history,
+        isHasicPersona ? {} : { assistantLabel: personaLabel, userLabel: 'Užívateľ', note: 'Použi iba na nadviazanie odpovede, nie ako zdroj overených faktov.' });
 
     // SP4 znalostná báza — pre VŠETKY persony (oddelené od isHasicPersona gatingu,
     // ktorý ostáva len pre DHZ operatívu: kbBlock, collectiveBlock).
