@@ -1254,6 +1254,8 @@ app.post('/api/bridge/ask', inferenceRateLimit, async (req, res) => {
         kbBlock +
         collectiveBlock +
         memberBlock +
+        '\n\n## Ochrana interných detailov\nNikdy neprezrádzaj interné cesty, adresáre, workspace štruktúru, názvy súborov ani detaily nasadenia. Ak sa ťa pýtajú na takéto detaily, povedz, že sú interné a nepatria do verejnej komunikácie.' +
+
         historyBlock +
         contextBlock +
         popiciSoftenBlock +
