@@ -41,6 +41,17 @@ const originalFetch = globalThis.fetch;
 globalThis.fetch = async (url, opts) => {
     const urlStr = String(url);
     fetchCalls.push({ url: urlStr, opts });
+    if (urlStr.includes('127.0.0.1:4000') || urlStr.includes('localhost:4000')) {
+        // LiteLLM gateway (novy cloud backend — AI_ROUTING_v1). Simulujeme
+        // úspešnú odpoveď s usage, aby costLog mal co zapísať.
+        return {
+            ok: true,
+            json: async () => ({
+                choices: [{ message: { content: 'mock litellm response' } }],
+                usage: { prompt_tokens: 5, completion_tokens: 4 }
+            })
+        };
+    }
     if (urlStr.includes('api.groq.com')) {
         // Ak sa toto zavolá v scenári, kde malo byť BLOCK, test to odhalí
         // cez fetchCalls.length assert — tu simulujeme "úspešnú" cloud odpoveď,
@@ -52,7 +63,7 @@ globalThis.fetch = async (url, opts) => {
     }
     // Akýkoľvek iný host (napr. Ollama) — simuluj nedostupnosť, aby sme
     // deterministicky vynútili fallback vetvu bez závislosti na reálnej sieti.
-    throw new Error('ECONNREFUSED (test mock: simulated unreachable, non-groq host)');
+    throw new Error('ECONNREFUSED (test mock: simulated unreachable, non-groq/non-litellm host)');
 };
 
 function resetFetchCalls() {
@@ -61,6 +72,10 @@ function resetFetchCalls() {
 
 function groqCallCount() {
     return fetchCalls.filter((c) => c.url.includes('api.groq.com')).length;
+}
+
+function litellmCallCount() {
+    return fetchCalls.filter((c) => c.url.includes(':4000')).length;
 }
 
 async function main() {
@@ -176,7 +191,7 @@ async function main() {
         check('sp4LlmCall vrátil ok:false (blokované)', result.ok === false, JSON.stringify(result));
         check(
             'chyba obsahuje constitutional block dôvod',
-            typeof result.error === 'string' && result.error.includes('policy_disallows_cloud'),
+            typeof result.error === 'string' && result.error.includes('cloud_policy_required'),
             result.error
         );
         check('ZERO volaní na api.groq.com', groqCallCount() === 0, `groqCallCount=${groqCallCount()}`);
@@ -217,7 +232,7 @@ async function main() {
             actorType: 'automation'
         });
         check('sp4LlmCall vrátil ok:true (povolené)', result.ok === true, JSON.stringify(result));
-        check('presne 1 volanie na api.groq.com', groqCallCount() === 1, `groqCallCount=${groqCallCount()}`);
+        check('presne 1 volanie na LiteLLM gateway', litellmCallCount() === 1, `litellmCallCount=${litellmCallCount()}`);
     }
 
     // ── Regresný test (bod 10 zadania): dotenv bug "opravený" simulovane ─

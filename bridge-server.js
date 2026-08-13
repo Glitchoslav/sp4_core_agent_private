@@ -1347,8 +1347,16 @@ app.post('/api/bridge/ask', inferenceRateLimit, async (req, res) => {
                 ? FAST_MODEL
                 : DEFAULT_MODEL);
 
+        // AI_ROUTING_v1 / kontrakt v1.2: cloud LEN na explicitny opt-in z klienta.
+        // Komunitny bot posiela policy.cloud='opt-in' pri uncertain//hlbsie/>40 slov.
+        // Bez opt-in ostava local-only (kontrakt v1.1 — ziadna regresia pre popici).
+        const cloudOptIn =
+            body.policy?.cloud === 'opt-in' ||
+            body.policy?.allowCloud === true;
+
         const llmOptions = {
-            preference: 'local-only', // ENFORCEMENT: žiadny cloud (kontrakt v1.1)
+            preference: cloudOptIn ? 'cloud-only' : 'local-only',
+            ...(cloudOptIn ? { policy: { allowCloud: true } } : {}),
             model: chosenModel,
             prompt: text,
             system: systemPrompt,
@@ -1356,7 +1364,8 @@ app.post('/api/bridge/ask', inferenceRateLimit, async (req, res) => {
             num_predict: 320,
             // POPICI: lower cap and higher repetition penalty reduce degeneration.
             ...(personaKey === 'popici' ? { num_predict: 280, repeat_penalty: 1.3 } : {}),
-            stop: []
+            stop: [],
+            actorType: 'interactive-human'
         };
         let result = await sp4LlmCall(llmOptions);
 

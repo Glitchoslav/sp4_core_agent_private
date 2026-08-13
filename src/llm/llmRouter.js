@@ -26,6 +26,7 @@ import * as cloudLLM from '../../cloudLLM.js';
 import { recordEpoch } from '../core/epochKeeper.js';
 import { runtimeLog, runtimeWarn } from '../core/runtimeLogging.js';
 import { callOllama, getOllamaHealthStatus } from './ollamaClient.js';
+import { classify } from '../routing/classify.js';
 
 const USE_CLOUD_FALLBACK = process.env.USE_CLOUD_FALLBACK === 'true'; // Default: false
 
@@ -80,6 +81,7 @@ export async function sp4LlmCall(options) {
         forceLocal = false,
         actorType = 'automation', // DEC-004: default for non-interactive call sites
         requestId,
+        persona = null,
         ...rest
     } = options;
 
@@ -99,6 +101,9 @@ export async function sp4LlmCall(options) {
         };
     }
 
+    // 🧠 AI_ROUTING: deterministicky klasifikator narocnosti (0 eur, 0 ms)
+    const classification = classify(prompt, { persona });
+
     // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
     // 📍 MODE 1: LOCAL-FIRST (default)
     // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
@@ -111,7 +116,7 @@ export async function sp4LlmCall(options) {
             await logFirewallAdvice(prompt);
 
             try {
-                const text = await cloudLLM.askGroqLLM(prompt, system, { temperature, num_predict, stop, policy, actorType, requestId });
+                const text = await cloudLLM.askCloudLLM(prompt, system, { tier: classification.engine === 'local' ? 'budget' : classification.engine, num_predict: classification.num_predict || num_predict, temperature, policy, actorType, requestId });
                 return {
                     ok: true,
                     text,
@@ -129,14 +134,32 @@ export async function sp4LlmCall(options) {
             }
         }
 
-        // 🔥 TRY OLLAMA FIRST
-        runtimeLog(`🎯 Vybraný model: ${model} (mode: ${effectivePreference})`);
+        // 🧠 AI_ROUTING: komplexne otazky -> cloud priamo (skip Ollama)
+        if (classification.engine !== 'local' && explicitCloudAllowed && USE_CLOUD_FALLBACK) {
+            runtimeLog(`🧠 Komplexna otazka (score=${classification.score}) -> cloud ${classification.engine}`);
+            await logFirewallAdvice(prompt);
+            try {
+                const text = await cloudLLM.askCloudLLM(prompt, system, {
+                    tier: classification.engine,
+                    num_predict: classification.num_predict,
+                    temperature, policy, actorType, requestId
+                });
+                return { ok: true, text, engine: `cloud-${classification.engine}`, durationMs: 0, reason: classification.reason };
+            } catch (err) {
+                runtimeWarn(`⚠️ Cloud ${classification.engine} zlyhal: ${err.message} — skusam Ollama`);
+            }
+        }
+
+        // 🔥 TRY OLLAMA FIRST (model/num_predict podla klasifikatora)
+        const _routedModel = classification.model || model;
+        const _routedTokens = classification.num_predict || num_predict;
+        runtimeLog(`🎯 Vybraný model: ${_routedModel} (mode: ${effectivePreference}, score=${classification.score})`);
         const ollamaResult = await callOllama({
-            model,
+            model: _routedModel,
+            num_predict: _routedTokens,
             prompt,
             system,
             temperature,
-            num_predict,
             stop,
             ...rest
         });
@@ -187,7 +210,7 @@ export async function sp4LlmCall(options) {
         await logFirewallAdvice(prompt);
 
         try {
-            const text = await cloudLLM.askGroqLLM(prompt, system, { temperature, num_predict, stop, policy, actorType, requestId });
+            const text = await cloudLLM.askCloudLLM(prompt, system, { tier: classification.engine === 'local' ? 'budget' : classification.engine, num_predict: classification.num_predict || num_predict, temperature, policy, actorType, requestId });
 
             // 📊 LOG FALLBACK EVENT
             await recordEpoch('Cloud LLM fallback triggered', {
@@ -263,7 +286,7 @@ export async function sp4LlmCall(options) {
         await logFirewallAdvice(prompt, 'high');
 
         try {
-            const text = await cloudLLM.askGroqLLM(prompt, system, { temperature, num_predict, stop, policy, actorType, requestId });
+            const text = await cloudLLM.askCloudLLM(prompt, system, { tier: classification.engine === 'local' ? 'budget' : classification.engine, num_predict: classification.num_predict || num_predict, temperature, policy, actorType, requestId });
             return {
                 ok: true,
                 text,

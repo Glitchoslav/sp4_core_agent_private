@@ -30,6 +30,13 @@ external_sinks:
       - "SP4AIOS/src/bridge.js"
     category_allowed: ["conversation_text", "collective_insight"]
     reversibility: "none"
+  - sink_id: "litellm_gateway"
+    host: "localhost:4000"
+    known_callers:
+      - "sp4_core_agent/src/llm/litellmClient.js"
+    category_allowed: ["conversation_text"]
+    reversibility: "none"
+    note: "lokalna AI gateway — proxy do DeepSeek/OpenRouter (cloud egress)"
   - sink_id: "openai_api"
     host: "api.openai.com"
     known_callers:
@@ -158,6 +165,10 @@ egress_policies:
   # výsledok) skôr, než sa tieto riadky vôbec skontrolujú. Pozri src/constitution/loader.js.
   - category: "conversation_text"
     sink: "groq_api"
+    allow: true
+    gate: "auto"
+  - category: "conversation_text"
+    sink: "litellm_gateway"
     allow: true
     gate: "auto"
   - category: "conversation_text"

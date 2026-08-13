@@ -18,6 +18,7 @@ const TEMPERATURE = parseFloat(process.env.GROQ_TEMPERATURE || '0.4'); // Less c
 
 // Constitution v1 binding B (DEC-001, DEC-004) — see C:\SP4\plans\constitution-v1-plan.md
 import { mayEgress, ConstitutionalBlockError } from './src/constitution/loader.js';
+import { askLiteLLM } from './src/llm/litellmClient.js';
 
 /**
  * Call GROQ API (OpenAI-compatible endpoint)
@@ -121,7 +122,8 @@ export async function askGroqLLM(userMessage, systemPrompt = '', options = {}) {
  * Check if cloud LLM is available
  */
 export function isCloudLLMAvailable() {
-    return !!GROQ_API_KEY;
+    // LiteLLM gateway bezi lokalne (localhost:4000) — vzdy dostupny ako cloud entry
+    return true;
 }
 
 /**
@@ -129,11 +131,38 @@ export function isCloudLLMAvailable() {
  */
 export function getCloudLLMInfo() {
     return {
-        provider: 'GROQ',
-        model: GROQ_MODEL,
+        provider: 'LiteLLM',
+        model: 'gateway (local/budget/fast/free/quality)',
         available: isCloudLLMAvailable(),
-        endpoint: GROQ_ENDPOINT
+        endpoint: 'http://127.0.0.1:4000/v1/chat/completions'
     };
+}
+
+/**
+ * Cloud LLM cez LiteLLM gateway (nahradza priamy GROQ — AI_ROUTING_v1).
+ * Constitution gate: conversation_text -> litellm_gateway (DEC-001 fail-closed).
+ */
+export async function askCloudLLM(userMessage, systemPrompt = '', options = {}) {
+    const policyProvided = options.policy !== undefined && options.policy !== null;
+    const policyAllowCloud = policyProvided ? options.policy.allowCloud === true : undefined;
+    const egressCheck = mayEgress('conversation_text', 'litellm_gateway', {
+        actorType: options.actorType || 'automation',
+        policyAllowCloud,
+        requestId: options.requestId,
+        callerFile: 'cloudLLM.js:askCloudLLM'
+    });
+    if (egressCheck.decision !== 'ALLOW') {
+        throw new ConstitutionalBlockError(egressCheck.reason, {
+            category: 'conversation_text',
+            sink: 'litellm_gateway'
+        });
+    }
+    const result = await askLiteLLM(userMessage, systemPrompt, {
+        tier: options.tier || 'budget',
+        num_predict: options.num_predict || 300,
+        temperature: options.temperature,
+    });
+    return result.text;
 }
 
 // ── SP4 AI Firewall (poradný model-routing consult) ───────
