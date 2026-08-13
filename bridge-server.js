@@ -64,6 +64,7 @@ import {
 } from './src/core/popiciInsultGuard.js';
 // SP4 znalostná báza (sp4-kb/index.json) — fakty o SP4 pre VŠETKY persony (grounding proti halucináciám).
 import { getRelevantKb } from './src/core/kb-provider.js';
+import { logUnanswered } from './src/observability/unansweredLog.js';
 // Crisis/self-harm detekcia — deterministický safety guard, žiadny LLM call. Aktívny od 2026-06-25.
 import { checkPopiciSafety, detectCrisis, getSafeResponse } from './src/core/safetyRails.js';
 
@@ -1514,6 +1515,15 @@ app.post('/api/bridge/ask', inferenceRateLimit, async (req, res) => {
                 crisisDetected: false
             });
         }
+
+        // KURATOR_v0: anonymizovany log nepokrytych otazok (kbHits=0 / uncertain)
+        logUnanswered(text, {
+            kbHits,
+            uncertain,
+            persona: personaKey,
+            engine: result.engine || 'ollama',
+            source: source || 'bridge-ask',
+        });
 
         res.json({
             ok: true,
