@@ -41,7 +41,7 @@ const originalFetch = globalThis.fetch;
 globalThis.fetch = async (url, opts) => {
     const urlStr = String(url);
     fetchCalls.push({ url: urlStr, opts });
-    if (urlStr.includes('127.0.0.1:4000') || urlStr.includes('localhost:4000')) {
+    if (urlStr.includes(':4000')) {
         // LiteLLM gateway (novy cloud backend — AI_ROUTING_v1). Simulujeme
         // úspešnú odpoveď s usage, aby costLog mal co zapísať.
         return {
