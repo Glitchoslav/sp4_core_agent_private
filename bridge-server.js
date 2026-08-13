@@ -18,6 +18,7 @@ import express from 'express';
 import { distillAsync } from './bridge-distiller.js';
 import { shouldDistillConversation } from './bridge-distillation-policy.js';
 import { bridgeCors } from './bridge-cors.js';
+import { buildVoiceBlock } from './bridge-voice.js';
 import { createBridgeRateLimiter } from './bridge-rate-limit.js';
 import { isUnpredictableFuture } from './src/routing/unpredictabilityGuard.js';
 import {
@@ -1150,6 +1151,7 @@ app.post('/api/bridge/ask', inferenceRateLimit, async (req, res) => {
     }
 
     const context = body.context && typeof body.context === 'object' ? body.context : null;
+    const voiceBlock = buildVoiceBlock(body.voice);
     const source = body.source || 'unknown';
 
     // AUTO persona selector — ak persona chýba alebo je 'auto', klasifikuj prompt
@@ -1262,6 +1264,7 @@ app.post('/api/bridge/ask', inferenceRateLimit, async (req, res) => {
 
         historyBlock +
         contextBlock +
+        voiceBlock +
         popiciSoftenBlock +
         (predicted ? '\n\n## Nepredvídateľná budúcnosť\nTáto otázka sa týka budúcnosti, ktorá sa NEDÁ vedieť. Jasne povedz, že to nevieš („neviem“ / „nedá sa predpovedať“). Ak chceš, môžeš uviesť, že ide len o tvoj TIP — nikdy nepredkladaj tip ako fakt.' : '');
 
