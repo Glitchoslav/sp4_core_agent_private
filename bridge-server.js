@@ -66,6 +66,10 @@ import {
 import { getRelevantKb } from './src/core/kb-provider.js';
 import { logUnanswered } from './src/observability/unansweredLog.js';
 import { containsJailbreak, containsBannedPhrases } from './identityGuard.js';
+import { initMemoryDb, recordEpisode, searchMemory } from './src/memory/sp4Memory.js';
+
+// PAMAT_v0: jeden shared SQLite connection (WAL, FTS5) — inicializovany raz pri startupe
+const memDb = initMemoryDb();
 // Crisis/self-harm detekcia — deterministický safety guard, žiadny LLM call. Aktívny od 2026-06-25.
 import { checkPopiciSafety, detectCrisis, getSafeResponse } from './src/core/safetyRails.js';
 
@@ -1256,6 +1260,18 @@ app.post('/api/bridge/ask', inferenceRateLimit, async (req, res) => {
         console.warn('[SP4_BRIDGE] kb-provider err:', e?.message);
     }
 
+    // PAMAT_v0: retrieval relevantnych minulych epizod (FTS5 + RRF + context-budget)
+    let memoryBlock = '';
+    try {
+        const mem = searchMemory(memDb, text, { budgetTokens: 800 });
+        if (mem.length > 0) {
+            memoryBlock = '\n\n## PAMÄŤ (relevantné minulé udalosti)\n'
+                + mem.map((m) => m.content).join('\n---\n');
+        }
+    } catch (e) {
+        console.warn('[SP4_MEMORY] retrieval err:', e?.message);
+    }
+
     // Ak persona prišla z registry, použij jej plnú definíciu (fullDefinition),
     // inak inline systemPrompt. Fallback na prázdny string, aby skladanie nepadlo.
     const personaBase = persona.fullDefinition || persona.systemPrompt || '';
@@ -1290,6 +1306,7 @@ app.post('/api/bridge/ask', inferenceRateLimit, async (req, res) => {
         sessionHistoryBlock +
         glitchModeBlock +
         kbSP4Block +
+        memoryBlock +
         manifestBlock +
         kbBlock +
         collectiveBlock +
@@ -1552,6 +1569,19 @@ app.post('/api/bridge/ask', inferenceRateLimit, async (req, res) => {
             engine: result.engine || 'ollama',
             source: source || 'bridge-ask',
         });
+
+        // PAMAT_v0: verbatim epizoda (user+assistant par) do SQLite pamate
+        try {
+            recordEpisode(memDb, {
+                communityId: source || 'bridge-ask',
+                topic: null,
+                content: `Q: ${text}\nA: ${outText}`,
+                importance: uncertain ? 0.4 : 0.6,
+                sourceChannel: source || 'bridge-ask',
+            });
+        } catch (e) {
+            console.warn('[SP4_MEMORY] record err:', e?.message);
+        }
 
         res.json({
             ok: true,
