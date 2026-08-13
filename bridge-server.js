@@ -65,6 +65,7 @@ import {
 // SP4 znalostná báza (sp4-kb/index.json) — fakty o SP4 pre VŠETKY persony (grounding proti halucináciám).
 import { getRelevantKb } from './src/core/kb-provider.js';
 import { logUnanswered } from './src/observability/unansweredLog.js';
+import { containsJailbreak, containsBannedPhrases } from './identityGuard.js';
 // Crisis/self-harm detekcia — deterministický safety guard, žiadny LLM call. Aktívny od 2026-06-25.
 import { checkPopiciSafety, detectCrisis, getSafeResponse } from './src/core/safetyRails.js';
 
@@ -1162,6 +1163,27 @@ app.post('/api/bridge/ask', inferenceRateLimit, async (req, res) => {
         });
     }
 
+    // Identity guard — jailbreak/identity manipulation na VSTUPE (deterministicky, PRED LLM)
+    const jailbreak = containsJailbreak(text);
+    if (jailbreak.detected) {
+        return res.json({
+            ok: true,
+            engine: 'sp4-identity-guard',
+            text: 'SP4 sa nenechá prepnúť. Zostávam tým, čím som.',
+            persona: body.persona || 'hasic',
+            personaLabel: 'SP4',
+            latencyMs: Date.now() - started,
+            llmDurationMs: 0,
+            uncertain: false,
+            learnHint: null,
+            memoryWritten: false,
+            memberId,
+            source: body.source || 'unknown',
+            contract: CONTRACT_VERSION,
+            autoSelected: false
+        });
+    }
+
     const context = body.context && typeof body.context === 'object' ? body.context : null;
     const voiceBlock = buildVoiceBlock(body.voice);
     const source = body.source || 'unknown';
@@ -1469,6 +1491,12 @@ app.post('/api/bridge/ask', inferenceRateLimit, async (req, res) => {
 
         const latencyMs = Date.now() - started;
         const outText = cleanMisusedLearnMarker(result.text, text);
+
+        // Identity guard — ak model sklzol do generickej AI frazy, zaloguj varovanie
+        const banned = containsBannedPhrases(outText);
+        if (banned.detected) {
+            console.warn('[SP4_IDENTITY] zakazane frazy v odpovedi:', banned.phrases.join(', '));
+        }
         // Heuristika pre #NAUČIŤ marker:
         // uncertain=true len ak marker je na ZAČIATKU (prvých 40 znakov textu)
         // Ak model odpovedal a len doplnil poznámku na konci → nie uncertain
