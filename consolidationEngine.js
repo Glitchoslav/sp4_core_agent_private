@@ -62,7 +62,7 @@ async function backupBeforeJob(jobType, state) {
     if (config.backup?.enabled && config.backup?.before_every_job) {
         console.log(`💾 Creating pre-${jobType} backup...`);
         try {
-            await createBackup(state, `pre-${jobType}`);
+            await createBackup(`pre-${jobType}`);
             console.log('   ✅ Backup created');
         } catch (error) {
             console.error('   ❌ Backup failed:', error.message);
