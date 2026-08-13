@@ -1203,7 +1203,7 @@ app.post('/api/bridge/ask', inferenceRateLimit, async (req, res) => {
     // Self-awareness manifest — len pre hasic persony (core/popici majú svoju logiku)
     const manifestBlock = isHasicPersona ? '\n\n' + buildMemoryManifestPrompt() : '';
     const historyBlock = formatConversationHistory(body.history,
-        isHasicPersona ? {} : { assistantLabel: personaLabel, userLabel: 'Užívateľ', note: 'Použi iba na nadviazanie odpovede, nie ako zdroj overených faktov.' });
+        isHasicPersona ? {} : { assistantLabel: (PERSONAS[personaKey] && PERSONAS[personaKey].label) || 'Asistent', userLabel: 'Užívateľ', note: 'Použi iba na nadviazanie odpovede, nie ako zdroj overených faktov.' });
 
     // SP4 znalostná báza — pre VŠETKY persony (oddelené od isHasicPersona gatingu,
     // ktorý ostáva len pre DHZ operatívu: kbBlock, collectiveBlock).
