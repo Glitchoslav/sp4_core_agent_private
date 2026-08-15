@@ -93,6 +93,8 @@ async function main() {
     // dotenv (načítané transitívne cez ollamaClient.js) neprepisuje už nastavené
     // premenné, takže toto prežije import.
     process.env.USE_CLOUD_FALLBACK = 'true';
+    // Capability gate (isCloudLLMConfigured) — must be ON for cloud-success cases.
+    process.env.SP4_ALLOW_CLOUD = 'true';
 
     const loader = await import('../src/constitution/loader.js');
     const { can, mayEgress, isManifestLoaded } = loader;

@@ -23,17 +23,16 @@
  * @param {object} options - User-provided options
  * @param {boolean} [options.allowCloud] - Explicitly allow cloud LLMs
  * @param {boolean} [options.forceLocal] - Force local-only (test/dev)
- * @param {boolean} [options.forceCloud] - Force cloud-only (test/dev - HIGHEST PRIORITY)
+ * @param {boolean} [options.forceCloud] - Force cloud ROUTING preference (never grants consent)
  * @param {boolean} [options.bypassAutonomous] - Skip autonomous controller
  * @param {number} [options.cloudBudgetUsd] - Max cloud spend (future)
- * @param {object} [env=process.env] - Environment variables (SP4_ALLOW_CLOUD = feature availability, NOT consent)
+ * @param {object} [env=process.env] - Environment variables (SP4_ALLOW_CLOUD = capability gate enforced in cloudLLM.isCloudLLMConfigured(), NOT consent)
  * 
  * @returns {object} Resolved policy
  * @returns {boolean} allowCloud - Cloud LLMs allowed (consent; explicit options.allowCloud only)
  * @returns {boolean} forceLocal - Force local-only routing
  * @returns {boolean} bypassAutonomous - Skip autonomous controller
  * @returns {number|undefined} cloudBudgetUsd - Max cloud spend
- * @returns {boolean} cloudAvailable - Cloud feature enabled via env (NOT consent)
  * @returns {string} reason - Human-readable policy reason
  * @returns {string} route - Routing strategy identifier
  * 
@@ -53,21 +52,17 @@
  * // → { allowCloud: true, forceLocal: false, reason: "cloud-allowed-explicit", ... }
  */
 export function resolvePolicy(options = {}, env = process.env) {
-    // Feature availability (NOT consent): env.SP4_ALLOW_CLOUD may enable the cloud
-    // capability, but it NEVER grants per-request egress consent.
-    const cloudAvailable = env.SP4_ALLOW_CLOUD === 'true';
-
-    // ========== PRIORITY 0: FORCE CLOUD (test-only override) ==========
-    // CRITICAL: This is ONLY for testing cloud execution path (explicit option, not env).
+    // ========== PRIORITY 0: FORCE CLOUD (routing preference only) ==========
+    // forceCloud changes routing/preference ONLY — it NEVER grants egress consent.
+    // Consent (allowCloud) must be explicitly true from the request/mission policy.
     if (options.forceCloud === true) {
         return {
-            allowCloud: true,
+            allowCloud: options.allowCloud === true,
             forceLocal: false,
-            forceCloud: true, // Test-only flag
-            bypassAutonomous: false, // Let autonomous decide cloud tier
-            cloudBudgetUsd: options.cloudBudgetUsd || 0.05, // Small budget for test
-            cloudAvailable,
-            reason: 'force-cloud-test',
+            forceCloud: true,
+            bypassAutonomous: false,
+            cloudBudgetUsd: options.cloudBudgetUsd || 0.05,
+            reason: 'force-cloud-routing',
             route: 'force-cloud'
         };
     }
@@ -79,7 +74,6 @@ export function resolvePolicy(options = {}, env = process.env) {
             forceLocal: true,
             bypassAutonomous: options.bypassAutonomous ?? true, // Usually bypass with forceLocal
             cloudBudgetUsd: undefined,
-            cloudAvailable,
             reason: 'force-local-test',
             route: 'force-local'
         };
@@ -94,7 +88,6 @@ export function resolvePolicy(options = {}, env = process.env) {
             forceLocal: false,
             bypassAutonomous: options.bypassAutonomous ?? false, // Let autonomous decide
             cloudBudgetUsd: options.cloudBudgetUsd,
-            cloudAvailable,
             reason: 'cloud-allowed-explicit',
             route: 'autonomous-cloud'
         };
@@ -107,7 +100,6 @@ export function resolvePolicy(options = {}, env = process.env) {
         forceLocal: false,
         bypassAutonomous: options.bypassAutonomous ?? false,
         cloudBudgetUsd: undefined,
-        cloudAvailable,
         reason: 'local-first-default',
         route: 'local-first'
     };

@@ -111,7 +111,7 @@ export async function sp4LlmCall(options) {
         // 🛡️ Check if Ollama is marked unhealthy
         const healthStatus = getOllamaHealthStatus();
 
-        if (healthStatus.unhealthy && USE_CLOUD_FALLBACK && explicitCloudAllowed && cloudLLM.isCloudLLMAvailable()) {
+        if (healthStatus.unhealthy && USE_CLOUD_FALLBACK && explicitCloudAllowed && cloudLLM.isCloudLLMConfigured()) {
             runtimeWarn(`⚠️ Ollama UNHEALTHY (cooldown: ${Math.round(healthStatus.cooldownMs / 1000)}s) - skipping to cloud`);
             await logFirewallAdvice(prompt);
 
@@ -195,7 +195,7 @@ export async function sp4LlmCall(options) {
             };
         }
 
-        if (!cloudLLM.isCloudLLMAvailable()) {
+        if (!cloudLLM.isCloudLLMConfigured()) {
             console.error('❌ Cloud LLM not configured - no fallback available');
             return {
                 ok: false,
@@ -274,7 +274,7 @@ export async function sp4LlmCall(options) {
             };
         }
 
-        if (!cloudLLM.isCloudLLMAvailable()) {
+        if (!cloudLLM.isCloudLLMConfigured()) {
             return {
                 ok: false,
                 error: 'Cloud LLM not configured',
@@ -317,7 +317,7 @@ export async function sp4LlmCall(options) {
  */
 export function getRouterStats() {
     const healthStatus = getOllamaHealthStatus();
-    const cloudAvailable = cloudLLM.isCloudLLMAvailable();
+    const cloudAvailable = cloudLLM.isCloudLLMConfigured();
 
     return {
         cloudFallback: USE_CLOUD_FALLBACK,

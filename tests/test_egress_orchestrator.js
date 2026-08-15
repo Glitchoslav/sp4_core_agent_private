@@ -18,8 +18,8 @@ function check(name, cond, detail = '') {
     else { failed++; failures.push(name); console.log(`   ❌ ${name}${detail ? ' — ' + detail : ''}`); }
 }
 
-delete process.env.SP4_ALLOW_CLOUD;
 delete process.env.SP4_TEST;
+process.env.SP4_ALLOW_CLOUD = 'true'; // capability ON for mission-allow → LiteLLM case
 process.env.SP4_COST_LOG_PATH = path.join(os.tmpdir(), `sp4-costlog-orch-${Date.now()}.jsonl`);
 
 const calls = [];

@@ -29,7 +29,7 @@ function check(name, cond, detail = '') {
 
 // ── env BEFORE dynamic imports (module-top-level reads) ──
 process.env.USE_CLOUD_FALLBACK = 'true';   // env fallback must NOT grant consent
-delete process.env.SP4_ALLOW_CLOUD;
+process.env.SP4_ALLOW_CLOUD = 'true';       // capability ON (double-gate: capability + consent + manifest)
 delete process.env.SP4_TEST;
 process.env.SP4_COST_LOG_PATH = path.join(os.tmpdir(), `sp4-costlog-test-${Date.now()}.jsonl`);
 
@@ -123,11 +123,29 @@ async function main() {
     {
         const p = resolvePolicy({}, { SP4_ALLOW_CLOUD: 'true' });
         check('P0: env SP4_ALLOW_CLOUD => allowCloud:false', p.allowCloud === false, JSON.stringify(p));
-        check('P0: env SP4_ALLOW_CLOUD => cloudAvailable:true', p.cloudAvailable === true, JSON.stringify(p));
         calls.length = 0;
         const r = await sp4LlmCall({ preference: 'cloud-only', prompt: 'otazka', policy: p, actorType: 'interactive-human' });
         check('P0: BLOCK (ok=false)', r.ok === false, JSON.stringify(r));
         check('P0: zero network', calls.length === 0, `calls=${calls.length}`);
+    }
+
+    // 8b. forceCloud is routing-only — never grants consent
+    {
+        const fcNoAllow = resolvePolicy({ forceCloud: true });
+        check('forceCloud:true alone => allowCloud:false', fcNoAllow.allowCloud === false && fcNoAllow.forceCloud === true, JSON.stringify(fcNoAllow));
+        const fcDeny = resolvePolicy({ forceCloud: true, allowCloud: false });
+        check('forceCloud:true + allowCloud:false => allowCloud:false', fcDeny.allowCloud === false, JSON.stringify(fcDeny));
+        const fcAllow = resolvePolicy({ forceCloud: true, allowCloud: true });
+        check('forceCloud:true + allowCloud:true => allowCloud:true', fcAllow.allowCloud === true, JSON.stringify(fcAllow));
+
+        calls.length = 0;
+        const r1 = await sp4LlmCall({ preference: 'cloud-only', prompt: 'otazka', policy: fcNoAllow, actorType: 'interactive-human' });
+        check('forceCloud no-consent → BLOCK', r1.ok === false, JSON.stringify(r1));
+        check('forceCloud no-consent → zero network', calls.length === 0, `calls=${calls.length}`);
+
+        calls.length = 0;
+        const r2 = await sp4LlmCall({ preference: 'cloud-only', prompt: 'otazka', policy: fcAllow, actorType: 'interactive-human' });
+        check('forceCloud + allowCloud:true → LiteLLM', r2.ok === true && calls.filter(c => c.includes(':4000')).length === 1, JSON.stringify(r2));
     }
 
     // 9. autonomous controller: no groq/google provider; tier via classify()
@@ -139,6 +157,17 @@ async function main() {
         const deep = classify('vysvetli hlbšie prečo a porovnaj a analyzuj a navrhni');
         check('classify trivial -> local', trivial.engine === 'local', JSON.stringify(trivial));
         check('classify deep -> budget|quality', deep.engine === 'budget' || deep.engine === 'quality', JSON.stringify(deep));
+    }
+
+    // 10. capability gate (isCloudLLMConfigured = env.SP4_ALLOW_CLOUD): off + consent on → BLOCK
+    {
+        const prev = process.env.SP4_ALLOW_CLOUD;
+        delete process.env.SP4_ALLOW_CLOUD; // capability OFF
+        calls.length = 0;
+        const r = await sp4LlmCall({ preference: 'cloud-only', prompt: 'otazka', policy: { allowCloud: true }, actorType: 'interactive-human' });
+        check('capability off + consent on → BLOCK', r.ok === false, JSON.stringify(r));
+        check('capability off + consent on → zero network', calls.length === 0, `calls=${calls.length}`);
+        process.env.SP4_ALLOW_CLOUD = prev; // restore capability
     }
 
     console.log(`\nVÝSLEDOK: ${passed} passed, ${failed} failed`);

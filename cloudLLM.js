@@ -9,11 +9,13 @@ import { mayEgress, ConstitutionalBlockError } from './src/constitution/loader.j
 import { askLiteLLM } from './src/llm/litellmClient.js';
 
 /**
- * Check if cloud LLM is available
+ * Check if cloud LLM capability is ENABLED/CONFIGURED.
+ * NOTE: capability/configuration flag (operator opt-in via SP4_ALLOW_CLOUD) —
+ * NOT a health check and NOT consent. Egress still requires request consent
+ * (policy.allowCloud === true) AND constitution mayEgress() ALLOW.
  */
-export function isCloudLLMAvailable() {
-    // LiteLLM gateway bezi lokalne (localhost:4000) — vzdy dostupny ako cloud entry
-    return true;
+export function isCloudLLMConfigured() {
+    return process.env.SP4_ALLOW_CLOUD === 'true';
 }
 
 /**
@@ -23,7 +25,7 @@ export function getCloudLLMInfo() {
     return {
         provider: 'LiteLLM',
         model: 'gateway (local/budget/fast/free/quality)',
-        available: isCloudLLMAvailable(),
+        available: isCloudLLMConfigured(),
         endpoint: 'http://127.0.0.1:4000/v1/chat/completions'
     };
 }
