@@ -35,6 +35,11 @@ export function getCloudLLMInfo() {
  * Constitution gate: conversation_text -> litellm_gateway (DEC-001 fail-closed).
  */
 export async function askCloudLLM(userMessage, systemPrompt = '', options = {}) {
+    // Defense-in-depth capability gate: enforced again at this chokepoint even
+    // if a future caller bypasses llmRouter's own isCloudLLMConfigured() check.
+    if (!isCloudLLMConfigured()) {
+        throw new Error('cloud_not_configured');
+    }
     const policyProvided = options.policy !== undefined && options.policy !== null;
     const policyAllowCloud = policyProvided ? options.policy.allowCloud === true : undefined;
     const egressCheck = mayEgress('conversation_text', 'litellm_gateway', {

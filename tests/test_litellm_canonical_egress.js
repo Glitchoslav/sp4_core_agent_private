@@ -27,6 +27,28 @@ function check(name, cond, detail = '') {
     else { failed++; failures.push(name); console.log(`   ❌ ${name}${detail ? ' — ' + detail : ''}`); }
 }
 
+// Static scan: production .js files (excl node_modules, tests, examples, test_*) containing needle.
+function prodJsFilesContaining(needle) {
+    const hits = [];
+    const stack = [ROOT];
+    while (stack.length) {
+        const dir = stack.pop();
+        let entries;
+        try { entries = fs.readdirSync(dir, { withFileTypes: true }); } catch { continue; }
+        for (const e of entries) {
+            if (e.name === 'node_modules' || e.name === '.git') continue;
+            const p = path.join(dir, e.name);
+            if (e.isDirectory()) stack.push(p);
+            else if (e.isFile() && e.name.endsWith('.js')) {
+                const rel = path.relative(ROOT, p);
+                if (rel.startsWith('tests/') || rel.startsWith('examples/') || rel.startsWith('test_')) continue;
+                if (fs.readFileSync(p, 'utf8').includes(needle)) hits.push(rel);
+            }
+        }
+    }
+    return hits;
+}
+
 // ── env BEFORE dynamic imports (module-top-level reads) ──
 process.env.USE_CLOUD_FALLBACK = 'true';   // env fallback must NOT grant consent
 process.env.SP4_ALLOW_CLOUD = 'true';       // capability ON (double-gate: capability + consent + manifest)
@@ -168,6 +190,29 @@ async function main() {
         check('capability off + consent on → BLOCK', r.ok === false, JSON.stringify(r));
         check('capability off + consent on → zero network', calls.length === 0, `calls=${calls.length}`);
         process.env.SP4_ALLOW_CLOUD = prev; // restore capability
+    }
+
+    // 11. defense-in-depth: askCloudLLM chokepoint enforces capability even bypassing llmRouter
+    {
+        const { askCloudLLM } = await import('../cloudLLM.js');
+        const prev = process.env.SP4_ALLOW_CLOUD;
+        delete process.env.SP4_ALLOW_CLOUD; // capability OFF
+        calls.length = 0;
+        let threw = null;
+        try {
+            await askCloudLLM('otazka', '', { policy: { allowCloud: true }, actorType: 'interactive-human' });
+        } catch (e) { threw = e; }
+        check('askCloudLLM direct + capability off → BLOCK', !!threw, threw && threw.message);
+        check('askCloudLLM direct + capability off → zero fetch', calls.length === 0, `calls=${calls.length}`);
+        process.env.SP4_ALLOW_CLOUD = prev; // restore capability
+    }
+
+    // 12. static: single production caller of askCloudLLM = llmRouter.js; askLiteLLM only via cloudLLM.js
+    {
+        const askCloudLLMCallers = prodJsFilesContaining('askCloudLLM(').filter(f => f !== 'cloudLLM.js');
+        check('askCloudLLM prod callers == [src/llm/llmRouter.js]', JSON.stringify(askCloudLLMCallers.sort()) === JSON.stringify(['src/llm/llmRouter.js']), askCloudLLMCallers.join(','));
+        const askLiteLLMUsers = prodJsFilesContaining('askLiteLLM').filter(f => f !== 'src/llm/litellmClient.js');
+        check('askLiteLLM prod users == [cloudLLM.js]', JSON.stringify(askLiteLLMUsers.sort()) === JSON.stringify(['cloudLLM.js']), askLiteLLMUsers.join(','));
     }
 
     console.log(`\nVÝSLEDOK: ${passed} passed, ${failed} failed`);
