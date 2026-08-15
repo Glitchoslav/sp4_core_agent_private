@@ -15,6 +15,7 @@
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import { resolvePolicy } from './src/policy/policy.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
@@ -210,11 +211,12 @@ export class ExecutionOrchestrator {
     async executeCloudTask(task, mission, context) {
         const prompt = this.buildTaskPrompt(task, mission, context);
 
-        const provider = task.brain === 'groq' ? 'groq' : task.brain === 'google' ? 'google' : null;
+        // Consent: never hardcoded. Derive from mission/task policy via resolvePolicy;
+        // missing -> fail closed (resolvePolicy defaults allowCloud:false).
+        const policy = resolvePolicy(task.policy || mission.policy || {}, process.env);
 
         return await this.integration.askCloudAI(prompt, 'core', {
-            provider,
-            model: task.model,
+            policy,
             temperature: 0.7,
             maxTokens: 2000
         });

@@ -11,7 +11,7 @@
  * 
  * Smart routing system with explicit cloud policy:
  * 1. Try Ollama (local-first)
- * 2. If Ollama fails and policy.allowCloud=true → Cloud LLM (GROQ)
+ * 2. If Ollama fails and policy.allowCloud=true → Cloud LLM (LiteLLM)
  * 3. If Cloud unavailable → Error
  * 
  * Supported preferences:
@@ -33,7 +33,7 @@ const USE_CLOUD_FALLBACK = process.env.USE_CLOUD_FALLBACK === 'true'; // Default
 /**
  * Poradný consult SP4 AI Firewallu pred cloud fallbackom.
  * Nikdy neblokuje ani nehádže — len zaloguje odporúčaný model/cenu.
- * SP4KULT v cloude používa len GROQ, takže odporúčanie sa zatiaľ NEVYNUCUJE.
+ * Cloud egress je LiteLLM (canonical); firewall je čisto poradný, NEVYNUCUJE sa.
  */
 async function logFirewallAdvice(prompt, priority = 'normal') {
     try {
@@ -206,7 +206,7 @@ export async function sp4LlmCall(options) {
         }
 
         // 🌐 CLOUD FALLBACK
-        runtimeLog('🌐 Falling back to cloud LLM (GROQ)...');
+        runtimeLog('🌐 Falling back to cloud LLM (LiteLLM)...');
         await logFirewallAdvice(prompt);
 
         try {

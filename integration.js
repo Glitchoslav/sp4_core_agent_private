@@ -10,9 +10,7 @@
 
 import fs from 'fs';
 import path from 'path';
-import { fileURLToPath } from 'url';
-import { AIOS_COST_LOG_FILE } from './config/paths.js';
-import { SP4AIOSBridge } from '../SP4AIOS/src/bridge.js'; // v0.7: Cloud AI Bridge
+import { sp4LlmCall } from './src/llm/llmRouter.js'; // LiteLLM canonical cloud egress (AI_ROUTING_v1)
 import { deliberate } from './agentManager.js';
 import AutonomousController from './autonomousController.js'; // v1.0: Autonomous decision-making
 import AutonomousPlanner from './autonomousPlanner.js'; // v2.0: Mission planning
@@ -402,43 +400,11 @@ export class SP4IntegratedAgent {
     this.contextManager = contextManager; // ⚠️ v1.0.1: Use global singleton
     this.rhythmOverride = null; // v0.10.0: Force specific rhythm mode
 
-    // 🌉 v0.7: SP4AIOS Bridge - Cloud AI Integration
-    // Load API keys from SP4AIOS .env file
-    const aiosEnvPath = path.join(path.dirname(fileURLToPath(import.meta.url)), '..', 'SP4AIOS', '.env');
-    const testMode = process.env.SP4_TEST === 'true';
-    const cloudKeyNames = [
-      'GROQ_API_KEY', 'GEMINI_API_KEY', 'GOOGLE_API_KEY',
-      'MISTRAL_API_KEY', 'ANTHROPIC_API_KEY', 'OPENAI_API_KEY'
-    ];
-    if (testMode) cloudKeyNames.forEach(key => delete process.env[key]);
-
-    let groqKey = testMode ? undefined : process.env.GROQ_API_KEY;
-    let googleKey = testMode ? undefined : process.env.GOOGLE_API_KEY;
-
-    // Try to load from SP4AIOS/.env if keys not in environment
-    if (!testMode && (!groqKey || !googleKey) && fs.existsSync(aiosEnvPath)) {
-      const envContent = fs.readFileSync(aiosEnvPath, 'utf-8');
-      envContent.split('\n').forEach(line => {
-        const [key, ...valueParts] = line.split('=');
-        const value = valueParts.join('=').trim();
-        if (key === 'GROQ_API_KEY') groqKey = value;
-        if (key === 'GOOGLE_API_KEY') googleKey = value;
-      });
-    }
-
-    this.aiosBridge = new SP4AIOSBridge({
-      groqApiKey: groqKey,
-      googleApiKey: googleKey,
-      enableCache: true,
-      enableCostTracking: true,
-      costLogPath: AIOS_COST_LOG_FILE,
-      cacheTTL: 3600000, // 1 hour
-      timeout: 90000 // 90s for complex queries
-    });
-    this.cloudAIEnabled = !testMode && !!(groqKey || googleKey);
+    // ☁️ v1.4.2: Cloud egress is LiteLLM via sp4LlmCall (policy-gated, fail-closed).
+    // No SP4AIOS bridge, no provider API keys loaded here — consent comes from resolvePolicy().
     this.lastLocalError = null; // Track local failures for fallback
-    this.dailyCloudCost = 0; // Track daily spending
-    this.maxDailyCloudCost = 5.0; // $5 daily limit
+    this.dailyCloudCost = 0; // Legacy reporting field (LiteLLM costLog.jsonl is the live source)
+    this.maxDailyCloudCost = 5.0; // Legacy reporting field
 
     // 🧠 v1.0: AUTONOMOUS CONTROLLER - Veliteľ mozgov
     this.autonomousController = new AutonomousController(this);
@@ -448,8 +414,6 @@ export class SP4IntegratedAgent {
     this.autonomousPlanner = new AutonomousPlanner();
     this.executionOrchestrator = new ExecutionOrchestrator(this);
     verboseLog(`   🚀 Full Autonomy v2.0: ✅ Initialized`);
-
-    verboseLog(`   🌉 SP4AIOS Bridge: ${this.cloudAIEnabled ? '✅ Enabled' : '❌ Disabled'} (Groq: ${!!groqKey}, Google: ${!!googleKey})`);
 
     this.initialized = false;
     // 🔁 v1.5: Follow-up dialogue state (turn tracking for context continuity)
@@ -2243,15 +2207,13 @@ export class SP4IntegratedAgent {
             // orchestrationResult declared at function scope
 
             if (autonomousStrategy.brain === 'cloud') {
-              // Cloud AI path via SP4AIOS
+              // Cloud AI path via LiteLLM (canonical)
               try {
                 const cloudResponse = await this.askCloudAI(userMessage, mode, {
                   ...options, // Pass through options (forceLocal will be ignored in cloud path)
                   temperature: autonomousStrategy.temperature || 0.7,
                   maxTokens: autonomousStrategy.maxTokens || 2000,
-                  provider: autonomousStrategy.provider,
-                  model: autonomousStrategy.model,
-                  policy // Constitution v1 binding C (DEC-001): effective policy from resolvePolicy(), threaded to the final mayEgress() gate
+                  policy // resolvePolicy() result threaded to sp4LlmCall → mayEgress (fail-closed)
                 });
 
                 // 🔥 v1.3.1: Extract text using unified extractor
@@ -3660,100 +3622,50 @@ Pracujem na obnovení plnej funkčnosti.`;
   }
 
   /**
-   * 🌩️ v0.7: Ask Cloud AI via SP4AIOS Bridge
+   * ☁️ Ask Cloud AI via canonical LiteLLM gateway (AI_ROUTING_v1).
    * @param {string} input - User message
    * @param {string} mode - Current mode
    * @param {Object} options - Additional options
    * @param {object} [options.policy] - resolvePolicy() result for THIS request. Threaded
-   *   to SP4AIOSBridge's mayEgress() gate (Constitution v1 binding C, DEC-001). Missing
-   *   or allowCloud!==true both resolve to BLOCK inside the bridge — never assumed true here.
-   * @returns {Promise<string>} - AI response
+   *   to sp4LlmCall → askCloudLLM → mayEgress('conversation_text','litellm_gateway').
+   *   Missing or allowCloud!==true → fail-closed (no network). Never hardcoded.
+   * @returns {Promise<{text:string, provider:string, model:null, cost:null, latency:number|null}>}
    */
   async askCloudAI(input, mode, options = {}) {
-    try {
-      if (process.env.SP4_TEST === 'true') {
-        throw new Error('Cloud AI disabled in SP4 test mode');
-      }
-      runtimeLog('   🌩️ Cloud AI: Routing request...');
-
-      // 🧠 v1.0: Accept provider/model from Autonomous Controller
-      const provider = options.provider || null; // null = intelligent routing
-      const model = options.model || null;
-
-      // Estimate complexity for intelligent routing (if not overridden)
-      const complexity = this.estimateComplexity(input);
-      const priority = mode === 'glitchoslav' ? 'high' : 'normal';
-
-      // System prompt based on mode
-      const systemPrompt = this.getCloudSystemPrompt(mode);
-
-      // Constitution v1 binding C (DEC-001, DEC-004) — effective policy threading.
-      // policyAllowCloud is derived from THIS request's resolvePolicy() result, never
-      // hardcoded. Missing options.policy (caller forgot to pass it) is distinct from
-      // an explicit allowCloud:false — both leave policyAllowCloud falsy/undefined,
-      // and SP4AIOSBridge.ask()'s mayEgress() call blocks on either. Provider/model
-      // selection above (autonomousController's decision) is not itself permission —
-      // the bridge's Constitution gate is what actually authorizes egress.
-      const policyProvided = options.policy !== undefined && options.policy !== null;
-      const policyAllowCloud = policyProvided ? options.policy.allowCloud === true : undefined;
-      const actorType = options.actorType || 'automation';
-      const requestId = options.requestId;
-
-      let response;
-
-      if (provider && model) {
-        // 🧠 Direct call to specific provider/model (Autonomous Controller decision)
-        runtimeLog(`   🎯 Autonomous Decision: ${provider}/${model}`);
-        response = await this.aiosBridge.ask(input, {
-          provider,
-          model,
-          systemPrompt,
-          temperature: options.temperature || 0.7,
-          maxTokens: options.maxTokens || 2000,
-          policyAllowCloud,
-          actorType,
-          requestId
-        });
-      } else {
-        // Route via SP4AIOS Bridge intelligent routing — intelligentRoute() only ever
-        // picks provider/model and forwards this same options object into ask(); it
-        // never sets or overrides policyAllowCloud itself (see bridge.js).
-        response = await this.aiosBridge.intelligentRoute(input, {
-          complexity,
-          priority,
-          systemPrompt,
-          temperature: options.temperature || 0.7,
-          maxTokens: options.maxTokens || 2000,
-          policyAllowCloud,
-          actorType,
-          requestId
-        });
-      }
-
-      // Track cost
-      if (response.cost) {
-        this.dailyCloudCost += response.cost;
-        runtimeLog(`   💰 Cost: $${response.cost.toFixed(6)} (daily: $${this.dailyCloudCost.toFixed(4)})`);
-      }
-
-      runtimeLog(`   ✅ Cloud AI: ${response.provider}/${response.model} (${response.latency}ms)`);
-
-      // Reset error flag on success
-      this.lastLocalError = null;
-
-      // 🌩️ Return object with text + metadata
-      return {
-        text: response.text,
-        provider: response.provider,
-        model: response.model,
-        cost: response.cost || 0,
-        latency: response.latency
-      };
-
-    } catch (error) {
-      console.error(`   ❌ Cloud AI failed: ${error.message}`);
-      throw error; // Let caller handle fallback
+    if (process.env.SP4_TEST === 'true') {
+      throw new Error('Cloud AI disabled in SP4 test mode');
     }
+    runtimeLog('   ☁️ Cloud AI: routing via LiteLLM gateway...');
+
+    const systemPrompt = this.getCloudSystemPrompt(mode);
+
+    // Consent: options.policy is the resolvePolicy() result for THIS request and is
+    // threaded to sp4LlmCall → askCloudLLM → mayEgress('conversation_text','litellm_gateway').
+    // Missing policy or allowCloud!==true → fail-closed (no network). NEVER hardcoded.
+    const result = await sp4LlmCall({
+      preference: 'cloud-only', // only honored when policy.allowCloud===true (enforced inside sp4LlmCall)
+      prompt: input,
+      system: systemPrompt,
+      temperature: options.temperature || 0.7,
+      num_predict: options.maxTokens || 2000,
+      policy: options.policy || null,
+      actorType: options.actorType || 'automation',
+      requestId: options.requestId,
+    });
+
+    if (!result.ok) {
+      throw new Error(result.error || 'cloud_policy_required');
+    }
+
+    this.lastLocalError = null;
+
+    return {
+      text: result.text,
+      provider: 'litellm', // canonical sink
+      model: null,         // tier resolved inside LiteLLM gateway (not exposed by sp4LlmCall)
+      cost: null,          // cost logged by litellmClient costLog.jsonl, not surfaced here
+      latency: result.durationMs || null,
+    };
   }
 
   /**
@@ -3803,8 +3715,6 @@ Pracujem na obnovení plnej funkčnosti.`;
    * @returns {Object} System status
    */
   async getSystemStatus() {
-    const aiosStats = this.cloudAIEnabled ? this.aiosBridge.getStats() : null;
-
     return {
       supervisor: this.supervisor.state,
       emotional: this.emotionalProcessor.getState(),
@@ -3812,10 +3722,11 @@ Pracujem na obnovení plnej funkčnosti.`;
       capability: this.degradationManager.getState(),
       initialized: this.initialized,
       cloudAI: {
-        enabled: this.cloudAIEnabled,
+        enabled: null, // SP4AIOS bridge removed; cloud reachable only via LiteLLM (policy-gated)
+        provider: 'litellm',
         dailyCost: this.dailyCloudCost,
         budgetLimit: this.maxDailyCloudCost,
-        stats: aiosStats
+        stats: null
       }
     };
   }
