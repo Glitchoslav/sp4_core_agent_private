@@ -479,10 +479,10 @@ ${sp4Facts.map((fact, i) => `${i + 1}. ${fact}`).join('\n')}
     process.env.SP4_ALLOW_CLOUD = onlineMode ? 'true' : 'false';
     if (onlineMode) {
       console.log('[STATE AFTER] onlineMode=true SP4_ALLOW_CLOUD=true');
-      return "🌐 Online režim zapnutý. Cloud je povolený, ak ho routing vyhodnotí ako vhodný.";
+      return "🌐 Cloud capability zapnutá (SP4_ALLOW_CLOUD=true). Egress sa odošle IBA ak request/misia explicitne povolí allowCloud:true — bez request consentu sa nič neposiela.";
     } else {
       console.log('[STATE AFTER] onlineMode=false SP4_ALLOW_CLOUD=false');
-      return "🔒 Online režim vypnutý. Systém je späť v local-first režime.";
+      return "🔒 Cloud capability vypnutá (SP4_ALLOW_CLOUD=false). Žiadny cloud egress — local-first.";
     }
   }
 

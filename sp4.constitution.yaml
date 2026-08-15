@@ -98,17 +98,17 @@ side_effect_capabilities:
     file: "SP4AIOS/src/bridge.js"
     symbol: "providers[x].complete (verejný prístup)"
     authority: null
-    status: "known_gap"
+    status: "removed"
     evidence: "none"
-    note: "this.providers je verejná property, obchádza ask()'s gate; zároveň používané testami ako injection seam - sealing je v1.2"
+    note: "odstránené 2026-08-15 — LiteLLM canonical; sibling SP4AIOS/src/bridge.js je compatibility shim (odstráni sa pri deployi)"
   - id: "sp4_core_agent_bridge_legacy"
     kind: "network"
     file: "SP4AIOSBridge.js"
     symbol: "OpenAIProvider/AnthropicProvider/atď complete()"
     authority: null
-    status: "dead"
+    status: "removed"
     evidence: "none"
-    note: "jediný importer je examples/aios_examples.js, mimo npm skriptov aj runtime cesty"
+    note: "zmazaný 2026-08-15 (LiteLLM canonical egress); importer examples/aios_examples.js tiež odstránený"
   - id: "action_router_execute"
     kind: "process"
     file: "src/core/actionRouter.js"
@@ -165,8 +165,8 @@ egress_policies:
   # výsledok) skôr, než sa tieto riadky vôbec skontrolujú. Pozri src/constitution/loader.js.
   - category: "conversation_text"
     sink: "groq_api"
-    allow: true
-    gate: "auto"
+    allow: false
+    # retired direct sink; LiteLLM canonical
   - category: "conversation_text"
     sink: "litellm_gateway"
     allow: true
@@ -192,8 +192,8 @@ egress_policies:
     allow: false
   - category: "collective_insight"
     sink: "groq_api"
-    allow: true
-    gate: "auto"
+    allow: false
+    # retired direct sink; LiteLLM canonical
   - category: "kefyk_personal_memory"
     sink: "groq_api"
     allow: false

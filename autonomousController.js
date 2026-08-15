@@ -152,8 +152,7 @@ export class AutonomousController {
         // 🔥 v1.4.1: If forceCloud, hard require cloud (test-only)
         if (policy.forceCloud) {
             strategy.brain = 'cloud';
-            strategy.provider = 'groq'; // Default to Groq for speed
-            strategy.model = 'llama-3.3-70b-versatile';
+            // provider/model removed — tier decided by classify() in llmRouter (LiteLLM canonical)
             strategy.reasoning.push(`🔥 POLICY: Force cloud (${policy.reason}) - TEST MODE`);
             return this.finalizeStrategy(strategy, analysis);
         }
@@ -170,16 +169,15 @@ export class AutonomousController {
             analysis.confidence < 0.7
         ) {
             strategy.brain = 'cloud';
-            strategy.provider = 'groq';
-            strategy.model = 'llama-3.3-70b-versatile';
-            strategy.reasoning.push(`🎯 HYBRID ACCURACY: Tech query + low confidence (${(analysis.confidence * 100).toFixed(0)}%) → GROQ cloud`);
+            // provider/model removed — tier decided by classify() in llmRouter (LiteLLM canonical)
+            strategy.reasoning.push(`🎯 HYBRID ACCURACY: Tech query + low confidence (${(analysis.confidence * 100).toFixed(0)}%) → LiteLLM cloud`);
             strategy.accuracyFallback = true;
             strategy.fallbackReason = 'low-confidence-tech-query';
 
             // 🔥 CRITICAL: If SP4_TEST=true, simulate only (don't actually call cloud)
             if (process.env.SP4_TEST === 'true') {
                 strategy.testModeSimulation = true;
-                strategy.reasoning.push(`🧪 TEST MODE: Cloud call simulated (would use ${strategy.provider})`);
+                strategy.reasoning.push(`🧪 TEST MODE: Cloud call simulated (would use LiteLLM gateway)`);
             }
 
             return this.finalizeStrategy(strategy, analysis);
@@ -197,9 +195,8 @@ export class AutonomousController {
             // Complex queries → prefer cloud IF budget allows
             if (analysis.budgetStatus.remaining > 1.0) {
                 strategy.brain = 'cloud';
-                strategy.provider = 'groq'; // Fast + accurate
-                strategy.model = 'llama-3.3-70b-versatile';
-                strategy.reasoning.push('🌩️ Complex query + budget OK → GROQ cloud');
+                // provider/model removed — tier decided by classify() in llmRouter (LiteLLM canonical)
+                strategy.reasoning.push('🌩️ Complex query + budget OK → LiteLLM cloud');
             } else {
                 strategy.brain = 'local';
                 strategy.reasoning.push('🏠 Complex but low budget → LOCAL with extended thinking');
@@ -211,9 +208,8 @@ export class AutonomousController {
         if (analysis.taskType === 'code' || analysis.taskType === 'analysis') {
             if (strategy.brain !== 'cloud' && analysis.budgetStatus.remaining > 0.5) {
                 strategy.brain = 'cloud';
-                strategy.provider = 'groq';
-                strategy.model = 'llama-3.3-70b-versatile';
-                strategy.reasoning.push('💻 Code/Analysis task → GROQ (best for technical)');
+                // provider/model removed — tier decided by classify() in llmRouter (LiteLLM canonical)
+                strategy.reasoning.push('💻 Code/Analysis task → LiteLLM cloud');
             }
         }
 
@@ -231,8 +227,8 @@ export class AutonomousController {
         // Rule 5: Urgency routing
         if (analysis.urgency === 'high') {
             if (strategy.brain === 'cloud') {
-                strategy.provider = 'groq'; // Groq is fastest
-                strategy.reasoning.push('⚡ High urgency → GROQ (fastest cloud)');
+                // provider/model removed — tier decided by classify() in llmRouter (LiteLLM canonical)
+                strategy.reasoning.push('⚡ High urgency → LiteLLM cloud (fastest tier)');
             } else {
                 strategy.reasoning.push('⚡ High urgency → LOCAL (instant)');
             }
@@ -242,7 +238,7 @@ export class AutonomousController {
         const learnedPreference = this.getLearned(analysis.taskType);
         if (learnedPreference) {
             strategy.brain = learnedPreference.brain;
-            strategy.provider = learnedPreference.provider;
+            // provider/model removed — tier decided by classify() in llmRouter (LiteLLM canonical)
             strategy.reasoning.push(`📚 Learned: ${analysis.taskType} → ${learnedPreference.brain} (${learnedPreference.successRate}% success)`);
         }
 
@@ -253,12 +249,7 @@ export class AutonomousController {
      * 🎯 Finalize strategy with sanity checks
      */
     finalizeStrategy(strategy, analysis) {
-        // Sanity check: If cloud selected but no provider, use Google (free)
-        if (strategy.brain === 'cloud' && !strategy.provider) {
-            strategy.provider = 'google';
-            strategy.model = 'gemini-2.5-flash';
-            strategy.reasoning.push('🌐 Cloud selected but no provider → Google (FREE)');
-        }
+        // No provider/model sanity check needed — LiteLLM tier is decided by classify() in llmRouter.
 
         // Memory depth based on complexity
         if (analysis.complexity === 'simple') {

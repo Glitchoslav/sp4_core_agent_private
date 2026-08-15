@@ -1,5 +1,5 @@
 // llmLocal.js – Tenká kompatibilná vrstva pre LLM routing
-import { isCloudLLMAvailable } from '../cloudLLM.js';
+import { isCloudLLMConfigured } from '../cloudLLM.js';
 import { classifyQueryTypeDetailed } from '../src/immune/queryTypeClassifier.js';
 import { getRouterStats, sp4LlmCall } from '../src/llm/llmRouter.js';
 import {
@@ -317,8 +317,8 @@ export async function checkOllamaHealth() {
     healthy: health.healthy,
     models: health.models || [],
     timestamp: health.timestamp,
-    cloudFallback: isCloudLLMAvailable() ? 'GROQ' : 'none',
-    cloudAvailable: isCloudLLMAvailable(),
+    cloudFallback: isCloudLLMConfigured() ? 'LiteLLM' : 'none',
+    cloudAvailable: isCloudLLMConfigured(),
     message: health.healthy ? 'Ollama healthy' : 'Ollama offline'
   };
 }

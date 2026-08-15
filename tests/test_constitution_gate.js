@@ -93,6 +93,8 @@ async function main() {
     // dotenv (načítané transitívne cez ollamaClient.js) neprepisuje už nastavené
     // premenné, takže toto prežije import.
     process.env.USE_CLOUD_FALLBACK = 'true';
+    // Capability gate (isCloudLLMConfigured) — must be ON for cloud-success cases.
+    process.env.SP4_ALLOW_CLOUD = 'true';
 
     const loader = await import('../src/constitution/loader.js');
     const { can, mayEgress, isManifestLoaded } = loader;
@@ -159,8 +161,10 @@ async function main() {
     // ── Test B: allowCloud:true + povolený pár = ALLOW (mayEgress priamo) ─
     console.log('\n🎯 Test B: allowCloud:true + explicitne povolený pár');
     {
-        const result = mayEgress('conversation_text', 'groq_api', { actorType: 'automation', policyAllowCloud: true });
-        check('conversation_text→groq_api + allowCloud:true → ALLOW', result.decision === 'ALLOW', JSON.stringify(result));
+        const result = mayEgress('conversation_text', 'litellm_gateway', { actorType: 'automation', policyAllowCloud: true });
+        check('conversation_text→litellm_gateway + allowCloud:true → ALLOW', result.decision === 'ALLOW', JSON.stringify(result));
+        const retired = mayEgress('conversation_text', 'groq_api', { actorType: 'automation', policyAllowCloud: true });
+        check('conversation_text→groq_api + allowCloud:true → BLOCK (retired sink)', retired.decision === 'BLOCK', JSON.stringify(retired));
     }
 
     // ── mayEgress(): allowCloud:false alebo chýbajúci policy = BLOCK ────
@@ -233,37 +237,6 @@ async function main() {
         });
         check('sp4LlmCall vrátil ok:true (povolené)', result.ok === true, JSON.stringify(result));
         check('presne 1 volanie na LiteLLM gateway', litellmCallCount() === 1, `litellmCallCount=${litellmCallCount()}`);
-    }
-
-    // ── Regresný test (bod 10 zadania): dotenv bug "opravený" simulovane ─
-    console.log('\n🎯 Regresný test: simulácia stavu, kde dotenv/import-order bug NEEXISTUJE');
-    console.log('   (GROQ_API_KEY je pravdivý od začiatku behu — presne stav, ktorý dnes bug maskuje)');
-    resetFetchCalls();
-    {
-        // Priamy test cloudLLM.askGroqLLM() bez sp4LlmCall vrstvy — dokazuje, že
-        // blok je vynútený VNÚTRI chokepointu B samotného, nie iba náhodou cez
-        // to, ako ho dnes volá llmRouter.js. GROQ_API_KEY je od začiatku súboru
-        // nastavený na pravdivú hodnotu (viď vyššie) — presne simuluje "bug je
-        // opravený, dotenv doplnil kľúč pred module-load".
-        const cloudLLM = await import('../cloudLLM.js');
-        check('isCloudLLMAvailable() === true (simulovaný opravený stav)', cloudLLM.isCloudLLMAvailable() === true);
-
-        let threw = null;
-        try {
-            await cloudLLM.askGroqLLM('priamy test bez llmRouter vrstvy', '', {
-                policy: { allowCloud: false },
-                actorType: 'automation'
-            });
-        } catch (err) {
-            threw = err;
-        }
-        check('askGroqLLM() vyhodil ConstitutionalBlockError', threw && threw.name === 'ConstitutionalBlockError', threw && threw.message);
-        check('dôvod je policy_disallows_cloud', threw && threw.reason === 'policy_disallows_cloud', threw && threw.reason);
-        check(
-            'ZERO volaní na api.groq.com aj keď je GROQ_API_KEY nastavený',
-            groqCallCount() === 0,
-            `groqCallCount=${groqCallCount()}`
-        );
     }
 
     // ── Manifest unavailable → fail-closed (samostatný child process) ───

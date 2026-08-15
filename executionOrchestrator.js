@@ -15,6 +15,7 @@
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import { resolvePolicy } from './src/policy/policy.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
@@ -174,10 +175,11 @@ export class ExecutionOrchestrator {
                 console.log(`      📊 Quality: ${(qualityScore * 100).toFixed(0)}%`);
 
                 // Log engine usage and fallback status
+                // Cloud result carries { provider:'litellm', ... } (askCloudAI); no `engine` field.
                 output.meta = {
-                    ...output.meta,
-                    engine_used: result.engine,
-                    fallback_used: result.engine !== 'llama3',
+                    ...(output?.meta || {}),
+                    engine_used: output?.provider || 'local',
+                    fallback_used: null, // unknown — actual fallback cannot be proven from the cloud result
                 };
 
                 return {
@@ -210,11 +212,18 @@ export class ExecutionOrchestrator {
     async executeCloudTask(task, mission, context) {
         const prompt = this.buildTaskPrompt(task, mission, context);
 
-        const provider = task.brain === 'groq' ? 'groq' : task.brain === 'google' ? 'google' : null;
+        // Consent (fail-closed, never from env):
+        // - task-level deny (allowCloud:false) overrides mission allow
+        // - otherwise mission must explicitly allow (allowCloud:true)
+        // - no policy anywhere -> BLOCK
+        const taskDeny = task?.policy?.allowCloud === false;
+        const missionAllow = mission?.policy?.allowCloud === true;
+        const allowCloud = missionAllow && !taskDeny;
+
+        const policy = resolvePolicy({ allowCloud }, process.env);
 
         return await this.integration.askCloudAI(prompt, 'core', {
-            provider,
-            model: task.model,
+            policy,
             temperature: 0.7,
             maxTokens: 2000
         });
