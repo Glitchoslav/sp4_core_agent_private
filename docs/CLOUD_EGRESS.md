@@ -31,3 +31,25 @@ sp4LlmCall (src/llm/llmRouter.js)
 - Runtime kópia na linux-pc (`/home/dhzpc/sp4kult/sp4-workspace/sp4_core_agent`) je čistý checkout canonical `main`.
 - Po schválení PR: `git pull origin main` na linux-pc, potom zmazať sibling shim `../SP4AIOS/src/bridge.js`.
 - Launcher (`services.linux.json`) ďalej ukazuje `cwd` na túto runtime kópiu; žiadna zmena konfigu nie je potrebná.
+
+## Rollback (produkcia)
+
+```bash
+cd /home/dhzpc/sp4kult/sp4-workspace/sp4_core_agent
+
+# 1. Preflight — čistý tree + správna vetva
+[ -z "$(git status --porcelain)" ] || { echo "DIRTY TREE — STOP"; exit 1; }
+[ "$(git rev-parse --abbrev-ref HEAD)" = "main" ] || { echo "NOT ON main — STOP"; exit 1; }
+git rev-parse HEAD   # zaznamenaj aktuálny pripnutý SHA
+
+# 2. Rollback na schválený SHA (main pred LiteLLM migráciou)
+git reset --hard e060675
+git rev-parse HEAD   # over == e060675
+
+# 3. Health check (po reštarte cez Launcher, mimo tohto postupu)
+#    curl -s http://localhost:3002/health   # bridge
+#    curl -s http://localhost:3001/health   # legacy HTTP
+
+# 4. Návrat na predchádzajúci pripnutý SHA (ak ≠ e060675)
+#    git reset --hard <pinned-SHA>
+```

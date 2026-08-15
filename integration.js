@@ -3642,6 +3642,7 @@ Pracujem na obnovení plnej funkčnosti.`;
     // Consent: options.policy is the resolvePolicy() result for THIS request and is
     // threaded to sp4LlmCall → askCloudLLM → mayEgress('conversation_text','litellm_gateway').
     // Missing policy or allowCloud!==true → fail-closed (no network). NEVER hardcoded.
+    const startedAt = Date.now();
     const result = await sp4LlmCall({
       preference: 'cloud-only', // only honored when policy.allowCloud===true (enforced inside sp4LlmCall)
       prompt: input,
@@ -3664,7 +3665,7 @@ Pracujem na obnovení plnej funkčnosti.`;
       provider: 'litellm', // canonical sink
       model: null,         // tier resolved inside LiteLLM gateway (not exposed by sp4LlmCall)
       cost: null,          // cost logged by litellmClient costLog.jsonl, not surfaced here
-      latency: result.durationMs || null,
+      latency: Date.now() - startedAt,
     };
   }
 

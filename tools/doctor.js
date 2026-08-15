@@ -67,7 +67,7 @@ export async function runDoctor({ debug = false } = {}) {
 
   // Canonical cloud egress = LiteLLM gateway (sp4LlmCall -> askCloudLLM -> mayEgress litellm_gateway).
   const litellmUrl = process.env.SP4_LITELLM_URL || 'http://127.0.0.1:4000/v1/chat/completions';
-  add('Cloud egress', 'LiteLLM (canonical)', litellmUrl);
+  add('Cloud egress', 'OK', `LiteLLM (canonical): ${litellmUrl}`);
 
   const requiredPaths = ['data', 'memory', 'logs'];
   const missingPaths = requiredPaths.filter((name) => !fs.existsSync(path.join(ROOT, name)));
