@@ -165,8 +165,8 @@ egress_policies:
   # výsledok) skôr, než sa tieto riadky vôbec skontrolujú. Pozri src/constitution/loader.js.
   - category: "conversation_text"
     sink: "groq_api"
-    allow: true
-    gate: "auto"
+    allow: false
+    # retired direct sink; LiteLLM canonical
   - category: "conversation_text"
     sink: "litellm_gateway"
     allow: true
@@ -192,8 +192,8 @@ egress_policies:
     allow: false
   - category: "collective_insight"
     sink: "groq_api"
-    allow: true
-    gate: "auto"
+    allow: false
+    # retired direct sink; LiteLLM canonical
   - category: "kefyk_personal_memory"
     sink: "groq_api"
     allow: false

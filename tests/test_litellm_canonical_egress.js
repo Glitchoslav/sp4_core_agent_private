@@ -107,6 +107,8 @@ async function main() {
         check('manifest deny openai_api: BLOCK', openai.decision === 'BLOCK', JSON.stringify(openai));
         const google = mayEgress('conversation_text', 'google_ai_api', { policyAllowCloud: true, actorType: 'automation' });
         check('manifest deny google_ai_api: BLOCK', google.decision === 'BLOCK', JSON.stringify(google));
+        const groq = mayEgress('conversation_text', 'groq_api', { policyAllowCloud: true, actorType: 'automation' });
+        check('manifest deny groq_api: BLOCK (retired sink)', groq.decision === 'BLOCK', JSON.stringify(groq));
     }
 
     // 5. explicit allow → single sink litellm_gateway

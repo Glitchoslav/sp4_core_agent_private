@@ -94,7 +94,7 @@ async function main() {
         const r = await orch.executeTask(mkTask('t4'), { mission: { goal: 'x' }, policy: { allowCloud: true } }, []);
         check('executeTask completes', r.status === 'completed', JSON.stringify(r));
         check('executeTask engine_used litellm', r.output?.meta?.engine_used === 'litellm', JSON.stringify(r.output?.meta));
-        check('executeTask fallback_used false', r.output?.meta?.fallback_used === false, JSON.stringify(r.output?.meta));
+        check('executeTask fallback_used null (unknown)', r.output?.meta?.fallback_used === null, JSON.stringify(r.output?.meta));
     }
 
     console.log(`\nVÝSLEDOK: ${passed} passed, ${failed} failed`);

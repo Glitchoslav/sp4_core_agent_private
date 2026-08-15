@@ -161,8 +161,10 @@ async function main() {
     // ── Test B: allowCloud:true + povolený pár = ALLOW (mayEgress priamo) ─
     console.log('\n🎯 Test B: allowCloud:true + explicitne povolený pár');
     {
-        const result = mayEgress('conversation_text', 'groq_api', { actorType: 'automation', policyAllowCloud: true });
-        check('conversation_text→groq_api + allowCloud:true → ALLOW', result.decision === 'ALLOW', JSON.stringify(result));
+        const result = mayEgress('conversation_text', 'litellm_gateway', { actorType: 'automation', policyAllowCloud: true });
+        check('conversation_text→litellm_gateway + allowCloud:true → ALLOW', result.decision === 'ALLOW', JSON.stringify(result));
+        const retired = mayEgress('conversation_text', 'groq_api', { actorType: 'automation', policyAllowCloud: true });
+        check('conversation_text→groq_api + allowCloud:true → BLOCK (retired sink)', retired.decision === 'BLOCK', JSON.stringify(retired));
     }
 
     // ── mayEgress(): allowCloud:false alebo chýbajúci policy = BLOCK ────

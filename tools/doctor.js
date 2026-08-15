@@ -67,7 +67,9 @@ export async function runDoctor({ debug = false } = {}) {
 
   // Canonical cloud egress = LiteLLM gateway (sp4LlmCall -> askCloudLLM -> mayEgress litellm_gateway).
   const litellmUrl = process.env.SP4_LITELLM_URL || 'http://127.0.0.1:4000/v1/chat/completions';
-  add('Cloud egress', 'OK', `LiteLLM (canonical): ${litellmUrl}`);
+  const cloudCapabilityOn = process.env.SP4_ALLOW_CLOUD === 'true';
+  add('Cloud egress', cloudCapabilityOn ? 'OK' : 'WARN',
+    cloudCapabilityOn ? `LiteLLM (canonical): ${litellmUrl}; health unverified` : 'capability disabled (SP4_ALLOW_CLOUD !== true)');
 
   const requiredPaths = ['data', 'memory', 'logs'];
   const missingPaths = requiredPaths.filter((name) => !fs.existsSync(path.join(ROOT, name)));

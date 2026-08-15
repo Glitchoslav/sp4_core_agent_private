@@ -179,7 +179,7 @@ export class ExecutionOrchestrator {
                 output.meta = {
                     ...(output?.meta || {}),
                     engine_used: output?.provider || 'local',
-                    fallback_used: false,
+                    fallback_used: null, // unknown — actual fallback cannot be proven from the cloud result
                 };
 
                 return {
