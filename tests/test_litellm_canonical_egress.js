@@ -49,6 +49,8 @@ async function main() {
 
     const { sp4LlmCall } = await import('../src/llm/llmRouter.js');
     const { mayEgress } = await import('../src/constitution/loader.js');
+    const { resolvePolicy } = await import('../src/policy/policy.js');
+    const { classify } = await import('../src/routing/classify.js');
 
     // 1. explicit deny → zero network
     {
@@ -115,6 +117,28 @@ async function main() {
         const cloud = fs.readFileSync(path.join(ROOT, 'cloudLLM.js'), 'utf8');
         check('no askGroqLLM export', !/export async function askGroqLLM/.test(cloud));
         check('no api.groq.com endpoint', !/api\.groq\.com/.test(cloud));
+    }
+
+    // 8. P0: env SP4_ALLOW_CLOUD=true does NOT grant consent (missing request policy → BLOCK)
+    {
+        const p = resolvePolicy({}, { SP4_ALLOW_CLOUD: 'true' });
+        check('P0: env SP4_ALLOW_CLOUD => allowCloud:false', p.allowCloud === false, JSON.stringify(p));
+        check('P0: env SP4_ALLOW_CLOUD => cloudAvailable:true', p.cloudAvailable === true, JSON.stringify(p));
+        calls.length = 0;
+        const r = await sp4LlmCall({ preference: 'cloud-only', prompt: 'otazka', policy: p, actorType: 'interactive-human' });
+        check('P0: BLOCK (ok=false)', r.ok === false, JSON.stringify(r));
+        check('P0: zero network', calls.length === 0, `calls=${calls.length}`);
+    }
+
+    // 9. autonomous controller: no groq/google provider; tier via classify()
+    {
+        const ac = fs.readFileSync(path.join(ROOT, 'autonomousController.js'), 'utf8');
+        check('no provider=groq', !/provider\s*=\s*'groq'/.test(ac));
+        check('no provider=google', !/provider\s*=\s*'google'/.test(ac));
+        const trivial = classify('ahoj');
+        const deep = classify('vysvetli hlbšie prečo a porovnaj a analyzuj a navrhni');
+        check('classify trivial -> local', trivial.engine === 'local', JSON.stringify(trivial));
+        check('classify deep -> budget|quality', deep.engine === 'budget' || deep.engine === 'quality', JSON.stringify(deep));
     }
 
     console.log(`\nVÝSLEDOK: ${passed} passed, ${failed} failed`);
