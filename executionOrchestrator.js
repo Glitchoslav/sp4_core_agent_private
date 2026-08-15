@@ -175,10 +175,11 @@ export class ExecutionOrchestrator {
                 console.log(`      📊 Quality: ${(qualityScore * 100).toFixed(0)}%`);
 
                 // Log engine usage and fallback status
+                // Cloud result carries { provider:'litellm', ... } (askCloudAI); no `engine` field.
                 output.meta = {
-                    ...output.meta,
-                    engine_used: result.engine,
-                    fallback_used: result.engine !== 'llama3',
+                    ...(output?.meta || {}),
+                    engine_used: output?.provider || 'local',
+                    fallback_used: false,
                 };
 
                 return {
@@ -211,9 +212,15 @@ export class ExecutionOrchestrator {
     async executeCloudTask(task, mission, context) {
         const prompt = this.buildTaskPrompt(task, mission, context);
 
-        // Consent: never hardcoded. Derive from mission/task policy via resolvePolicy;
-        // missing -> fail closed (resolvePolicy defaults allowCloud:false).
-        const policy = resolvePolicy(task.policy || mission.policy || {}, process.env);
+        // Consent (fail-closed, never from env):
+        // - task-level deny (allowCloud:false) overrides mission allow
+        // - otherwise mission must explicitly allow (allowCloud:true)
+        // - no policy anywhere -> BLOCK
+        const taskDeny = task?.policy?.allowCloud === false;
+        const missionAllow = mission?.policy?.allowCloud === true;
+        const allowCloud = missionAllow && !taskDeny;
+
+        const policy = resolvePolicy({ allowCloud }, process.env);
 
         return await this.integration.askCloudAI(prompt, 'core', {
             policy,
