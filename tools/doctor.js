@@ -65,12 +65,9 @@ export async function runDoctor({ debug = false } = {}) {
     add('Local model', 'WARN', 'unknown');
   }
 
-  const aiosBridgeLocal = path.join(ROOT, 'SP4AIOSBridge.js');
-  const aiosBridgeSibling = path.resolve(ROOT, '..', 'SP4AIOS', 'src', 'bridge.js');
-  const aiosConfig = path.join(ROOT, 'config', 'aios.config.json');
-  const hasBridge = fs.existsSync(aiosBridgeLocal) || fs.existsSync(aiosBridgeSibling);
-  const hasConfig = fs.existsSync(aiosConfig);
-  add('SP4AIOS bridge', (hasBridge && hasConfig) ? 'OK' : 'WARN', (hasBridge && hasConfig) ? '' : 'bridge path or config missing');
+  // Canonical cloud egress = LiteLLM gateway (sp4LlmCall -> askCloudLLM -> mayEgress litellm_gateway).
+  const litellmUrl = process.env.SP4_LITELLM_URL || 'http://127.0.0.1:4000/v1/chat/completions';
+  add('Cloud egress', 'LiteLLM (canonical)', litellmUrl);
 
   const requiredPaths = ['data', 'memory', 'logs'];
   const missingPaths = requiredPaths.filter((name) => !fs.existsSync(path.join(ROOT, name)));
