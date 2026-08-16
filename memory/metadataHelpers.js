@@ -131,7 +131,8 @@ export function adjustImportance(memoryObj, delta) {
  */
 export function getMemoryAge(memoryObj) {
     const now = new Date();
-    const created = new Date(memoryObj.timestamp);
+    // Support legacy WALTER entries, raw-log entries, and metadata-only entries.
+    const created = new Date(memoryObj.timestamp ?? memoryObj.ts ?? memoryObj.lastUsed);
     const ageMs = now - created;
     return Math.floor(ageMs / (1000 * 60 * 60 * 24)); // days
 }
@@ -142,7 +143,7 @@ export function getMemoryAge(memoryObj) {
  */
 export function getDaysSinceLastUse(memoryObj) {
     const now = new Date();
-    const lastUsed = new Date(memoryObj.lastUsed || memoryObj.timestamp);
+    const lastUsed = new Date(memoryObj.lastUsed ?? memoryObj.timestamp ?? memoryObj.ts);
     const unusedMs = now - lastUsed;
     return Math.floor(unusedMs / (1000 * 60 * 60 * 24)); // days
 }
