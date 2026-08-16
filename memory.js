@@ -200,6 +200,15 @@ export async function loadMemory() {
 
 export async function saveMemory(mem) {
   await ensureDataDir();
+  // relationshipModel je legacy alias — vždy zrkadlí canonical `relationship`,
+  // aby legacy čítače (multiVoice, glitchOrchestrator, getSummary) videli rovnaký stav.
+  if (mem.relationship) {
+    mem.relationshipModel = {
+      level: mem.relationship.stage ?? 'stranger',
+      metrics: { ...(mem.relationship.metrics || {}) },
+      milestones: [...(mem.relationship.milestones || [])]
+    };
+  }
   await fs.writeFile(MEMORY_FILE, JSON.stringify(mem, null, 2), "utf-8");
 }
 
@@ -361,9 +370,10 @@ export async function addLogEntry(input, reply, mode = "core", metadata = null) 
   runtimeDebug(`   💾 Memory write path: ${MEMORY_FILE}`);
   runtimeDebug(`   💾 Total interactions after write: ${mem.rawMemory.stats.totalInteractions}`);
 
-  // inkrementuj metriky vzťahu (canonical + backward compatibility)
+  // inkrementuj metriky vzťahu (canonical `relationship`; `relationshipModel` je legacy mirror)
   if (mem.relationship?.metrics) {
     mem.relationship.metrics.interactionCount++;
+    evaluateRelationshipProgress(mem);
   } else if (mem.relationshipModel?.metrics) {
     mem.relationshipModel.metrics.interactionCount++;
   }
@@ -484,10 +494,44 @@ export async function addToShadowLog(text) {
     // TODO V0.4: encrypted: true + crypto šifrovanie
   });
 
-  // detekcia zraniteľnosti → inkrementuj metriku
-  mem.relationshipModel.metrics.vulnerabilityMoments++;
+  // detekcia zraniteľnosti → inkrementuj metriku (canonical relationship)
+  mem.relationship.metrics.vulnerabilityMoments++;
 
   await saveMemory(mem);
+}
+
+/**
+ * Vyhodnotí progres vzťahu na základe canonical `relationship` metrics
+ * a posunie stage (stranger→acquaintance→companion) pri splnení prahov.
+ */
+function evaluateRelationshipProgress(mem) {
+  const rel = mem.relationship;
+  if (!rel) return;
+  if (!rel.metrics) {
+    rel.metrics = { interactionCount: 0, deepConversations: 0, ritualsCompleted: 0, vulnerabilityMoments: 0 };
+  }
+  if (!rel.milestones) rel.milestones = [];
+  const { interactionCount, deepConversations, ritualsCompleted } = rel.metrics;
+
+  if (interactionCount >= 50 && deepConversations >= 5 && rel.stage === "stranger") {
+    rel.stage = "acquaintance";
+    rel.milestones.push({
+      level: "acquaintance",
+      reachedAt: new Date().toISOString(),
+      note: "Prešli sme zo stranger na acquaintance"
+    });
+  }
+
+  if (interactionCount >= 100 && ritualsCompleted >= 10 && rel.stage === "acquaintance") {
+    rel.stage = "companion";
+    rel.milestones.push({
+      level: "companion",
+      reachedAt: new Date().toISOString(),
+      note: "Vzťah prerástol do companion - pravidelné používanie rituálov"
+    });
+  }
+
+  // TODO: confidant, symbiote úrovne s prísnejšími podmienkami
 }
 
 /**
@@ -495,31 +539,9 @@ export async function addToShadowLog(text) {
  */
 export async function incrementRelationshipMetric(metricName) {
   const mem = await loadMemory();
-  if (mem.relationshipModel.metrics[metricName] !== undefined) {
-    mem.relationshipModel.metrics[metricName]++;
-
-    // kontrola progresu stupňa vzťahu
-    const { interactionCount, deepConversations, ritualsCompleted } = mem.relationshipModel.metrics;
-
-    if (interactionCount >= 50 && deepConversations >= 5 && mem.relationshipModel.level === "stranger") {
-      mem.relationshipModel.level = "acquaintance";
-      mem.relationshipModel.milestones.push({
-        level: "acquaintance",
-        reachedAt: new Date().toISOString(),
-        note: "Prešli sme zo stranger na acquaintance"
-      });
-    }
-
-    if (interactionCount >= 100 && ritualsCompleted >= 10 && mem.relationshipModel.level === "acquaintance") {
-      mem.relationshipModel.level = "companion";
-      mem.relationshipModel.milestones.push({
-        level: "companion",
-        reachedAt: new Date().toISOString(),
-        note: "Vzťah prerástol do companion - pravidelné používanie rituálov"
-      });
-    }
-
-    // TODO: confidant, symbiote úrovne s prísnejšími podmienkami
+  if (mem.relationship?.metrics?.[metricName] !== undefined) {
+    mem.relationship.metrics[metricName]++;
+    evaluateRelationshipProgress(mem);
   }
   await saveMemory(mem);
 }
@@ -557,11 +579,12 @@ export async function getSummary() {
   const mem = await loadMemory();
   return {
     interactions:
-      mem?.relationshipModel?.metrics?.interactionCount
-      ?? mem?.rawMemory?.length
+      mem?.relationship?.metrics?.interactionCount
+      ?? mem?.relationshipModel?.metrics?.interactionCount
       ?? 0,
     relationshipLevel:
-      mem?.relationshipModel?.level
+      mem?.relationship?.stage
+      ?? mem?.relationshipModel?.level
       ?? 'stranger',
   };
 }
