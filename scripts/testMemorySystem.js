@@ -12,7 +12,7 @@ async function main() {
 
         // 1. Ukáž aktuálny stav
         console.log('📊 AKTUÁLNY STAV PAMÄTE:');
-        console.log(`   Raw záznamy: ${state.rawMemory.length}`);
+        console.log(`   Raw záznamy: ${state.rawMemory.log.length}`);
         console.log(`   Daily záznamy: ${Object.keys(state.episodicMemory.daily).length}`);
         console.log(`   Weekly záznamy: ${Object.keys(state.episodicMemory.weekly).length}`);
         console.log(`   Beliefs: ${state.semanticMemory.beliefs.length}`);
@@ -21,8 +21,8 @@ async function main() {
         console.log();
 
         // 2. Testuj metadata extrakciu (ak sú nejaké záznamy)
-        if (state.rawMemory.length > 0) {
-            const lastEntry = state.rawMemory[state.rawMemory.length - 1];
+        if (state.rawMemory.log.length > 0) {
+            const lastEntry = state.rawMemory.log[state.rawMemory.log.length - 1];
             console.log('📋 POSLEDNÝ ZÁZNAM:');
             console.log(`   Input: "${lastEntry.input.substring(0, 60)}..."`);
             console.log(`   Tags: ${lastEntry.metadata?.tags?.join(', ') || 'žiadne'}`);
@@ -39,7 +39,7 @@ async function main() {
 
         // 4. Testuj semantic extraction
         console.log('🧠 Extrahujem koncepty...');
-        const concepts = extractConcepts(state.rawMemory);
+        const concepts = extractConcepts(state.rawMemory.log);
         console.log(`   Nájdených ${concepts.length} konceptov`);
         if (concepts.length > 0) {
             console.log('   Top 5:');
@@ -51,7 +51,7 @@ async function main() {
 
         // 5. Update self-concept
         console.log('🪞 Aktualizujem self-concept...');
-        updateSelfConcept(state.semanticMemory, state.rawMemory);
+        updateSelfConcept(state.semanticMemory, state.rawMemory.log);
         console.log(`   Core traits: ${state.semanticMemory.selfConcept.coreTraits.join(', ')}`);
         console.log(`   Values: ${state.semanticMemory.selfConcept.values.join(', ')}`);
         console.log(`   Evolution entries: ${state.semanticMemory.selfConcept.evolution.length}`);
