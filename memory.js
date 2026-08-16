@@ -339,6 +339,17 @@ export async function addLogEntry(input, reply, mode = "core", metadata = null) 
 
   const max = mem.preferences?.maxLogEntries ?? 500;
   if (mem.rawMemory.log.length > max) {
+    const overflow = mem.rawMemory.log.length - max;
+    const evicted = mem.rawMemory.log.slice(0, overflow);
+    if (!mem.archivedMemory) mem.archivedMemory = [];
+    const archivedAt = new Date().toISOString();
+    for (const entry of evicted) {
+      mem.archivedMemory.push({
+        ...entry,
+        archivedAt,
+        reason: 'fifo_cap_eviction'
+      });
+    }
     mem.rawMemory.log = mem.rawMemory.log.slice(-max);
   }
 
