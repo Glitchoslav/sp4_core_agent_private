@@ -67,9 +67,12 @@ import { getRelevantKb } from './src/core/kb-provider.js';
 import { logUnanswered } from './src/observability/unansweredLog.js';
 import { containsJailbreak, containsBannedPhrases } from './identityGuard.js';
 import { initMemoryDb, recordEpisode, searchMemory } from './src/memory/sp4Memory.js';
+import identitySubstrate from './identity-substrate/index.cjs';
+import { createBridgeIdentityAuth } from './bridge-identity-auth.js';
 
 // PAMAT_v0: jeden shared SQLite connection (WAL, FTS5) — inicializovany raz pri startupe
 const memDb = initMemoryDb();
+const identityDb = identitySubstrate.openIdentityDatabase();
 // Crisis/self-harm detekcia — deterministický safety guard, žiadny LLM call. Aktívny od 2026-06-25.
 import { checkPopiciSafety, detectCrisis, getSafeResponse } from './src/core/safetyRails.js';
 
@@ -1034,6 +1037,13 @@ app.use((req, _res, next) => {
 // Default-deny pre celé API. Verejný zostáva iba /health mimo /api.
 // CORS middleware vyššie vybaví OPTIONS ešte pred autentifikáciou.
 app.use('/api', requireBridgeAuth);
+
+// M1: transport bearer nestaci na pristup k member/collective pamati.
+// PoP je route-scoped a memberId ostava iba routing hint mapovany cez identity DB.
+app.use(
+    ['/api/member', '/api/collective'],
+    createBridgeIdentityAuth({ db: identityDb })
+);
 
 function invalidMemberIdResponse(res) {
     return res.status(400).json({ ok: false, error: 'invalid_memberId' });
