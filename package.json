@@ -18,6 +18,7 @@
     "test:drift": "node scripts/testIdentityDrift.js",
     "test:memory": "node scripts/testMemorySystem.js",
     "test:identity:m1": "node --test tests/test_m1_identity_auth_api.js tests/test_bridge_identity_auth_contract.js",
+    "test:memory:m2": "node --test tests/test_m2_memory_db.js",
     "test:actions": "node tests/test_action_layer_basic.js",
     "test:gate": "node scripts/runGate.js --required-step=tests/test_runtime_authority_contract.js",
     "test:gate:isolated": "node scripts/runIsolatedGate.js",
@@ -49,6 +50,7 @@
   "dependencies": {
     "@xenova/transformers": "^2.17.2",
     "axios": "^1.13.2",
+    "better-sqlite3-multiple-ciphers": "^13.0.3",
     "cors": "^2.8.5",
     "dotenv": "^17.2.3",
     "express": "^5.1.0",
@@ -84,7 +86,7 @@
   "author": "SP4 Community + BAD Labs",
   "license": "MIT",
   "engines": {
-    "node": ">=18.0.0"
+    "node": ">=22.5.0"
   },
   "railway": {
     "healthcheckPath": "/health",
