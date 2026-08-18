@@ -2,8 +2,7 @@ export { MemoryDbCatalog } from './catalog.js';
 export { createMemoryStoreFromEnvironment } from './bootstrap.js';
 export {
   createPrivateMemoryDatabase,
-  createSharedMemoryDatabase,
-  inspectPrivateDatabase
+  createSharedMemoryDatabase
 } from './database.js';
 export { assertKeyReference, resolveKeyReference } from './key-reference.js';
 export { assertIdentityEnvironment, assertRuntimeVersion, loadIdentityContext } from './startup.js';

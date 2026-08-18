@@ -33,6 +33,8 @@ export const MEMORY_SCHEMA = `
     content TEXT NOT NULL,
     author_user TEXT NOT NULL,
     author_cred TEXT NOT NULL,
+    -- Ed25519 payload sp4-mementry:v1: — uložený, NEVERIFIKOVANÝ do M3
+    -- (prefix nie je v SIGNED_PAYLOAD_PREFIXES).
     sig TEXT NOT NULL,
     provenance TEXT NOT NULL
       CHECK(provenance IN ('human','local_model','cloud_model','derived','imported')),

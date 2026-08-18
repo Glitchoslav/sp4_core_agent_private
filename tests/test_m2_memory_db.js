@@ -13,11 +13,11 @@ import {
   createPrivateMemoryDatabase,
   createMemoryStoreFromEnvironment,
   createSharedMemoryDatabase,
-  inspectPrivateDatabase,
   resolveKeyReference,
   validateSyncthingIgnore,
   uuidv7
 } from '../memory-db/index.js';
+import { inspectPrivateDatabase } from './helpers/inspect-private-db.js';
 
 const require = createRequire(import.meta.url);
 const substrate = require('../identity-substrate/index.cjs');
@@ -105,6 +105,13 @@ describe('M2 memory databases', () => {
       assert.equal(names.has(name), true, `missing ${name}`);
     }
     assert.equal(names.has('entries_vec'), false);
+    const sharedMetadata = Object.fromEntries(
+      db.prepare('SELECT key, value FROM db_meta').all().map(({ key, value }) => [key, value])
+    );
+    assert.equal(sharedMetadata.cipher_profile, 'none');
+    assert.equal(sharedMetadata.kdf_params, 'none');
+    assert.equal(sharedMetadata.sig_verified, 'false');
+    assert.equal(sharedMetadata.sig_status, 'stored-not-verified-until-M3');
 
     const insert = db.prepare(`INSERT INTO entries (
       id, content, author_user, author_cred, sig, provenance, derived_from,
@@ -130,10 +137,11 @@ describe('M2 memory databases', () => {
   test('N4a finds own canary and N4b never searches another private DB', () => {
     store.provisionPrivate({ userId: 'user-a', keyRef: 'env:SP4_TEST_KEY_A', createdAt: FIXED_NOW });
     store.provisionPrivate({ userId: 'user-b', keyRef: 'env:SP4_TEST_KEY_B', createdAt: FIXED_NOW });
-    store.writeEntry('private:user-a', makeEntry('user-a', identity.credentialA.credential_id, CANARY_A));
-    store.writeEntry('private:user-b', makeEntry('user-b', identity.credentialB.credential_id, CANARY_B));
-
     const principalA = { userId: 'user-a', credentialId: identity.credentialA.credential_id };
+    const principalB = { userId: 'user-b', credentialId: identity.credentialB.credential_id };
+    store.writeEntry(principalA, 'private:user-a', makeEntry('user-a', identity.credentialA.credential_id, CANARY_A));
+    store.writeEntry(principalB, 'private:user-b', makeEntry('user-b', identity.credentialB.credential_id, CANARY_B));
+
     assert.equal(store.searchAvailable(principalA, CANARY_A).length, 1);
     assert.equal(store.searchAvailable(principalA, CANARY_B).length, 0);
   });
@@ -166,6 +174,8 @@ describe('M2 memory databases', () => {
     );
     assert.equal(metadata.cipher_profile, "cipher='sqlcipher';legacy=4");
     assert.match(metadata.kdf_params, /argon2id/);
+    assert.equal(metadata.sig_verified, 'false');
+    assert.equal(metadata.sig_status, 'stored-not-verified-until-M3');
     db.pragma('wal_checkpoint(TRUNCATE)');
     db.close();
 
@@ -218,25 +228,51 @@ describe('M2 memory databases', () => {
   test('rejects unknown, revoked, mismatched, and foreign private authors atomically', () => {
     store.provisionPrivate({ userId: 'user-a', keyRef: 'env:SP4_TEST_KEY_A', createdAt: FIXED_NOW });
     const valid = makeEntry('user-a', identity.credentialA.credential_id, CANARY_A);
-    assert.throws(() => store.writeEntry('private:user-a', { ...valid, authorCred: 'missing' }), /UNKNOWN_CREDENTIAL/);
+    const principalA = { userId: 'user-a', credentialId: identity.credentialA.credential_id };
+    const principalB = { userId: 'user-b', credentialId: identity.credentialB.credential_id };
+    assert.throws(() => store.writeEntry(principalA, 'private:user-a', { ...valid, authorCred: 'missing' }), /UNKNOWN_CREDENTIAL/);
 
     substrate.revokeCredential(identity.identityDb, identity.credentialA.credential_id);
-    assert.throws(() => store.writeEntry('private:user-a', valid), /CREDENTIAL_REVOKED/);
+    assert.throws(() => store.writeEntry(principalA, 'private:user-a', valid), /CREDENTIAL_REVOKED/);
     assert.throws(
-      () => store.writeEntry('private:user-a', makeEntry('user-b', identity.credentialB.credential_id, CANARY_B)),
+      () => store.writeEntry(principalB, 'private:user-a', makeEntry('user-b', identity.credentialB.credential_id, CANARY_B)),
       /PRIVATE_OWNER_MISMATCH/
     );
     assert.equal(store.countEntries('private:user-a'), 0);
   });
 
+  test('rejects an entry whose min_tier is stricter than the target DB', () => {
+    store.provisionShared({ createdAt: FIXED_NOW });
+    const principalA = { userId: 'user-a', credentialId: identity.credentialA.credential_id };
+    assert.throws(
+      () => store.writeEntry(
+        principalA,
+        'shared',
+        makeEntry('user-a', identity.credentialA.credential_id, CANARY_A)
+      ),
+      /MIN_TIER_VIOLATION/
+    );
+    assert.equal(store.countEntries('shared'), 0);
+  });
+
+  test('shared provisioning is idempotency-safe', () => {
+    store.provisionShared({ createdAt: FIXED_NOW });
+    assert.throws(
+      () => store.provisionShared({ createdAt: FIXED_NOW }),
+      /MEMORY_DB_ALREADY_EXISTS/
+    );
+  });
+
   test('legacy read-only principals cannot read or write private entries', () => {
     store.provisionShared({ createdAt: FIXED_NOW });
     store.provisionPrivate({ userId: 'user-a', keyRef: 'env:SP4_TEST_KEY_A', createdAt: FIXED_NOW });
-    store.writeEntry('shared', {
+    const principalA = { userId: 'user-a', credentialId: identity.credentialA.credential_id };
+    store.writeEntry(principalA, 'shared', {
       ...makeEntry('user-a', identity.credentialA.credential_id, 'synthetic legacy shared canary'),
       minTier: 'shared'
     });
     store.writeEntry(
+      principalA,
       'private:user-a',
       makeEntry('user-a', identity.credentialA.credential_id, 'synthetic legacy private canary')
     );
@@ -244,7 +280,14 @@ describe('M2 memory databases', () => {
     assert.throws(() => store.readPrivateEntries(legacy, 'user-a'), /CREDENTIAL_REQUIRED/);
     assert.equal(store.searchAvailable(legacy, 'synthetic legacy shared canary').length, 1);
     assert.equal(store.searchAvailable(legacy, 'synthetic legacy private canary').length, 0);
-    assert.throws(() => store.writeEntry('private:user-a', makeEntry('user-a', null, CANARY_A)), /CREDENTIAL_REQUIRED/);
+    assert.throws(
+      () => store.writeEntry(
+        legacy,
+        'private:user-a',
+        makeEntry('user-a', identity.credentialA.credential_id, CANARY_A)
+      ),
+      /CREDENTIAL_REQUIRED/
+    );
   });
 
   test('production refuses dev databases and identity startup requires both paths', () => {

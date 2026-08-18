@@ -5,6 +5,7 @@ import { fail, requireText } from './errors.js';
 import { assertKeyReference } from './key-reference.js';
 
 const SAFE_SUBJECT = /^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$/;
+const TIER_STRICTNESS = Object.freeze({ shared: 0, community: 1, private: 2 });
 
 function assertSubjectId(userId) {
   requireText(userId, 'INVALID_USER_ID');
@@ -44,6 +45,7 @@ export class MemoryStore {
   }
 
   provisionShared({ createdAt = new Date().toISOString() } = {}) {
+    if (this.catalog.get('shared')) fail('MEMORY_DB_ALREADY_EXISTS');
     const filePath = path.join(this.catalog.rootDir, 'sp4-shared.db');
     const db = createSharedMemoryDatabase({ path: filePath, createdAt });
     this.handles.set('shared', db);
@@ -114,11 +116,18 @@ export class MemoryStore {
     return db;
   }
 
-  writeEntry(dbId, entry) {
+  writeEntry(principal, dbId, entry) {
+    const verified = this.assertPrincipal(principal);
+    if (verified.userId !== entry.authorUser) fail('AUTHOR_CREDENTIAL_MISMATCH');
     const record = this.catalog.get(dbId);
     if (!record) fail('MEMORY_DB_UNAVAILABLE');
-    const principal = this.credentialPrincipal(entry.authorCred);
-    if (principal.userId !== entry.authorUser) fail('AUTHOR_CREDENTIAL_MISMATCH');
+    if (TIER_STRICTNESS[entry.minTier] === undefined
+        || TIER_STRICTNESS[record.tier] === undefined
+        || TIER_STRICTNESS[entry.minTier] > TIER_STRICTNESS[record.tier]) {
+      fail('MIN_TIER_VIOLATION');
+    }
+    const author = this.credentialPrincipal(entry.authorCred);
+    if (author.userId !== entry.authorUser) fail('AUTHOR_CREDENTIAL_MISMATCH');
     if (record.tier === 'private' && record.subject_id !== entry.authorUser) fail('PRIVATE_OWNER_MISMATCH');
     const db = this.openRecord(record);
     db.prepare(`

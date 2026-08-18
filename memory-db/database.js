@@ -53,8 +53,6 @@ function metadataMap(db) {
 export function createSharedMemoryDatabase({ path: filePath, createdAt = new Date().toISOString(), existing = false }) {
   ensureParent(filePath);
   const db = new Database(filePath);
-  configureSqlCipherProfile(db);
-  db.prepare('SELECT count(*) AS count FROM sqlite_master').get();
   configureCommon(db);
   if (!existing) {
     db.exec(MEMORY_SCHEMA);
@@ -62,8 +60,10 @@ export function createSharedMemoryDatabase({ path: filePath, createdAt = new Dat
     insertMetadata(db, {
       tier: 'shared',
       schema_version: SCHEMA_VERSION,
-      cipher_profile: 'none;driver-profile=sqlcipher',
+      cipher_profile: 'none',
       kdf_params: 'none',
+      sig_verified: 'false',
+      sig_status: 'stored-not-verified-until-M3',
       created_at: createdAt
     });
   }
@@ -93,6 +93,8 @@ export function createPrivateMemoryDatabase({
       schema_version: SCHEMA_VERSION,
       cipher_profile: SQLCIPHER_PROFILE,
       kdf_params: KDF_PARAMS,
+      sig_verified: 'false',
+      sig_status: 'stored-not-verified-until-M3',
       created_at: createdAt,
       env: environment
     });
@@ -107,12 +109,4 @@ export function createPrivateMemoryDatabase({
     fail('DEV_DATABASE_IN_PRODUCTION');
   }
   return db;
-}
-
-export function inspectPrivateDatabase(filePath, { canary }) {
-  const bytes = fs.readFileSync(filePath);
-  return {
-    hasPlaintextHeader: bytes.subarray(0, 16).equals(Buffer.from('SQLite format 3\0')),
-    containsCanary: bytes.includes(Buffer.from(canary, 'utf8'))
-  };
 }

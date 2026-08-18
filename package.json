@@ -44,7 +44,7 @@
     "sp4:cloud": "cross-env SP4_ALLOW_CLOUD=true node index_v07.js",
     "export:dataset": "node export_training_data.js",
     "test:constitution": "node tests/test_constitution_gate.js && node tests/test_litellm_canonical_egress.js && node tests/test_egress_orchestrator.js",
-    "test": "npm run test:constitution",
+    "test": "npm run test:constitution && npm run test:memory:m2",
     "test:smoke:runtime": "node tests/smoke_test.js"
   },
   "dependencies": {

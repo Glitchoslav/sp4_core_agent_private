@@ -89,4 +89,9 @@ SP4 Knowledge Base/
 
 # Zalohy a artefakty
 *.bak-*
+
+# M2 memory DB artefakty — nikdy necommitovať (index/shared plaintext, private SQLCipher)
+sp4-index.db*
+sp4-shared.db*
+sp4-private-*.db*
 kb/
