@@ -110,6 +110,56 @@ async function loadClient({ hosts, legacyHost } = {}) {
   assert.equal(calls.length, 3);
 }
 
+// 4b. HTTP 404 (neexistujuci model) je chyba modelu, nie vypadok sluzby.
+{
+  const calls = [];
+  globalThis.fetch = async (url) => {
+    calls.push(url);
+    return response({ error: "model 'qwen3:8b' not found" }, { ok: false, status: 404, statusText: 'Not Found' });
+  };
+  const client = await loadClient({ hosts: PRIMARY });
+  const result = await client.callOllama({ model: 'qwen3:8b', prompt: 'test', maxRetries: 1 });
+  assert.equal(result.ok, false);
+  assert.equal(result.error, 'MODEL_NOT_FOUND');
+  assert.equal(result.model, 'qwen3:8b');
+  assert.equal(result.status, 404);
+  assert.equal(calls.length, 1, '404 sa neretryuje');
+  const health = client.getOllamaHealthStatus();
+  assert.equal(health.unhealthy, false);
+  assert.equal(health.consecutiveFailures, 0);
+
+  // Dalsi request so spravnym modelom nie je blokovany cooldownom.
+  globalThis.fetch = async () => response({ message: { content: 'ok-after-404' } });
+  const next = await client.callOllama({ model: 'gemma3:4b', prompt: 'test', maxRetries: 0 });
+  assert.equal(next.ok, true);
+  assert.equal(next.text, 'ok-after-404');
+}
+
+// 4c. Ine HTTP chyby (sluzba odpoveda) tiez neotravia health state.
+{
+  globalThis.fetch = async () => response({}, { ok: false, status: 500, statusText: 'Internal Server Error' });
+  const client = await loadClient({ hosts: PRIMARY });
+  const result = await client.callOllama({ model: 'gemma3:4b', prompt: 'test', maxRetries: 0 });
+  assert.equal(result.ok, false);
+  assert.equal(result.error, 'OLLAMA_HTTP_ERROR');
+  assert.equal(result.status, 500);
+  assert.equal(client.getOllamaHealthStatus().unhealthy, false);
+}
+
+// 4d. 404 na primarnom + sekundarny nedostupny -> MODEL_NOT_FOUND, nie unhealthy.
+{
+  globalThis.fetch = async (url) => {
+    if (url.startsWith(PRIMARY)) {
+      return response({ error: 'model not found' }, { ok: false, status: 404, statusText: 'Not Found' });
+    }
+    throw new TypeError('fetch failed');
+  };
+  const client = await loadClient({ hosts: `${PRIMARY},${SECONDARY}` });
+  const result = await client.callOllama({ model: 'qwen3:8b', prompt: 'test', maxRetries: 1 });
+  assert.equal(result.error, 'MODEL_NOT_FOUND');
+  assert.equal(client.getOllamaHealthStatus().unhealthy, false);
+}
+
 // 5. OLLAMA_HOSTS bez ciarky znamena jeden host.
 {
   const client = await loadClient({ hosts: PRIMARY });
@@ -158,4 +208,4 @@ reachabilityCalls.length = 0;
 assert.equal(await isOllamaReachableForToday(), true);
 assert.deepEqual(reachabilityCalls, [`${PRIMARY}/api/tags`, `${SECONDARY}/api/tags`]);
 
-console.log('PASS: Ollama primary/fallback chain (9 contracts)');
+console.log('PASS: Ollama primary/fallback chain (12 contracts)');

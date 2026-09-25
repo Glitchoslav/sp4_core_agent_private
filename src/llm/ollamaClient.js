@@ -171,6 +171,9 @@ export async function callOllama(options) {
     // 🔁 FINITE FALLBACK CHAIN: primary with retries, secondary once.
     let lastError = null;
     let totalRetries = 0;
+    // Host, ktory odpovedal HTTP chybou, je nazive — to nie je vypadok sluzby.
+    let modelNotFoundError = null;
+    let httpError = null;
 
     const hostChain = OLLAMA_HOSTS.slice(0, 2);
     for (let hostIndex = 0; hostIndex < hostChain.length; hostIndex++) {
@@ -287,7 +290,9 @@ Target: 3-5 sentences UNLESS your persona requires longer format (e.g., GLITCHOS
 
             // ❌ HTTP ERROR
             if (!response.ok) {
-                throw new Error(`Ollama HTTP ${response.status}: ${response.statusText}`);
+                const httpError = new Error(`Ollama HTTP ${response.status}: ${response.statusText}`);
+                httpError.status = response.status;
+                throw httpError;
             }
 
             // ✅ SUCCESS
@@ -368,6 +373,10 @@ Target: 3-5 sentences UNLESS your persona requires longer format (e.g., GLITCHOS
             const isNetworkError = err.message.includes('fetch') || err.message.includes('ECONNREFUSED');
 
             const errorType = isTimeout ? 'TIMEOUT' : (isNetworkError ? 'NETWORK' : 'HTTP_ERROR');
+            if (errorType === 'HTTP_ERROR') {
+                if (err.status === 404) modelNotFoundError = err;
+                else httpError = err;
+            }
 
             // 📊 EPOCH KEEPER LOG
             const epochData = {
@@ -414,7 +423,31 @@ Target: 3-5 sentences UNLESS your persona requires longer format (e.g., GLITCHOS
       }
     }
 
-    // ❌ ALL CONFIGURED HOSTS FAILED
+    // ❌ MODEL-SCOPED FAILURE: Ollama odpovedala, len model neexistuje / request zlyhal.
+    // Neotravuj globalny health state — jeden zly tag nesmie zablokovat vsetky modely.
+    if (modelNotFoundError) {
+        console.error(`❌ Ollama model not found: ${model} (health state unchanged)`);
+        return {
+            ok: false,
+            error: 'MODEL_NOT_FOUND',
+            cause: String(modelNotFoundError),
+            status: 404,
+            retries: totalRetries,
+            model,
+        };
+    }
+    if (httpError) {
+        return {
+            ok: false,
+            error: 'OLLAMA_HTTP_ERROR',
+            cause: String(httpError),
+            status: httpError.status,
+            retries: totalRetries,
+            model,
+        };
+    }
+
+    // ❌ ALL CONFIGURED HOSTS UNREACHABLE (network / timeout)
     consecutiveFailures++;
     if (!OLLAMA_UNHEALTHY) {
         OLLAMA_UNHEALTHY = true;
