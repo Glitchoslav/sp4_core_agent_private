@@ -49,8 +49,8 @@ export function calculateConfidenceScore(context = {}) {
         responseLength = 100         // Chars (very short = suspicious)
     } = context;
 
-    // 🎯 BASE SCORE (start at 1.0, deduct for issues)
-    let score = 1.0;
+    // 🎯 BASE SCORE (neutral 0.7 — certainty must be earned, not assumed)
+    let score = 0.7;
     const factors = {};
 
     // 1️⃣ MODEL CONFIDENCE (from modeCompass)

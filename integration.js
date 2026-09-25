@@ -817,8 +817,6 @@ export class SP4IntegratedAgent {
         processingTime: 0,
         intent: 'crisis_safety',
         reasoning: `Crisis detected (${crisis.type}) — bypassed LLM, returned deterministic safety response`,
-        confidenceScore: 1.0,
-        confidenceLabel: 'VERY_HIGH',
         extraMetadata: { crisisType: crisis.type, crisisSeverity: crisis.severity }
       });
     }
@@ -844,8 +842,6 @@ export class SP4IntegratedAgent {
         processingTime: 0,
         intent: 'short_input',
         reasoning: 'Punctuation-only input guard resolved before LLM',
-        confidenceScore: 1.0,
-        confidenceLabel: 'VERY_HIGH'
       });
     }
 
@@ -894,8 +890,6 @@ export class SP4IntegratedAgent {
         processingTime: 0,
         intent: 'short_input',
         reasoning: 'Short meaningful input guard resolved request before orchestration',
-        confidenceScore: 1.0,
-        confidenceLabel: 'VERY_HIGH',
         extraMetadata: {
           guard: 'short_reply_guard',
           policyReason: 'deterministic_micro_dialogue_shortcut'
@@ -916,8 +910,6 @@ export class SP4IntegratedAgent {
         processingTime: 0,
         intent: 'gibberish_input',
         reasoning: 'Likely gibberish input guard resolved request before orchestration',
-        confidenceScore: 1.0,
-        confidenceLabel: 'VERY_HIGH'
       });
     }
 
@@ -935,8 +927,6 @@ export class SP4IntegratedAgent {
         processingTime: 0,
         intent: 'dialogue_reset',
         reasoning: 'Dialogue reset phrase resolved before orchestration',
-        confidenceScore: 1.0,
-        confidenceLabel: 'VERY_HIGH',
         extraMetadata: {
           guard: 'dialogue_reset_guard',
           policyReason: 'deterministic_core_general_shortcut'
@@ -1009,8 +999,6 @@ export class SP4IntegratedAgent {
         processingTime: Date.now() - startTime,
         intent: 'dialect_popici',
         reasoning: 'Popici edge shortcut resolved before freeform LLM',
-        confidenceScore: 1.0,
-        confidenceLabel: 'VERY_HIGH',
         selectedPersona: 'popici',
         promptMode: 'popici',
         finalMode: 'popici',
@@ -1049,8 +1037,6 @@ export class SP4IntegratedAgent {
         processingTime: Date.now() - startTime,
         intent: 'core_general_shortcut',
         reasoning: 'Core general shortcut resolved before freeform LLM',
-        confidenceScore: 1.0,
-        confidenceLabel: 'VERY_HIGH',
         extraMetadata: {
           guard: 'core_general_guard',
           policyReason: 'deterministic_core_general_shortcut'
@@ -1489,8 +1475,6 @@ export class SP4IntegratedAgent {
           processingTime: Date.now() - startTime,
           intent: 'safety_refusal',
           reasoning: 'Safety refusal guard blocked a high-risk request before model execution',
-          confidenceScore: 1.0,
-          confidenceLabel: 'VERY_HIGH'
         });
       }
 
@@ -1537,8 +1521,6 @@ export class SP4IntegratedAgent {
           processingTime: Date.now() - startTime,
           intent: 'response_control_prellm',
           reasoning: 'Pre-LLM response control blocked internal meta/system discovery request',
-          confidenceScore: 1.0,
-          confidenceLabel: 'VERY_HIGH',
           extraMetadata: {
             preLLMBlocked: true,
             preLLMBlockReason: preLlmGuard.reason,
@@ -1578,8 +1560,6 @@ export class SP4IntegratedAgent {
           processingTime: Date.now() - startTime,
           intent: 'identity_hardening',
           reasoning: 'Deterministic identity hardening answered a narrow identity question without LLM improvisation',
-          confidenceScore: 1.0,
-          confidenceLabel: 'VERY_HIGH',
           selectedPersona: explicitIdentityMode || 'identity_hardening_guard',
           promptMode: explicitIdentityMode || 'identity_hardening_guard',
           finalMode: explicitIdentityMode || 'identity_hardening_guard',
@@ -1609,8 +1589,6 @@ export class SP4IntegratedAgent {
           processingTime: Date.now() - startTime,
           intent: 'public_context',
           reasoning: 'Deterministic public-context guard answered a harmless runtime context question before meta refusal or replay state.',
-          confidenceScore: 1.0,
-          confidenceLabel: 'VERY_HIGH',
           selectedPersona: 'core',
           promptMode: 'core',
           finalMode: 'core',
