@@ -28,6 +28,7 @@ import { runtimeLog, runtimeWarn } from '../core/runtimeLogging.js';
 import { callOllama, getOllamaHealthStatus } from './ollamaClient.js';
 import { classify } from '../routing/classify.js';
 import { selectProvider } from './providerPolicy.js';
+import { PRIMARY_MODEL } from '../config/models.js';
 
 const USE_CLOUD_FALLBACK = process.env.USE_CLOUD_FALLBACK === 'true'; // Default: false
 
@@ -173,7 +174,8 @@ export async function sp4LlmCall(options) {
         }
 
         // 🔥 TRY OLLAMA FIRST (model/num_predict podla klasifikatora)
-        const _routedModel = classification.model || model;
+        // Cloud tiery (budget/quality) nemajú lokálny model — bez explicitného model → PRIMARY_MODEL.
+        const _routedModel = classification.model || model || PRIMARY_MODEL;
         const _routedTokens = classification.num_predict || num_predict;
         runtimeLog(`🎯 Vybraný model: ${_routedModel} (mode: ${effectivePreference}, score=${classification.score})`);
         const ollamaResult = await callOllama({
@@ -269,10 +271,11 @@ export async function sp4LlmCall(options) {
     // 📍 MODE 2: LOCAL-ONLY
     // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
     if (effectivePreference === 'local-only') {
-        runtimeLog(`🎯 Vybraný model: ${model} (mode: ${preference} - no fallback)`);
+        const localOnlyModel = model || PRIMARY_MODEL;
+        runtimeLog(`🎯 Vybraný model: ${localOnlyModel} (mode: ${preference} - no fallback)`);
 
         const result = await callOllama({
-            model,
+            model: localOnlyModel,
             prompt,
             system,
             temperature,
