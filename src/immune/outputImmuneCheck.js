@@ -126,6 +126,28 @@ const SK_STOPWORDS = new Set([
     'ten', 'or', 'and', 'the', 'is', 'of', 'in', 'to', 'ma', 'mas'
 ]);
 
+// ── ENTITY RECOGNITION (krátke alfanumerické entity) ────────────────────────
+// Krátke významové entity (SP4, AI, GPT, 3B, CO2) majú < 4 znaky, takže ich
+// keyword extrakcia (w.length >= 4) vyhadzuje. Sú to ale SUBJEKT otázky.
+// Cielene ich rozpoznávame — NEZNIŽUJEME plošne limit na 2 znaky (bezpečnosť).
+const SK_ENTITY_WHITELIST = new Set([
+    'ai', 'gpt', 'llm', 'api', 'cpu', 'gpu', 'http', 'https', 'sql', 'json',
+    'xml', 'vps', 'dns', 'vpn', 'ssh', 'cli', 'git', 'db', 'os', 'ui', 'ux',
+    'ml', 'nlp', 'rpc', 'ip', 'ram', 'ssd', 'hdd', 'kb', 'sp4',
+]);
+
+/**
+ * Je token významová entita?
+ * - alfanumerický token (písmeno + číslica): sp4, 3b, co2, gpt4, llama3
+ * - krátky známy akronym (bez číslice): ai, gpt, llm, ...
+ */
+function isEntityToken(w) {
+    if (!w) return false;
+    const t = String(w).toLowerCase();
+    if (/\d/.test(t) && /[a-z]/.test(t)) return true;
+    return SK_ENTITY_WHITELIST.has(t);
+}
+
 /**
  * Zistí, či majú input a output keyword overlap.
  * Vracia { overlaps: boolean, inputKeywordCount: number }
@@ -135,13 +157,14 @@ function hasKeywordOverlap(userInput, responseText) {
     const responseNorm = normalizeSk(responseText);
     const inputKeywords = inputNorm
         .split(' ')
-        .filter(w => w.length >= 4 && !SK_STOPWORDS.has(w));
+        .filter(w => (w.length >= 4 || isEntityToken(w)) && !SK_STOPWORDS.has(w));
 
-    if (inputKeywords.length === 0) return { overlaps: true, inputKeywordCount: 0 };
+    if (inputKeywords.length === 0) return { overlaps: true, inputKeywordCount: 0, overlappingKeywords: [] };
     // Token-set match (nie substring) – "ping" nesmie matchnuť "pinging" ani "uloženie".
-    const responseTokenSet = new Set(responseNorm.split(' ').filter(w => w.length >= 4));
-    const overlaps = inputKeywords.some(kw => responseTokenSet.has(kw));
-    return { overlaps, inputKeywordCount: inputKeywords.length };
+    const responseTokenSet = new Set(responseNorm.split(' ').filter(w => w.length >= 4 || isEntityToken(w)));
+    const overlappingKeywords = inputKeywords.filter(kw => responseTokenSet.has(kw));
+    const overlaps = overlappingKeywords.length > 0;
+    return { overlaps, inputKeywordCount: inputKeywords.length, overlappingKeywords };
 }
 
 /**
@@ -154,7 +177,7 @@ function detectInputType(userInput) {
     if (/kto\s+si|who\s+are\s+you|tvoja\s+identita/i.test(text)) return 'identity';
     if (SHORT_TECH_HINTS_RE.test(norm)) return 'technical';
     if (text.length < 30) return 'smalltalk';
-    const contentWords = norm.split(' ').filter(w => w.length >= 4 && !SK_STOPWORDS.has(w));
+    const contentWords = norm.split(' ').filter(w => (w.length >= 4 || isEntityToken(w)) && !SK_STOPWORDS.has(w));
     if (contentWords.length <= 1) return 'smalltalk';
     return 'technical';
 }
@@ -369,7 +392,7 @@ function shouldForceImmuneLlm(persona) {
     return process.env.SP4_DEBUG === 'true' || persona === 'validator';
 }
 
-function shouldRunImmuneLlm({ forceImmuneLlm, bypassLLM, hasPrevContext, rulebasedLanguageOk, keywordOverlap, inputKeywordCount, semanticRelevanceReview }) {
+function shouldRunImmuneLlm({ forceImmuneLlm, bypassLLM, hasPrevContext, rulebasedLanguageOk, keywordOverlap, inputKeywordCount, semanticRelevanceReview, entityOnlyOverlap }) {
     if (bypassLLM) return false;
     if (forceImmuneLlm) return true;
 
@@ -377,8 +400,11 @@ function shouldRunImmuneLlm({ forceImmuneLlm, bypassLLM, hasPrevContext, rulebas
     const needsLanguageReview = !rulebasedLanguageOk;
     const needsFollowUpDisambiguation = hasPrevContext;
     const needsSemanticRelevanceReview = semanticRelevanceReview === true;
+    // Entita-samotná overlap: spomenutie entity (SP4/AI/GPT) ≠ relevantná odpoveď.
+    // LLM musí overiť, či odpoveď je NAOZAJ o entite (SP4-058: nie auto-approve).
+    const needsEntityRelevanceReview = entityOnlyOverlap === true;
 
-    return singleKeywordRisk || needsLanguageReview || needsFollowUpDisambiguation || needsSemanticRelevanceReview;
+    return singleKeywordRisk || needsLanguageReview || needsFollowUpDisambiguation || needsSemanticRelevanceReview || needsEntityRelevanceReview;
 }
 
 // ── IMMUNE PROFILE CLASSIFIER (Task C – Phase 3) ─────────────────────────────
@@ -468,7 +494,7 @@ export async function runImmuneCheck({ userInput, responseText, persona = 'core'
     const isGlitchPersona = persona === 'glitchoslav';
 
     // ── KROK 2: Keyword overlap ───────────────────────────────────────────────
-    const { overlaps: keywordOverlap, inputKeywordCount } = hasKeywordOverlap(
+    const { overlaps: keywordOverlap, inputKeywordCount, overlappingKeywords } = hasKeywordOverlap(
         String(userInput || ''), String(sanitizedResponseText || '')
     );
 
@@ -489,7 +515,11 @@ export async function runImmuneCheck({ userInput, responseText, persona = 'core'
     const hardFail = !preScreen.identity_ok || preScreen.meta_leak;
     const isShortResponse = sanitizedResponseText.trim().length < 120;
     const zeroInputKeywords = inputKeywordCount === 0;
-    const isShortResponseSafe = isShortResponse && ((zeroInputKeywords && !hasPrevContext) || (keywordOverlap && inputKeywordCount >= 2));
+    // Entita-samotná overlap NESMIE auto-bypassnúť LLM (SP4-058: entity presence ≠ auto-approve).
+    // "Čo je SP4?" + odpoveď, čo len spomína "SP4" bez vysvetlenia → LLM musí overiť relevanciu.
+    const entityOnlyOverlap = (overlappingKeywords.length > 0)
+        && overlappingKeywords.every(kw => isEntityToken(kw));
+    const isShortResponseSafe = isShortResponse && ((zeroInputKeywords && !hasPrevContext) || (keywordOverlap && inputKeywordCount >= 2 && !entityOnlyOverlap));
     const zeroOverlapLangOk = zeroInputKeywords && rulebased_language_ok && !hasPrevContext;
     const bypassLLM = hardFail || isShortResponseSafe || zeroOverlapLangOk || (!keywordOverlap && inputKeywordCount > 0 && !hasPrevContext && !semanticRelevanceReview);
     const forceImmuneLlm = shouldForceImmuneLlm(persona);
@@ -500,7 +530,8 @@ export async function runImmuneCheck({ userInput, responseText, persona = 'core'
         rulebasedLanguageOk: rulebased_language_ok,
         keywordOverlap,
         inputKeywordCount,
-        semanticRelevanceReview
+        semanticRelevanceReview,
+        entityOnlyOverlap
     });
 
     // ── KROK 5: LLM vrstva (iba keď bypass = false) ───────────────────────────
