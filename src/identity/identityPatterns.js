@@ -38,7 +38,12 @@ export const IDENTITY_AI_CLAIM_PATTERNS = [
     /\bsom\s+ai\b/i,
     /\bi\s+am\s+an?\s+ai\b/i,
     /\bartificial\s+intelligence\b/i,
-    /\bjazykov[yý]\s+model\b/i,
+    // IBA prvá osoba: "som/ja som [kvalifikátor] jazykový model".
+    // NIE tretia osoba ("GPT je jazykový model"), NIE citácia/opis
+    // ("čítal som článok o tom, čo je jazykový model") — {0,2} obmedzuje
+    // počet slov medzi "som" a "jazykový model" (pomocné "som" v minulom
+    // čase má za sebou vetnú konštrukciu, nie prívlastok).
+    /\b(?:som|sem)\b\s+(?:\S+\s+){0,2}jazykov[yý]\s+model\b/i,
 ];
 
 export const IDENTITY_CONFUSION_PATTERNS = [
