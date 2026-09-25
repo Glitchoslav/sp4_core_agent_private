@@ -2,6 +2,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { callOllama, ollamaHealthCheck } from '../src/llm/ollamaClient.js';
+import { PRIMARY_MODEL } from '../sp4os/llmLocal.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -17,6 +18,24 @@ function compactReason(error, debug = false) {
 function formatLine(label, status, reason = '') {
   const dots = '.'.repeat(Math.max(1, 22 - label.length));
   return `- ${label} ${dots} ${status}${reason ? ` (${reason})` : ''}`;
+}
+
+function normalizeModelTag(name) {
+  const value = String(name || '').trim();
+  return value.includes(':') ? value : `${value}:latest`;
+}
+
+// Guard proti neexistujucim tagom (qwen3:8b incident): PRIMARY chyba -> FAIL, FALLBACK -> WARN.
+export function checkConfiguredModels(installedModels, { primary, fallback } = {}) {
+  const installed = new Set(installedModels.map(normalizeModelTag));
+  const missing = [
+    { key: 'PRIMARY_MODEL', model: primary, severity: 'FAIL' },
+    { key: 'FALLBACK_MODEL', model: fallback, severity: 'WARN' },
+  ].filter((entry) => entry.model && !installed.has(normalizeModelTag(entry.model)));
+
+  const status = missing.some((m) => m.severity === 'FAIL') ? 'FAIL' : missing.length > 0 ? 'WARN' : 'OK';
+  const reason = missing.map((m) => `${m.key} ${m.model} not in /api/tags`).join('; ');
+  return { status, reason, missing };
 }
 
 async function tryImport(importPath) {
@@ -36,6 +55,12 @@ export async function runDoctor({ debug = false } = {}) {
 
     if (health.healthy && Array.isArray(health.models) && health.models.length > 0) {
       const installedModels = health.models.map((model) => model.name).filter(Boolean);
+      const tagCheck = checkConfiguredModels(installedModels, {
+        primary: PRIMARY_MODEL,
+        fallback: process.env.FALLBACK_MODEL,
+      });
+      add('Model tags', tagCheck.status, tagCheck.reason);
+
       const configuredPrimary = process.env.PRIMARY_MODEL;
       const model = configuredPrimary && installedModels.includes(configuredPrimary)
         ? configuredPrimary
