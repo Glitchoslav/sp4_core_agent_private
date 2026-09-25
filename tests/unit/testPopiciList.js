@@ -53,7 +53,7 @@ Teraz odpovedz na otázku.
             const response = await askLocalLLM(
                 userMessage,
                 systemPrompt,
-                'llama3:latest',  // POPICI model (after fix)
+                'llama3:8b',  // POPICI model (after fix)
                 {
                     temperature: 0.9,  // POPICI je drzejší
                     mode: 'popici',

@@ -101,7 +101,7 @@ async function testLanguageEnforcement() {
             const response = await askLocalLLM(
                 test.input,
                 prompt.systemPrompt,
-                'llama3:latest',
+                'llama3:8b',
                 {
                     temperature: 0.7,
                     num_predict: 256

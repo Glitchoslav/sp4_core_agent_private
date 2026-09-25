@@ -614,8 +614,8 @@ export async function printModelDiagnostics() {
 
 
 /**
- * Unified model calling function - supports both llama3 and DeepSeek models
- * @param {string} name - Model name (llama3 or deepseek)
+ * Unified model calling function
+ * @param {string} name - Model name (llama3)
  * @param {Object} job - Job parameters
  * @param {string} job.prompt - Prompt text
  * @returns {Object} Result object
@@ -628,25 +628,6 @@ export async function callLocalModel(name, job) {
     });
   }
 
-  if (name === 'deepseek') {
-    return callOllama({
-      model: 'deepseek-r1:8b',
-      prompt: job.prompt,
-    });
-  }
-
   return { ok: false, error: 'Unknown engine: ' + name };
-}
-
-// Cooperative mode functions
-async function refineWithDeepSeek(text) {
-  const res = await callLocalModel('deepseek', {
-    prompt: `Prelož a uprav tento text do kvalitnej slovenčiny:\n\n${text}`
-  });
-  return res.ok ? res.text : text;
-}
-
-function needsRefinement(text) {
-  return text.length < 50 || /[a-zA-Z]{3,}/.test(text); // Short or contains English
 }
 

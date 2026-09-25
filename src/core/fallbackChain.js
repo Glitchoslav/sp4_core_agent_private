@@ -136,8 +136,8 @@ export async function executeWithFallback(options) {
         }
     }
 
-    // 🚨 LAYER 3: EMERGENCY MODEL (llama3:latest - most stable)
-    const emergencyModel = 'llama3:latest';
+    // 🚨 LAYER 3: EMERGENCY MODEL (llama3:8b - most stable)
+    const emergencyModel = 'llama3:8b';
 
     if (emergencyModel !== primaryModel && emergencyModel !== fallbackModel) {
         try {
@@ -230,7 +230,7 @@ function getFallbackModel(persona, task) {
     }
 
     // Default fallback
-    return MODEL_REGISTRY.core?.fallback || 'llama3:latest';
+    return MODEL_REGISTRY.core?.fallback || 'llama3:8b';
 }
 
 /**

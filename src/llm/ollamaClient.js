@@ -61,11 +61,9 @@ function configuredHosts() {
 const OLLAMA_HOSTS = Object.freeze(configuredHosts());
 const SECONDARY_TIMEOUT_MS = 90000;
 
+// Sekundarny host ma garantovane len gemma3:4b.
 function modelForHost(model, hostIndex) {
-    if (hostIndex === 0) return model;
-    if (model === 'gemma3:4b' || model === 'gemma3:12b') return model;
-    if (model === 'qwen2.5:7b' || model === 'qwen2.5-coder:7b') return 'gemma3:4b';
-    return 'gemma3:4b';
+    return hostIndex === 0 ? model : 'gemma3:4b';
 }
 
 const DEFAULT_TIMEOUT_MS = process.env.OLLAMA_TIMEOUT_MS

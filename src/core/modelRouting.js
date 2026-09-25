@@ -3,9 +3,9 @@
 
 export const SP4_MODELS = {
     primary: 'qwen2.5:7b',         // Phase 6: primary local runtime model
-    popici: 'llama3:latest',       // 🔥 Fast & stable (was: Slovak LLM - removed due to RAM)
-    reasoning: 'llama3:latest',    // English reasoning fallback
-    fast: 'llama3:latest',         // Was: gemma3:1b (not available on RunPod)
+    popici: 'llama3:8b',       // 🔥 Fast & stable (was: Slovak LLM - removed due to RAM)
+    reasoning: 'llama3:8b',    // English reasoning fallback
+    fast: 'llama3:8b',         // Was: gemma3:1b (not available on RunPod)
 };
 
 /**
