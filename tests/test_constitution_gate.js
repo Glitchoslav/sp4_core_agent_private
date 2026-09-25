@@ -233,6 +233,7 @@ async function main() {
             model: 'llama3',
             prompt: 'explicit cloud allowed test',
             policy: { allowCloud: true },
+            sensitivity: 'public', // T6 provider policy: bez explicitného public je fail-closed
             actorType: 'automation'
         });
         check('sp4LlmCall vrátil ok:true (povolené)', result.ok === true, JSON.stringify(result));

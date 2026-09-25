@@ -27,6 +27,7 @@ import { recordEpoch } from '../core/epochKeeper.js';
 import { runtimeLog, runtimeWarn } from '../core/runtimeLogging.js';
 import { callOllama, getOllamaHealthStatus } from './ollamaClient.js';
 import { classify } from '../routing/classify.js';
+import { selectProvider } from './providerPolicy.js';
 
 const USE_CLOUD_FALLBACK = process.env.USE_CLOUD_FALLBACK === 'true'; // Default: false
 
@@ -82,6 +83,7 @@ export async function sp4LlmCall(options) {
         actorType = 'automation', // DEC-004: default for non-interactive call sites
         requestId,
         persona = null,
+        sensitivity, // 'public' | 'private'; chýbajúca = private (fail-closed, providerPolicy)
         ...rest
     } = options;
 
@@ -103,6 +105,24 @@ export async function sp4LlmCall(options) {
 
     // 🧠 AI_ROUTING: deterministicky klasifikator narocnosti (0 eur, 0 ms)
     const classification = classify(prompt, { persona });
+    const cloudTier = classification.engine === 'local' ? 'budget' : classification.engine;
+
+    // 🛡️ Každá cloud cesta sa pýta provider policy znova (aj fallback Ollama → cloud).
+    const cloudDecision = () => selectProvider({
+        tier: classification.engine,
+        requested: 'cloud',
+        sensitivity,
+        policy,
+        requestId,
+        model: `litellm:${cloudTier}`,
+    });
+    const cloudDenied = (decision, extra) => ({
+        ok: false,
+        error: 'cloud_denied_by_policy',
+        reason: decision.reason,
+        degraded: true,
+        ...extra,
+    });
 
     // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
     // 📍 MODE 1: LOCAL-FIRST (default)
@@ -111,12 +131,13 @@ export async function sp4LlmCall(options) {
         // 🛡️ Check if Ollama is marked unhealthy
         const healthStatus = getOllamaHealthStatus();
 
-        if (healthStatus.unhealthy && USE_CLOUD_FALLBACK && explicitCloudAllowed && cloudLLM.isCloudLLMConfigured()) {
+        if (healthStatus.unhealthy && USE_CLOUD_FALLBACK && explicitCloudAllowed && cloudLLM.isCloudLLMConfigured()
+            && cloudDecision().provider === 'cloud') {
             runtimeWarn(`⚠️ Ollama UNHEALTHY (cooldown: ${Math.round(healthStatus.cooldownMs / 1000)}s) - skipping to cloud`);
             await logFirewallAdvice(prompt);
 
             try {
-                const text = await cloudLLM.askCloudLLM(prompt, system, { tier: classification.engine === 'local' ? 'budget' : classification.engine, num_predict: classification.num_predict || num_predict, temperature, policy, actorType, requestId });
+                const text = await cloudLLM.askCloudLLM(prompt, system, { tier: cloudTier, num_predict: classification.num_predict || num_predict, temperature, policy, actorType, requestId });
                 return {
                     ok: true,
                     text,
@@ -135,7 +156,8 @@ export async function sp4LlmCall(options) {
         }
 
         // 🧠 AI_ROUTING: komplexne otazky -> cloud priamo (skip Ollama)
-        if (classification.engine !== 'local' && explicitCloudAllowed && USE_CLOUD_FALLBACK) {
+        if (classification.engine !== 'local' && explicitCloudAllowed && USE_CLOUD_FALLBACK
+            && cloudDecision().provider === 'cloud') {
             runtimeLog(`🧠 Komplexna otazka (score=${classification.score}) -> cloud ${classification.engine}`);
             await logFirewallAdvice(prompt);
             try {
@@ -205,12 +227,17 @@ export async function sp4LlmCall(options) {
             };
         }
 
+        const fallbackDecision = cloudDecision();
+        if (fallbackDecision.provider !== 'cloud') {
+            return cloudDenied(fallbackDecision, { engine: 'ollama', localError: ollamaResult.error });
+        }
+
         // 🌐 CLOUD FALLBACK
         runtimeLog('🌐 Falling back to cloud LLM (LiteLLM)...');
         await logFirewallAdvice(prompt);
 
         try {
-            const text = await cloudLLM.askCloudLLM(prompt, system, { tier: classification.engine === 'local' ? 'budget' : classification.engine, num_predict: classification.num_predict || num_predict, temperature, policy, actorType, requestId });
+            const text = await cloudLLM.askCloudLLM(prompt, system, { tier: cloudTier, num_predict: classification.num_predict || num_predict, temperature, policy, actorType, requestId });
 
             // 📊 LOG FALLBACK EVENT
             await recordEpoch('Cloud LLM fallback triggered', {
@@ -282,11 +309,16 @@ export async function sp4LlmCall(options) {
             };
         }
 
+        const cloudOnlyDecision = cloudDecision();
+        if (cloudOnlyDecision.provider !== 'cloud') {
+            return cloudDenied(cloudOnlyDecision, { engine: 'none' });
+        }
+
         runtimeLog('🌐 Cloud-only mode - skipping Ollama');
         await logFirewallAdvice(prompt, 'high');
 
         try {
-            const text = await cloudLLM.askCloudLLM(prompt, system, { tier: classification.engine === 'local' ? 'budget' : classification.engine, num_predict: classification.num_predict || num_predict, temperature, policy, actorType, requestId });
+            const text = await cloudLLM.askCloudLLM(prompt, system, { tier: cloudTier, num_predict: classification.num_predict || num_predict, temperature, policy, actorType, requestId });
             return {
                 ok: true,
                 text,

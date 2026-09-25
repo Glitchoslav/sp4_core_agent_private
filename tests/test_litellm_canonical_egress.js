@@ -114,7 +114,7 @@ async function main() {
     // 5. explicit allow → single sink litellm_gateway
     {
         calls.length = 0;
-        const r = await sp4LlmCall({ preference: 'cloud-only', prompt: 'otazka', policy: { allowCloud: true }, actorType: 'interactive-human' });
+        const r = await sp4LlmCall({ preference: 'cloud-only', prompt: 'otazka', policy: { allowCloud: true }, sensitivity: 'public', actorType: 'interactive-human' });
         const litellmCalls = calls.filter(c => c.includes(':4000'));
         check('allow: ok=true', r.ok === true, JSON.stringify(r));
         check('allow: engine cloud-only', r.engine === 'cloud-only', r.engine);
@@ -168,7 +168,7 @@ async function main() {
         check('forceCloud no-consent → zero network', calls.length === 0, `calls=${calls.length}`);
 
         calls.length = 0;
-        const r2 = await sp4LlmCall({ preference: 'cloud-only', prompt: 'otazka', policy: fcAllow, actorType: 'interactive-human' });
+        const r2 = await sp4LlmCall({ preference: 'cloud-only', prompt: 'otazka', policy: fcAllow, sensitivity: 'public', actorType: 'interactive-human' });
         check('forceCloud + allowCloud:true → LiteLLM', r2.ok === true && calls.filter(c => c.includes(':4000')).length === 1, JSON.stringify(r2));
     }
 
@@ -188,7 +188,7 @@ async function main() {
         const prev = process.env.SP4_ALLOW_CLOUD;
         delete process.env.SP4_ALLOW_CLOUD; // capability OFF
         calls.length = 0;
-        const r = await sp4LlmCall({ preference: 'cloud-only', prompt: 'otazka', policy: { allowCloud: true }, actorType: 'interactive-human' });
+        const r = await sp4LlmCall({ preference: 'cloud-only', prompt: 'otazka', policy: { allowCloud: true }, sensitivity: 'public', actorType: 'interactive-human' });
         check('capability off + consent on → BLOCK', r.ok === false, JSON.stringify(r));
         check('capability off + consent on → zero network', calls.length === 0, `calls=${calls.length}`);
         process.env.SP4_ALLOW_CLOUD = prev; // restore capability

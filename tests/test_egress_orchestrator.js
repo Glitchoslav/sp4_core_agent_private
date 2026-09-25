@@ -69,12 +69,16 @@ async function main() {
         check('orchestrator no policy → zero network', calls.length === 0, `calls=${calls.length}`);
     }
 
-    // 2. mission allowCloud:true → LiteLLM (exactly 1 litellm call)
+    // 2. mission allowCloud:true → stále BLOCK: mission prompt je action-layer context
+    //    (private), T6 provider policy ho na cloud nepustí nikdy (fail-closed, zero network)
     {
         calls.length = 0;
-        const out = await orch.executeCloudTask(mkTask('t2'), { mission: { goal: 'x' }, policy: { allowCloud: true } }, []);
-        check('mission allow → provider litellm', out.provider === 'litellm', JSON.stringify(out));
-        check('mission allow → exactly 1 litellm call', calls.filter(c => c.includes(':4000')).length === 1, `calls=${calls.length}`);
+        let threw = null;
+        try {
+            await orch.executeCloudTask(mkTask('t2'), { mission: { goal: 'x' }, policy: { allowCloud: true } }, []);
+        } catch (e) { threw = e; }
+        check('mission allow → BLOCK by provider policy', threw?.message === 'cloud_denied_by_policy', threw && threw.message);
+        check('mission allow → zero network', calls.length === 0, `calls=${calls.length}`);
     }
 
     // 3. task deny (allowCloud:false) overrides mission allow
@@ -89,9 +93,15 @@ async function main() {
     }
 
     // 4. executeTask cloud path: completes without ReferenceError; engine mapped
+    //    (cloud výsledok stubnutý — egress policy pokrývajú prípady 1-3)
     {
         calls.length = 0;
-        const r = await orch.executeTask(mkTask('t4'), { mission: { goal: 'x' }, policy: { allowCloud: true } }, []);
+        const okOrch = new ExecutionOrchestrator({
+            async askCloudAI() {
+                return { text: 'ok', provider: 'litellm', model: null, cost: null, latency: null };
+            }
+        });
+        const r = await okOrch.executeTask(mkTask('t4'), { mission: { goal: 'x' }, policy: { allowCloud: true } }, []);
         check('executeTask completes', r.status === 'completed', JSON.stringify(r));
         check('executeTask engine_used litellm', r.output?.meta?.engine_used === 'litellm', JSON.stringify(r.output?.meta));
         check('executeTask fallback_used null (unknown)', r.output?.meta?.fallback_used === null, JSON.stringify(r.output?.meta));

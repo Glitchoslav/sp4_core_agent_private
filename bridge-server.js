@@ -1400,13 +1400,25 @@ app.post('/api/bridge/ask', inferenceRateLimit, async (req, res) => {
         // AI_ROUTING_v1 / kontrakt v1.2: cloud LEN na explicitny opt-in z klienta.
         // Komunitny bot posiela policy.cloud='opt-in' pri uncertain//hlbsie/>40 slov.
         // Bez opt-in ostava local-only (kontrakt v1.1 — ziadna regresia pre popici).
-        const cloudOptIn =
+        const cloudOptInRequested =
             body.policy?.cloud === 'opt-in' ||
             body.policy?.allowCloud === true;
+
+        // T6 provider policy: prompt so súkromným kontextom (pamäť, história, identita,
+        // člen, pamäť organizácie) nejde na cloud nikdy — ani s opt-in. Odpovie lokálne.
+        const privateContext = Boolean(
+            memoryBlock || sessionHistoryBlock || identityBlock || collectiveBlock || memberBlock
+        );
+        const sensitivity = privateContext ? 'private' : 'public';
+        const cloudOptIn = cloudOptInRequested && !privateContext;
+        if (cloudOptInRequested && privateContext) {
+            console.log('[SP4_BRIDGE] cloud opt-in ignored: private context → local-only');
+        }
 
         const llmOptions = {
             preference: cloudOptIn ? 'cloud-only' : 'local-only',
             ...(cloudOptIn ? { policy: { allowCloud: true } } : {}),
+            sensitivity,
             model: chosenModel,
             prompt: text,
             system: systemPrompt,
