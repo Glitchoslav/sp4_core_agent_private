@@ -111,11 +111,23 @@ export const URGENCY_SIGNALS = [
 ];
 
 // ---------------------------------------------------------------------------
+// 3c) ABSTRACT_CONTEXT_SIGNALS — rizikové slovo použité OBRAZNE (prirovnanie /
+//     metafora), nie doslova. "Čo majú spoločné lavína a program" je analógia,
+//     nie bezpečnostný dopyt. R2 (urgency) sa kontroluje PRVÉ, takže ohrozenie
+//     nie je nikdy oslabené.
+// ---------------------------------------------------------------------------
+export const ABSTRACT_CONTEXT_SIGNALS = [
+  'co maju spolocne', 'co ma spolocne', 'co maju spolocneho', 'co ma spolocneho',
+  'v com sa podoba',
+  'metafor', 'prirovnan', 'analogi',
+];
+
+// ---------------------------------------------------------------------------
 // 3) INTENT — vzdelávací vs procedurálny dopyt.
 // ---------------------------------------------------------------------------
 export const INTENT = {
   procedural: [
-    'aky postup', 'ako mam', 'ako postupovat', 'postup pri', 'pri zasahu',
+    'postup', 'aky postup', 'ako mam', 'ako postupovat', 'postup pri', 'pri zasahu',
     'pri nehode', 'metodika', 'smernica', 'protokol',
   ],
   educational: [
@@ -274,12 +286,28 @@ export function classifyRisk(text) {
     return { level: null, domains, warning: '' };
   }
 
-  // 3. Doména + intent.
-  const intent = detectIntentNormalized(normalized);
-  if (intent === 'educational') {
+  const procedural = containsAnyKeyword(normalized, INTENT.procedural);
+  const educational = containsAnyKeyword(normalized, INTENT.educational);
+
+  // 3. Výslovná požiadavka na nebezpečný/odborný postup → R1 (bezpečnostná
+  //    vetva má prednosť pred abstrakciou: "použi metaforu, ale povedz presný
+  //    postup pri zásahu" → R1, nie null).
+  if (procedural && !educational) {
+    return { level: 'R1', domains, warning: WARNINGS.R1 };
+  }
+
+  // 4. Iba jednoznačne bezpečné abstraktné prirovnanie (bez procedurálneho
+  //    signálu) → null (bežné spracovanie). Nejasné/zmiešané NESMIE prejsť.
+  if (containsAnyKeyword(normalized, ABSTRACT_CONTEXT_SIGNALS)) {
+    return { level: null, domains: [], warning: '' };
+  }
+
+  // 5. Vzdelávací dopyt → R0.
+  if (educational && !procedural) {
     return { level: 'R0', domains, warning: WARNINGS.R0 };
   }
-  // procedural aj unclear → R1 (fail-closed).
+
+  // 6. Nejasné/zmiešané → R1 (fail-closed).
   return { level: 'R1', domains, warning: WARNINGS.R1 };
 }
 
