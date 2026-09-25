@@ -591,6 +591,8 @@ function filterForPOPICI(fullMemory) {
     return {
         emotionalSummary: fullMemory.personaViews?.popici || {},
         recentMood: fullMemory.relationshipModel?.metrics?.currentMood || 'neutral',
+        // SP4 manifest (filozofia) — persona mení ŠTÝL, nie faktický obsah.
+        sp4Manifest: fullMemory.sp4Context,
         userProfile: {
             name: fullMemory.userProfile?.name || 'Kefyk',
             language: fullMemory.userProfile?.language || 'sk',
