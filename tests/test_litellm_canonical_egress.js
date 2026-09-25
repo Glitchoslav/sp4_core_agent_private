@@ -40,7 +40,7 @@ function prodJsFilesContaining(needle) {
             const p = path.join(dir, e.name);
             if (e.isDirectory()) stack.push(p);
             else if (e.isFile() && e.name.endsWith('.js')) {
-                const rel = path.relative(ROOT, p);
+                const rel = path.relative(ROOT, p).split(path.sep).join('/'); // POSIX separators (Windows)
                 if (rel.startsWith('tests/') || rel.startsWith('examples/') || rel.startsWith('test_')) continue;
                 if (fs.readFileSync(p, 'utf8').includes(needle)) hits.push(rel);
             }
