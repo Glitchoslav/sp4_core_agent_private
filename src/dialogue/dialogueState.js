@@ -748,6 +748,14 @@ export function isFollowUpQuestion(text = '', dialogueState = null) {
     }
 
     const followUpPatterns = [
+        // ── Oprava stratí kontext (P1_P2_FIX_PROPOSAL bod 5) ────────────────
+        // Korekcie/spresnenia predchádzajúcej odpovede musia zostať follow-upmi,
+        // aby sa do promptu dostala predošlá replika (prevAssistantText).
+        /^nie\b/u,
+        /^to\s+som\s+nemyslel/u,
+        /^zle\s+si\s+(ma\s+)?pochopil/u,
+        /^myslel\s+som\s+t[yý]m\b/u,
+        /^nie\s+tak\b/u,
         /^pytam\s+sa/u,
         /^pýtam\s+sa/u,
         /^(a\s+)?(čo|co)\s+ty/u,
