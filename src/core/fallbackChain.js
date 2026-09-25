@@ -13,7 +13,7 @@ import { askLocalLLM, MODEL_REGISTRY, pickModelForTask } from '../../sp4os/llmLo
  * Flow:
  * 1. Try primary model (persona-based or task-based)
  * 2. If fails → try fallback model (from MODEL_REGISTRY)
- * 3. If fails → try emergency model (llama3:latest)
+ * 3. If fails → try emergency model (llama3:8b)
  * 4. If fails → generate safe default response
  * 
  * @param {Object} options - Request options
