@@ -62,6 +62,19 @@ export function classify(text, ctx = {}) {
     // Pozdrav/poďakovanie — triviálne
     if (words < 6 && GREETING_RE.test(t)) { score -= 3; reasons.push('pozdrav'); }
 
+    // Explicitný dopyt po podrobnosti → dlhšia LOKÁLNA odpoveď (nie cloud).
+    // "Vysvetli podrobne" nesmie skončiť na num_predict=150 (done_reason=length).
+    const detailRequest = /(podrobne|podrobnejšie|detailne|dopodorobna|rozpíš|viac detailov)/i.test(t);
+    if (detailRequest) {
+        return {
+            engine: 'local',
+            score: score + 4,
+            num_predict: 400,
+            model: localModel(ctx),
+            reason: [...reasons, 'detail-request'].join(',')
+        };
+    }
+
     if (score <= 0) {
         return { engine: 'local', score, num_predict: 150, model: localModel(ctx), reason: reasons.join(',') || 'trivial' };
     }
