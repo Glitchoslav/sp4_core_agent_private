@@ -98,22 +98,22 @@ export async function ritualMirror(daysBack = 7) {
   // Zhrnť vstupné otázky
   const topics = recentLogs.map(l => l.user || l.input).join("\n- ");
 
-  const triggerContext = triggers?.topTags
-    ? `\nTvoje top tagy: ${triggers.topTags.map(t => t.tag).join(", ")}\nBurnout risk: ${triggers.burnoutRisk ? "🔴 VYSOKÝ" : "🟢 Normálny"}`
+  // Len dáta (tagy), žiadny výrok o psychike používateľa.
+  const triggerContext = triggers?.topTags?.length
+    ? `\nNajčastejšie tagy: ${triggers.topTags.map(t => t.tag).join(", ")}`
     : "";
 
   const mirrorPrompt = `
-Pozri tieto témy, ktoré som riešil v posledných ${daysBack} dňoch:
+Toto sú moje otázky a témy z posledných ${daysBack} dní:
 - ${topics}
 ${triggerContext}
 
-Krátko (max 200 slov) mi naznač:
-1. Čo sa mi opakuje?
-2. Aký vzorec vidíš?
-3. Čo ma teraz naozaj trápi alebo trápi?
-4. Je tam niečo, čo by som mal zmeniť?
+Krátko (max 150 slov) a vecne:
+1. Ktoré témy alebo otázky sa opakujú?
+2. Aký vzorec vidno v tom, na čo sa pýtam (napr. rovnaký problém viackrát, nedokončená téma)?
+3. Čo by mohol byť rozumný ďalší krok k opakujúcej sa téme?
 
-Buď konkrétny a úprimný.
+Opieraj sa len o uvedené témy. Nehodnoť moju osobnosť ani emócie a nedomýšľaj si, čo cítim.
 `;
 
   try {
@@ -280,11 +280,10 @@ Buď praktický a motivačný.
 
 function buildMirrorSystemPrompt() {
   return `
-Si filozofický pozorovateľ.
-Tvoj vznik je vidieť vzorce v skutočnosti.
-Buď úprimný, dokonca bolestný, ak treba.
-Pomáhaj užívateľovi vidieť pravdu o sebe.
-Max 200 slov.
+Si vecný pozorovateľ vzorcov v témach rozhovorov.
+Pomenuj, čo sa opakuje, a navrhni praktický ďalší krok.
+Nerob psychologické súdy, diagnózy ani výroky o osobnosti či emóciách používateľa.
+Opieraj sa len o dodané témy. Max 150 slov.
 `;
 }
 
@@ -314,8 +313,11 @@ Max 200 slov.
 
 export async function handleRitual(command, args = "", ctx = {}) {
   if (command === "/mirror") {
-    console.log("\n🔮 Zrkadlo tvojej duše...\n");
-    const result = await ritualMirror(7);
+    console.log("\n🔮 Zrkadlo posledných tém...\n");
+    // "/mirror 3" → 3 dni; bez čísla alebo neplatné → 7 (rozsah 1–90).
+    const parsedDays = Number.parseInt(String(args || "").trim(), 10);
+    const days = Number.isFinite(parsedDays) ? Math.min(Math.max(parsedDays, 1), 90) : 7;
+    const result = await ritualMirror(days);
     return result;
   }
 
