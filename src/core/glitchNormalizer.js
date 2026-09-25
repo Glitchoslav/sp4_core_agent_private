@@ -12,6 +12,8 @@
  * @module glitchNormalizer
  */
 
+import { preserveCodeSegments } from '../pipeline/codeSegments.js';
+
 /**
  * Normalize glitch-slovak typos to proper Slovak
  * 
@@ -19,6 +21,11 @@
  * @returns {string} - Cleaned text (preserves meaning + glitch tone)
  */
 export function glitchNormalizeSk(text = '') {
+  // Kód (```bloky``` a `inline`) sa nenormalizuje — typo regexy ani zhlukovanie medzier doň nesiahajú.
+  return preserveCodeSegments(text, glitchNormalizeProse);
+}
+
+function glitchNormalizeProse(text = '') {
   if (!text || typeof text !== 'string') return text;
 
   let t = text;

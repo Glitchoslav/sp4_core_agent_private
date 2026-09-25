@@ -4,6 +4,7 @@
 import { hasForbiddenIdentityClaim } from './identityRelationGuard.js';
 import { detectEnglishRatio } from './languageAuthority.js';
 import { assessReadability, hasMixedLanguage, isBrokenSyntax } from './outputSanityGate.js';
+import { preserveCodeSegments } from '../pipeline/codeSegments.js';
 
 /**
  * Zoznam čistých odpovedí pre typické bezpečné odmietnutia.
@@ -227,6 +228,11 @@ export function shouldForceEmpathyMode(emotion) {
  * @returns {string} - vyfiltrovaná odpoveď
  */
 export function filterResponse(text, mode) {
+    // Kód sa nefiltruje — delenie na vety a zhlukovanie medzier by zlúčili bloky kódu do riadku.
+    return preserveCodeSegments(text, (prose) => filterResponseProse(prose, mode));
+}
+
+function filterResponseProse(text, mode) {
     if (!text) return text;
 
     // Scrub meta-leaks pred akýmkoľvek filtrom (všetky módy)

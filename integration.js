@@ -51,6 +51,7 @@ import { getCleanRefusal } from './src/core/responseFilter.js';
 import { applyRhythm, detectRhythm } from './src/core/responseRhythm.js'; // v0.10.0: Response rhythm system
 import { runtimeDebug, runtimeLog, runtimeWarn } from './src/core/runtimeLogging.js';
 import { runWithRequest, traceLayer } from './src/core/requestTrace.js';
+import { preserveCodeSegments } from './src/pipeline/codeSegments.js';
 import { detectWorkMode } from './src/core/modeCompass.js';
 import { detectSP4Query, getGroundedFallbackAnswer, getGroundingPrompt } from './src/core/sp4GroundingKnowledge.js'; // v1.4.2: SP4 factual grounding (anti-hallucination)
 import { getRelevantKb } from './src/core/kb-provider.js'; // sp4-kb ecosystem facts (2026-06-26)
@@ -215,6 +216,11 @@ export function assertPersonaMetadataInvariant(metadata = {}) {
 }
 
 export function scrubPopiciSympathyPhrases(text = '') {
+  // Kód sa nescrubuje — zhlukovanie medzier by rozbilo odsadenie.
+  return preserveCodeSegments(String(text || ''), scrubPopiciSympathyProse);
+}
+
+function scrubPopiciSympathyProse(text = '') {
   return String(text || '')
     .replace(/\bJe mi ľúto,?\s*/gi, '')
     .replace(/\bJe mi luto,?\s*/gi, '')

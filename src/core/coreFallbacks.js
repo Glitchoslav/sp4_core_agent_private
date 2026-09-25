@@ -8,6 +8,7 @@ import {
     SP4_SHORT_DEFINITION,
     SP4_VALUES_FACT
 } from './sp4Facts.js';
+import { preserveCodeSegments } from '../pipeline/codeSegments.js';
 
 /**
  * Clean technical definitions for common queries
@@ -67,6 +68,11 @@ export function getCoreFallback(query) {
  * @returns {string} Sanitized text
  */
 export function sanitizeCoreOutput(text) {
+    // Kód sa nesanitizuje — mazanie zámen (mi, ti, …) a zhlukovanie medzier by ho rozbili.
+    return preserveCodeSegments(text, sanitizeCoreProse);
+}
+
+function sanitizeCoreProse(text) {
     let sanitized = text
         // Remove direct addressing
         .replace(/\bKefyk[^\.\n]*/gi, '')

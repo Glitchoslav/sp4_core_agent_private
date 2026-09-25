@@ -7,6 +7,8 @@
  * @module scrubber.core
  */
 
+import { preserveCodeSegments } from '../../pipeline/codeSegments.js';
+
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 // 🧹 CORE SCRUBBER - ANTI-CORPORATE POLITENESS
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
@@ -18,6 +20,11 @@
  * @returns {string} - Vyčistená odpoveď
  */
 export function scrubCorePoliteness(text) {
+    // Kód sa nescrubuje — zhlukovanie medzier by rozbilo odsadenie.
+    return preserveCodeSegments(text, scrubCorePolitenessProse);
+}
+
+function scrubCorePolitenessProse(text) {
     if (!text || typeof text !== 'string') {
         return text;
     }

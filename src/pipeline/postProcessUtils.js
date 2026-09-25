@@ -1,3 +1,5 @@
+import { preserveCodeSegments } from './codeSegments.js';
+
 export function brutalizeFireResponse(text) {
   return text
     .replace(/nevzdávaj sa/gi, 'ak to fakt chceš, prestaň si klamať a niečo urob')
@@ -138,6 +140,11 @@ export function getGlobalLanguageFailsafeDecision({
 }
 
 export function cleanupWeirdSlovak(text, options = {}) {
+  // Kód sa nečistí: zhlukovanie medzier a mazanie zdvojených slov by rozbili bloky kódu.
+  return preserveCodeSegments(text, (prose) => cleanupWeirdSlovakProse(prose, options));
+}
+
+function cleanupWeirdSlovakProse(text, options = {}) {
   if (!text) return text;
   let out = text;
 
