@@ -918,6 +918,23 @@ export function getDeterministicSmalltalkResponse(message) {
     return null;
 }
 
+// Otázka alebo žiadosť (text po normalizeDeterministicText — bez diakritiky, lowercase).
+const POPICI_EDGE_REQUEST_RE = /\?|\b(preco|ako|kde|kedy|kto|ktor|kolko|oprav|pomoz|pomoc|napis|vysvetli|sprav|urob|ukaz|zhrn|potrebujem|chcem|mozes|vies|daj|porad|nastav)\w*/;
+const POPICI_EDGE_RANT_RE = /^(dristas|trepes|jebe|kokot|kurv|picovin|rozjebal|kraval)/;
+const POPICI_EDGE_FILLER = new Set([
+    'ta', 'co', 'dze', 'fto', 'to', 'toto', 'tento', 'tato', 'ten', 'tie', 'tieto', 'toho', 'tomu', 'tym',
+    'tu', 'tam', 'je', 'si', 'sa', 'som', 'bol', 'bolo', 'mi', 'ma', 'mu', 'ja', 'ty', 'z', 'zo', 'v', 'vo',
+    'na', 'do', 'a', 'aj', 'ale', 'uz', 'zas', 'zase', 'fakt', 'no', 'hej', 'brate', 'bratu', 'kamo', 'kamos',
+    'bordel', 'totalny', 'uplny', 'cely', 'smrdi', 'rozbity', 'nefunguje', 'spravil', 'urobil',
+]);
+
+function countPopiciEdgeContentWords(normalized) {
+    return normalized
+        .split(/[^a-z0-9]+/)
+        .filter((token) => token && !POPICI_EDGE_FILLER.has(token) && !POPICI_EDGE_RANT_RE.test(token))
+        .length;
+}
+
 export function shouldUsePopiciEdgeShortcut(message = '', { lockMode = false } = {}) {
     if (lockMode) {
         return false;
@@ -931,6 +948,12 @@ export function shouldUsePopiciEdgeShortcut(message = '', { lockMode = false } =
         || /\b(nove|novinky|spravy|aktualne|aktualny)\b/.test(normalized)
     );
     if (isFactualOrNews) {
+        return false;
+    }
+
+    // Pevná odpoveď len pre čistý výlev. Otázka alebo žiadosť — aj s vulgarizmom — ide k LLM,
+    // inak sa požiadavka zahodí ("kurva, oprav mi tento skript" → "Ta brate, bordel pomenovaný…").
+    if (POPICI_EDGE_REQUEST_RE.test(normalized) || countPopiciEdgeContentWords(normalized) > 2) {
         return false;
     }
 
