@@ -154,7 +154,7 @@ export async function run(options = {}) {
         let llmText = '';
         try {
             const res = await callOllama({
-                model: options.model || 'qwen3:8b',
+                model: options.model || 'gemma3:4b',
                 prompt,
                 temperature: 0.3,
                 num_predict: 200,

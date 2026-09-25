@@ -26,6 +26,10 @@ const GREETING_RE = /^(ahoj|čau|čaute|dobrý|dobry|dobrý\s+deň|dobry\s+den|d
  * @param {number} [ctx.kbHit] — skóre zásahu KB (Herbár/index.json) 0..1
  * @param {boolean} [ctx.hlbsie] — explicitný /hlbsie príkaz
  */
+// Lokálny model pre routing — jednotný zdroj pravdy: PRIMARY_MODEL z .env.
+// Žiadny hardcoded názov modelu, ktorý by sa mohol rozísť s nainštalovanými modelmi.
+const LOCAL_MODEL = process.env.PRIMARY_MODEL || 'gemma3:4b';
+
 export function classify(text, ctx = {}) {
     const t = String(text || '').trim();
     const words = t.split(/\s+/).filter(Boolean).length;
@@ -57,10 +61,10 @@ export function classify(text, ctx = {}) {
     if (words < 6 && GREETING_RE.test(t)) { score -= 3; reasons.push('pozdrav'); }
 
     if (score <= 0) {
-        return { engine: 'local', score, num_predict: 150, model: 'gemma3:4b', reason: reasons.join(',') || 'trivial' };
+        return { engine: 'local', score, num_predict: 150, model: LOCAL_MODEL, reason: reasons.join(',') || 'trivial' };
     }
     if (score <= 3) {
-        return { engine: 'local', score, num_predict: 250, model: 'qwen3:8b', reason: reasons.join(',') || 'bezny' };
+        return { engine: 'local', score, num_predict: 250, model: LOCAL_MODEL, reason: reasons.join(',') || 'bezny' };
     }
     if (score <= 7) {
         return { engine: 'budget', score, num_predict: 400, model: undefined, reason: reasons.join(',') || 'komplexny' };

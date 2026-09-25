@@ -132,9 +132,9 @@ async function loadClient({ hosts, legacyHost } = {}) {
   };
   const client = await loadClient({ hosts: `${PRIMARY},${SECONDARY}` });
   const result = await client.callOllama({ model: 'qwen2.5:7b', prompt: 'test', maxRetries: 0 });
-  assert.equal(result.model, 'qwen3:8b');
+  assert.equal(result.model, 'gemma3:4b');
   assert.equal(calls[0].body.model, 'qwen2.5:7b');
-  assert.equal(calls[1].body.model, 'qwen3:8b');
+  assert.equal(calls[1].body.model, 'gemma3:4b');
 }
 
 // Plain import pouzivany llmLocal/rituals nacita rovnaku dvojicu hostov.

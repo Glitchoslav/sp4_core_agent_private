@@ -64,8 +64,8 @@ const SECONDARY_TIMEOUT_MS = 90000;
 function modelForHost(model, hostIndex) {
     if (hostIndex === 0) return model;
     if (model === 'gemma3:4b' || model === 'gemma3:12b') return model;
-    if (model === 'qwen2.5:7b' || model === 'qwen2.5-coder:7b') return 'qwen3:8b';
-    return 'qwen3:8b';
+    if (model === 'qwen2.5:7b' || model === 'qwen2.5-coder:7b') return 'gemma3:4b';
+    return 'gemma3:4b';
 }
 
 const DEFAULT_TIMEOUT_MS = process.env.OLLAMA_TIMEOUT_MS
