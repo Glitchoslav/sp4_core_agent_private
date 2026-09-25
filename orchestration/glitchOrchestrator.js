@@ -30,6 +30,7 @@ import {
 import { checkGuardRules, resolveEntity } from '../src/routing/entityResolver.js';
 import { buildDecisionContract, getIntentDescription, isDecisionIntent } from '../src/routing/intentExtractor.js';
 import { analyzeUnified } from '../src/routing/unifiedIntent.js'; // Phase 3 Step 2A: unified intent fallback
+import { traceLayer } from '../src/core/requestTrace.js';
 
 const ENGLISH_FUNCTION_WORDS = /\b(the|and|of|to|in|is|that|with|for|as|by|this|it|from|are|be|on|was|have|has|or|an|if|all|but|can|not|which|will|would|when|there|their|what|who|about|than|into|after|because|through)\b/iu;
 
@@ -66,6 +67,7 @@ export function shouldUseGroundedLanguageFallback(text = '') {
  * @returns {Promise<Object>} { response, handledBy, reasoning, meta }
  */
 export async function orchestrate(userMessage, context = {}) {
+    traceLayer('legacy', 'glitchOrchestrator.orchestrate', { forcedPersona: context.forcedPersona || null });
     // 🛑 1) BYPASS ORCHESTRÁTORA (DEV / TEST)
     if (context.bypassOrchestrator && context.forcedPersona) {
         runtimeLog(`[ORCH] BYPASS → direct persona: ${context.forcedPersona}`);

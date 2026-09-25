@@ -29,6 +29,7 @@ import { callOllama, getOllamaHealthStatus } from './ollamaClient.js';
 import { classify } from '../routing/classify.js';
 import { selectProvider } from './providerPolicy.js';
 import { PRIMARY_MODEL } from '../config/models.js';
+import { currentRequestId, traceLayer } from '../core/requestTrace.js';
 
 const USE_CLOUD_FALLBACK = process.env.USE_CLOUD_FALLBACK === 'true'; // Default: false
 
@@ -82,7 +83,7 @@ export async function sp4LlmCall(options) {
         policy = null,
         forceLocal = false,
         actorType = 'automation', // DEC-004: default for non-interactive call sites
-        requestId,
+        requestId: callerRequestId,
         persona = null,
         sensitivity, // 'public' | 'private'; chýbajúca = private (fail-closed, providerPolicy)
         ...rest
@@ -104,9 +105,13 @@ export async function sp4LlmCall(options) {
         };
     }
 
+    // T7: requestId z volajúceho, inak z request kontextu (bridge / integration vstup).
+    const requestId = callerRequestId ?? currentRequestId() ?? undefined;
+
     // 🧠 AI_ROUTING: deterministicky klasifikator narocnosti (0 eur, 0 ms)
     const classification = classify(prompt, { persona });
     const cloudTier = classification.engine === 'local' ? 'budget' : classification.engine;
+    traceLayer('src', 'llmRouter.sp4LlmCall', { preference: effectivePreference, tier: classification.engine });
 
     // 🛡️ Každá cloud cesta sa pýta provider policy znova (aj fallback Ollama → cloud).
     const cloudDecision = () => selectProvider({

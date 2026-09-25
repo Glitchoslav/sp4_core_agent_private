@@ -21,6 +21,7 @@
 
 import 'dotenv/config';
 import { recordEpoch } from '../core/epochKeeper.js';
+import { traceLayer } from '../core/requestTrace.js';
 
 // 🔧 CONFIGURATION (ENV overrides)
 function ensureDefaultPort(value) {
@@ -126,6 +127,7 @@ export async function callOllama(options) {
         ...rest
     } = options;
 
+    traceLayer('src', 'ollamaClient.callOllama', { model });
     const isTestMode = testMode || process.env.SP4_TEST === 'true';
     const perCallTimeoutMs = Number.isFinite(requestedTimeoutMs) && requestedTimeoutMs > 0
         ? requestedTimeoutMs

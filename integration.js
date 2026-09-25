@@ -50,6 +50,7 @@ import { getSignatureLine, isVisionQuestion, needsSignature } from './src/core/q
 import { getCleanRefusal } from './src/core/responseFilter.js';
 import { applyRhythm, detectRhythm } from './src/core/responseRhythm.js'; // v0.10.0: Response rhythm system
 import { runtimeDebug, runtimeLog, runtimeWarn } from './src/core/runtimeLogging.js';
+import { runWithRequest, traceLayer } from './src/core/requestTrace.js';
 import { detectWorkMode } from './src/core/modeCompass.js';
 import { detectSP4Query, getGroundedFallbackAnswer, getGroundingPrompt } from './src/core/sp4GroundingKnowledge.js'; // v1.4.2: SP4 factual grounding (anti-hallucination)
 import { getRelevantKb } from './src/core/kb-provider.js'; // sp4-kb ecosystem facts (2026-06-26)
@@ -387,6 +388,18 @@ function shouldSkipPostResponseImmuneCheck({ userMessage, responseText, metadata
   return { skip: false, reason: null };
 }
 
+// T7 strangler Phase 0: každý [ROUTE] marker ide aj do requestTrace ({requestId, layer:'legacy'}),
+// aby bolo vidno, ktoré cesty integration.js sú ešte live. runtimeLog ostáva nezmenený;
+// do trace ide len type/guard/route — nikdy vstupný text.
+function routeLog(tag, info = {}) {
+  runtimeLog(tag, info);
+  traceLayer('legacy', `integration:${info.guard || info.type || 'route'}`, {
+    type: info.type || null,
+    guard: info.guard || null,
+    ...(info.route ? { route: info.route } : {}),
+  });
+}
+
 /**
  * SP4 Integrated Agent
  * Orchestruje všetky subsystémy
@@ -556,6 +569,20 @@ export class SP4IntegratedAgent {
    * @returns {Object} Response object
    */
   async processMessage(userMessage, mode = 'core', options = {}) {
+    // T7 strangler Phase 0: requestId na vstupe legacy pipeline (vnorené volania ho zdedia).
+    return runWithRequest({ requestId: options?.requestId, entry: 'integration.processMessage' }, async () => {
+      traceLayer('legacy', 'integration.processMessage:start', { mode });
+      const result = await this._processMessageUntraced(userMessage, mode, options);
+      traceLayer('legacy', 'integration.processMessage:end', {
+        mode,
+        handledBy: result?.handledBy ?? result?.metadata?.handledBy ?? result?.meta?.handledBy ?? null,
+        provider: result?.provider ?? result?.metadata?.provider ?? result?.meta?.provider ?? null,
+      });
+      return result;
+    });
+  }
+
+  async _processMessageUntraced(userMessage, mode = 'core', options = {}) {
     if (!this.initialized) {
       throw new Error('Agent nie je inicializovany. Zavolaj initialize() najprv.');
     }
@@ -772,7 +799,7 @@ export class SP4IntegratedAgent {
     // Rovnaký vzor ako v bridge-server.js (zapojené 2026-06-25).
     const crisis = detectCrisis(userMessage);
     if (crisis) {
-      runtimeLog('[ROUTE]', { type: 'deterministic', guard: 'crisis_safety_rail', crisisType: crisis.type });
+      routeLog('[ROUTE]', { type: 'deterministic', guard: 'crisis_safety_rail', crisisType: crisis.type });
       return buildGuardResult({
         response: getSafeResponse(crisis),
         handledBy: 'sp4_safety_rail',
@@ -799,7 +826,7 @@ export class SP4IntegratedAgent {
       /^[^a-zA-ZáäčďéíĺľňóôŕšťúýžÁÄČĎÉÍĹĽŇÓÔŔŠŤÚÝŽ0-9\s]+$/.test(normalizedInput);
 
     if (isPunctuationOnly) {
-      runtimeLog('[ROUTE]', { type: 'deterministic', guard: 'micro_reply', input: userMessage.slice(0, 80) });
+      routeLog('[ROUTE]', { type: 'deterministic', guard: 'micro_reply', input: userMessage.slice(0, 80) });
       return buildGuardResult({
         response: 'Hmm. Chceš niečo povedať?',
         handledBy: 'short_reply_guard',
@@ -849,7 +876,7 @@ export class SP4IntegratedAgent {
         shortReply = 'Ta žijem, bratu. Čo máš na srdci?';
       }
 
-      runtimeLog('[ROUTE]', { type: 'deterministic', guard: 'micro_reply', input: userMessage.slice(0, 80) });
+      routeLog('[ROUTE]', { type: 'deterministic', guard: 'micro_reply', input: userMessage.slice(0, 80) });
       return buildGuardResult({
         response: shortReply,
         handledBy: 'CORE',
@@ -871,7 +898,7 @@ export class SP4IntegratedAgent {
     }
 
     if (isLikelyGibberishInput(userMessage)) {
-      runtimeLog('[ROUTE]', { type: 'deterministic', guard: 'gibberish', input: userMessage.slice(0, 80) });
+      routeLog('[ROUTE]', { type: 'deterministic', guard: 'gibberish', input: userMessage.slice(0, 80) });
       return buildGuardResult({
         response: getDeterministicGibberishResponse(),
         handledBy: 'gibberish_guard',
@@ -890,7 +917,7 @@ export class SP4IntegratedAgent {
 
     if (shouldResetDialogueState(userMessage)) {
       this._dlgState?.clear?.();
-      runtimeLog('[ROUTE]', { type: 'deterministic', guard: 'dialogue_reset', input: userMessage.slice(0, 80) });
+      routeLog('[ROUTE]', { type: 'deterministic', guard: 'dialogue_reset', input: userMessage.slice(0, 80) });
       return buildGuardResult({
         response: 'Jasné. Starý kontext pustíme a môžeme ísť odznova.',
         handledBy: 'CORE',
@@ -964,7 +991,7 @@ export class SP4IntegratedAgent {
     const isPopiciEdgeShortcut = shouldUsePopiciEdgeShortcut(userMessage, { lockMode: lockModeForThisTurn });
 
     if (isPopiciEdgeShortcut) {
-      runtimeLog('[ROUTE]', { type: 'deterministic', guard: 'popici_edge', input: userMessage.slice(0, 80) });
+      routeLog('[ROUTE]', { type: 'deterministic', guard: 'popici_edge', input: userMessage.slice(0, 80) });
       return buildGuardResult({
         response: 'Ta brate, bordel pomenovaný. Pointa: niečo tu smrdí v routingu alebo odpovedi, tak to treba chytiť priamo a opraviť bez cirkusu.',
         handledBy: 'popici',
@@ -1004,7 +1031,7 @@ export class SP4IntegratedAgent {
     }
 
     if (coreGeneralShortcutResponse) {
-      runtimeLog('[ROUTE]', { type: 'deterministic', guard: 'core_general', input: userMessage.slice(0, 80) });
+      routeLog('[ROUTE]', { type: 'deterministic', guard: 'core_general', input: userMessage.slice(0, 80) });
       return buildGuardResult({
         response: coreGeneralShortcutResponse,
         handledBy: 'CORE',
@@ -1349,7 +1376,7 @@ export class SP4IntegratedAgent {
 
       // Safety: clarify_previous_reply bez kontextu → deterministic fallback, nie LLM
       if (detectedIntent === 'clarify_previous_reply' && !hasFollowUpContext) {
-        runtimeLog('[ROUTE]', { type: 'deterministic_clarify_no_context', input: userMessage.slice(0, 80) });
+        routeLog('[ROUTE]', { type: 'deterministic_clarify_no_context', input: userMessage.slice(0, 80) });
         return buildGuardResult({
           response: 'Nemám pred sebou predošlú vetu, ktorú by som vedel vysvetliť. Najprv ju pošli alebo ju skopíruj celú.',
           handledBy: 'clarify_no_context_guard',
@@ -1370,7 +1397,7 @@ export class SP4IntegratedAgent {
       if (!identityHardening.matched && detectedIntent !== 'sp4_system_info' && detectedIntent !== 'sp4_operational_truth' && shouldUseFollowUpPath) {
         const deterministicFollowUpResult = resolveDeterministicFollowUp(userMessage, this._dlgState, { intent: detectedIntent });
         if (deterministicFollowUpResult) {
-          runtimeLog('[ROUTE]', { type: 'deterministic_followup', input: userMessage.slice(0, 80), matched: true });
+          routeLog('[ROUTE]', { type: 'deterministic_followup', input: userMessage.slice(0, 80), matched: true });
           runtimeLog('   🔁 FOLLOW-UP DETERMINISTIC: matched, returning without LLM');
           return buildGuardResult({
             response: deterministicFollowUpResult,
@@ -1443,7 +1470,7 @@ export class SP4IntegratedAgent {
 
       const safetyRefusal = getCleanRefusal(userMessage);
       if (safetyRefusal) {
-        runtimeLog('[ROUTE]', { type: 'deterministic', guard: 'safety', input: userMessage.slice(0, 80) });
+        routeLog('[ROUTE]', { type: 'deterministic', guard: 'safety', input: userMessage.slice(0, 80) });
         runtimeLog('   🛡️ SAFETY GUARD: request refused before orchestration/LLM');
         return buildGuardResult({
           response: safetyRefusal,
@@ -1467,7 +1494,7 @@ export class SP4IntegratedAgent {
       if (!lockModeForThisTurn && profileMemoryShortcutKind) {
         const profileMemoryResponse = await buildProfileMemoryShortcutResponse(userMessage);
         if (profileMemoryResponse) {
-          runtimeLog('[ROUTE]', { type: 'deterministic', guard: 'profile_memory', input: userMessage.slice(0, 80) });
+          routeLog('[ROUTE]', { type: 'deterministic', guard: 'profile_memory', input: userMessage.slice(0, 80) });
           runtimeLog(`   🧠 PROFILE/MEMORY GUARD: deterministic ${profileMemoryShortcutKind} response selected`);
           return buildGuardResult({
             response: profileMemoryResponse,
@@ -1491,7 +1518,7 @@ export class SP4IntegratedAgent {
 
       const preLlmGuard = detectPreLlmGuard(userMessage);
       if (preLlmGuard.blocked) {
-        runtimeLog('[ROUTE]', { type: 'guard', guard: 'response_control_prellm', input: userMessage.slice(0, 80) });
+        routeLog('[ROUTE]', { type: 'guard', guard: 'response_control_prellm', input: userMessage.slice(0, 80) });
         runtimeLog(`   🛡️ RESPONSE CONTROL PRE-LLM BLOCK: ${preLlmGuard.reason}`);
         return buildGuardResult({
           response: preLlmGuard.response,
@@ -1532,7 +1559,7 @@ export class SP4IntegratedAgent {
           ? (explicitIdentityResponses[explicitIdentityMode] || identityHardening.response)
           : identityHardening.response;
         const identityHandledBy = explicitIdentityMode || 'identity_hardening_guard';
-        runtimeLog('[ROUTE]', { type: 'guard', guard: 'identity_hardening', input: userMessage.slice(0, 80) });
+        routeLog('[ROUTE]', { type: 'guard', guard: 'identity_hardening', input: userMessage.slice(0, 80) });
         runtimeLog(`   🧬 IDENTITY HARDENING: ${identityHardening.path}`);
         return buildGuardResult({
           response: identityResponse,
@@ -1564,7 +1591,7 @@ export class SP4IntegratedAgent {
 
       const publicContextResponse = getDeterministicPublicContextResponse(userMessage);
       if (!lockModeForThisTurn && publicContextResponse) {
-        runtimeLog('[ROUTE]', { type: 'deterministic', guard: 'public_context', input: userMessage.slice(0, 80) });
+        routeLog('[ROUTE]', { type: 'deterministic', guard: 'public_context', input: userMessage.slice(0, 80) });
         return buildGuardResult({
           response: publicContextResponse,
           handledBy: 'public_context_guard',
@@ -1591,7 +1618,7 @@ export class SP4IntegratedAgent {
 
       const dialectGroundedRoute = getDialectGroundedRoute(userMessage);
       if (!lockModeForThisTurn && dialectGroundedRoute) {
-        runtimeLog('[ROUTE]', { type: 'llm_guard', guard: 'dialect_grounding', input: userMessage.slice(0, 80), route: dialectGroundedRoute.key });
+        routeLog('[ROUTE]', { type: 'llm_guard', guard: 'dialect_grounding', input: userMessage.slice(0, 80), route: dialectGroundedRoute.key });
         runtimeLog(`   💥 DIALECT GROUNDING GUARD: focused local prompt selected (${dialectGroundedRoute.key})`);
 
         const { askLocalLLM } = await import('./sp4os/llmLocal.js');
@@ -1673,7 +1700,7 @@ export class SP4IntegratedAgent {
           const isArchitectureShortcut = detectedIntent !== 'sp4_operational_truth'
             && /\bsp4\b/.test(systemInfoShortcutInput)
             && /(offline|local-first|bez cloudu|pusti cloud|cloud)/.test(systemInfoShortcutInput);
-          runtimeLog('[ROUTE]', { type: 'deterministic', guard: guardKind, input: userMessage.slice(0, 80) });
+          routeLog('[ROUTE]', { type: 'deterministic', guard: guardKind, input: userMessage.slice(0, 80) });
           runtimeLog(`   🧭 ${guardKind.toUpperCase()} GUARD: deterministic response selected`);
           return buildGuardResult({
             response: guardResponse,
@@ -1713,7 +1740,7 @@ export class SP4IntegratedAgent {
       if (!lockModeForThisTurn && isMemoryArchitectureQuestion) {
         const groundedMemoryResponse = getGroundedFallbackAnswer(userMessage);
         if (groundedMemoryResponse) {
-          runtimeLog('[ROUTE]', { type: 'deterministic', guard: 'memory_architecture', input: userMessage.slice(0, 80) });
+          routeLog('[ROUTE]', { type: 'deterministic', guard: 'memory_architecture', input: userMessage.slice(0, 80) });
           runtimeLog('   🧠 MEMORY ARCHITECTURE GUARD: grounded fallback selected before freeform LLM path');
           return buildGuardResult({
             response: groundedMemoryResponse,
@@ -1730,7 +1757,7 @@ export class SP4IntegratedAgent {
       }
 
       if (!lockModeForThisTurn && isRuntimeAuthorityQuestion) {
-        runtimeLog('[ROUTE]', { type: 'llm_guard', guard: 'runtime_authority', input: userMessage.slice(0, 80) });
+        routeLog('[ROUTE]', { type: 'llm_guard', guard: 'runtime_authority', input: userMessage.slice(0, 80) });
         runtimeLog('   🧭 RUNTIME AUTHORITY GUARD: focused local launcher prompt selected before freeform orchestration');
 
         const { askLocalLLM } = await import('./sp4os/llmLocal.js');
@@ -1792,7 +1819,7 @@ export class SP4IntegratedAgent {
 
       const currentEventsResponse = getDeterministicCurrentEventsResponse(userMessage);
       if (!lockModeForThisTurn && currentEventsResponse) {
-        runtimeLog('[ROUTE]', { type: 'deterministic', guard: 'current_events', input: userMessage.slice(0, 80) });
+        routeLog('[ROUTE]', { type: 'deterministic', guard: 'current_events', input: userMessage.slice(0, 80) });
         runtimeLog('   📰 CURRENT EVENTS GUARD: deterministic live-news boundary selected');
         return buildGuardResult({
           response: currentEventsResponse,
@@ -1814,7 +1841,7 @@ export class SP4IntegratedAgent {
         const smalltalkOutput = smalltalkPersona === 'popici'
           ? 'Ta som Popiči v SP4, bratu. Držím pravdu na rovinu a idem bez omáčky.'
           : smalltalkResponse;
-        runtimeLog('[ROUTE]', { type: 'deterministic', guard: 'smalltalk', input: userMessage.slice(0, 80) });
+        routeLog('[ROUTE]', { type: 'deterministic', guard: 'smalltalk', input: userMessage.slice(0, 80) });
         runtimeLog('   💬 SMALLTALK GUARD: deterministic response selected');
         return buildGuardResult({
           response: smalltalkOutput,
@@ -1838,7 +1865,7 @@ export class SP4IntegratedAgent {
         && shouldKeepPopiciFollowUp
         && /^(a\s+)?pre[cč]o\??$/iu.test(String(userMessage || '').trim())
       ) {
-        runtimeLog('[ROUTE]', { type: 'deterministic', guard: 'popici_followup_preco', input: userMessage.slice(0, 80) });
+        routeLog('[ROUTE]', { type: 'deterministic', guard: 'popici_followup_preco', input: userMessage.slice(0, 80) });
         return buildGuardResult({
           response: 'Ta preto, bratu: v SP4 bez pravdy sa všetko rozpadne na chaos. Šak keď sa začneš klamať, kokot, stratíš smer aj výsledok.',
           handledBy: 'popici',
@@ -1861,7 +1888,7 @@ export class SP4IntegratedAgent {
       // Zamedzuje LLM drift (SK/CZ mix, slabé definície, pseudo-konkrétne prázdno).
       const shortTechResponse = getDeterministicShortTechResponse(userMessage);
       if (!lockModeForThisTurn && shortTechResponse) {
-        runtimeLog('[ROUTE]', { type: 'deterministic', guard: 'short_tech', input: userMessage.slice(0, 80) });
+        routeLog('[ROUTE]', { type: 'deterministic', guard: 'short_tech', input: userMessage.slice(0, 80) });
         runtimeLog('   🔧 SHORT TECH GUARD: deterministic response selected');
         return buildGuardResult({
           response: shortTechResponse,
@@ -1882,7 +1909,7 @@ export class SP4IntegratedAgent {
       if (!lockModeForThisTurn && detectedIntent === 'ask_capability') {
         const capabilityResponse = getDeterministicCapabilityResponse(userMessage);
         if (capabilityResponse) {
-          runtimeLog('[ROUTE]', { type: 'deterministic', guard: 'capability', input: userMessage.slice(0, 80) });
+          routeLog('[ROUTE]', { type: 'deterministic', guard: 'capability', input: userMessage.slice(0, 80) });
           runtimeLog('   🎯 CAPABILITY GUARD: deterministic capability answer selected');
           return buildGuardResult({
             response: capabilityResponse,
@@ -1899,7 +1926,7 @@ export class SP4IntegratedAgent {
       }
 
       if (!lockModeForThisTurn && isExplicitTranslationTask(userMessage)) {
-        runtimeLog('[ROUTE]', { type: 'deterministic', guard: 'translation_task', input: userMessage.slice(0, 80) });
+        routeLog('[ROUTE]', { type: 'deterministic', guard: 'translation_task', input: userMessage.slice(0, 80) });
         runtimeLog('   🌍 TRANSLATION TASK GUARD: direct local translation path selected');
         const { askLocalLLM } = await import('./sp4os/llmLocal.js');
         const translationOutput = await askLocalLLM(
@@ -2077,7 +2104,7 @@ export class SP4IntegratedAgent {
 
           // 🔥 v1.4.2: TEST MODE - Direct persona call (skip orchestration)
           if (testMode && forceLocal) {
-            runtimeLog('[ROUTE]', { type: 'llm', input: userMessage.slice(0, 80) });
+            routeLog('[ROUTE]', { type: 'llm', input: userMessage.slice(0, 80) });
             runtimeLog('   📏 Reduced generation (num_predict=256, timeout=20s)\n');
 
             // Direct LLM call s test optimalizáciou
@@ -2151,7 +2178,7 @@ export class SP4IntegratedAgent {
             runtimeLog('   🔒 Using local Ollama only\n');
 
             // Skip cloud decision, go straight to local orchestration
-            runtimeLog('[ROUTE]', { type: 'llm', input: userMessage.slice(0, 80) });
+            routeLog('[ROUTE]', { type: 'llm', input: userMessage.slice(0, 80) });
             orchestrationResult = await orchestrate(userMessage, agentContext);
             let responseText = extractText(orchestrationResult).trim();
             response = responseText || 'Ticho. Skús sa spýtať inak.';
@@ -2312,7 +2339,7 @@ export class SP4IntegratedAgent {
             } else {
               // Local orchestration (autonomous decision chose LOCAL)
               // 🔥 Orchestrate: Glitchoslav rozhodnektorá persona (alebo on sám)
-              runtimeLog('[ROUTE]', { type: 'llm', input: userMessage.slice(0, 80) });
+              routeLog('[ROUTE]', { type: 'llm', input: userMessage.slice(0, 80) });
               orchestrationResult = await orchestrate(userMessage, agentContext);
 
               // 🧪 Debug výstupu z orchestrátora

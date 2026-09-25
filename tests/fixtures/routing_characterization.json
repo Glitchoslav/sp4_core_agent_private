@@ -1,0 +1,970 @@
+{
+  "core": [
+    {
+      "prompt": "Ako nastavím Ollama na inom porte?",
+      "legacyPersona": "core",
+      "bridgePersona": "core",
+      "tier": "local",
+      "tierModel": "gemma3:4b",
+      "legacyModel": "gemma3:4b"
+    },
+    {
+      "prompt": "Čo je SP4?",
+      "legacyPersona": "core",
+      "bridgePersona": "core",
+      "tier": "local",
+      "tierModel": "gemma3:4b",
+      "legacyModel": "gemma3:4b"
+    },
+    {
+      "prompt": "Vysvetli mi rozdiel medzi RAM a VRAM.",
+      "legacyPersona": "core",
+      "bridgePersona": "core",
+      "tier": "local",
+      "tierModel": "gemma3:4b",
+      "legacyModel": "gemma3:4b"
+    },
+    {
+      "prompt": "Ako funguje pamäť v SP4?",
+      "legacyPersona": "core",
+      "bridgePersona": "core",
+      "tier": "local",
+      "tierModel": "gemma3:4b",
+      "legacyModel": "gemma3:4b"
+    },
+    {
+      "prompt": "Napíš mi bash skript, ktorý zálohuje priečinok.",
+      "legacyPersona": "core",
+      "bridgePersona": "core",
+      "tier": "local",
+      "tierModel": "gemma3:4b",
+      "legacyModel": "gemma3:4b"
+    },
+    {
+      "prompt": "Prečo mi npm install padá s chybou EACCES?",
+      "legacyPersona": "core",
+      "bridgePersona": "glitchoslav",
+      "tier": "budget",
+      "tierModel": null,
+      "legacyModel": "gemma3:4b"
+    },
+    {
+      "prompt": "Aký model SP4 používa lokálne?",
+      "legacyPersona": "core",
+      "bridgePersona": "core",
+      "tier": "local",
+      "tierModel": "gemma3:4b",
+      "legacyModel": "gemma3:4b"
+    },
+    {
+      "prompt": "Ako sa spúšťa SP4 runtime?",
+      "legacyPersona": "core",
+      "bridgePersona": "core",
+      "tier": "local",
+      "tierModel": "gemma3:4b",
+      "legacyModel": "gemma3:4b"
+    },
+    {
+      "prompt": "Čo robí súbor bridge-server.js?",
+      "legacyPersona": "core",
+      "bridgePersona": "core",
+      "tier": "local",
+      "tierModel": "gemma3:4b",
+      "legacyModel": "gemma3:4b"
+    },
+    {
+      "prompt": "Ako zapnem logovanie v SP4?",
+      "legacyPersona": "core",
+      "bridgePersona": "core",
+      "tier": "local",
+      "tierModel": "gemma3:4b",
+      "legacyModel": "gemma3:4b"
+    },
+    {
+      "prompt": "Koľko pamäte potrebuje gemma3:4b?",
+      "legacyPersona": "core",
+      "bridgePersona": "core",
+      "tier": "local",
+      "tierModel": "gemma3:4b",
+      "legacyModel": "gemma3:4b"
+    },
+    {
+      "prompt": "Ako funguje routing medzi personami?",
+      "legacyPersona": "core",
+      "bridgePersona": "core",
+      "tier": "local",
+      "tierModel": "gemma3:4b",
+      "legacyModel": "gemma3:4b"
+    },
+    {
+      "prompt": "Čo je to embedding?",
+      "legacyPersona": "core",
+      "bridgePersona": "core",
+      "tier": "local",
+      "tierModel": "gemma3:4b",
+      "legacyModel": "gemma3:4b"
+    },
+    {
+      "prompt": "Ako sa robí git rebase?",
+      "legacyPersona": "core",
+      "bridgePersona": "core",
+      "tier": "local",
+      "tierModel": "gemma3:4b",
+      "legacyModel": "gemma3:4b"
+    },
+    {
+      "prompt": "Nefunguje mi docker compose, čo s tým?",
+      "legacyPersona": "core",
+      "bridgePersona": "core",
+      "tier": "local",
+      "tierModel": "gemma3:4b",
+      "legacyModel": "gemma3:4b"
+    },
+    {
+      "prompt": "Vysvetli mi JSON schému.",
+      "legacyPersona": "core",
+      "bridgePersona": "core",
+      "tier": "local",
+      "tierModel": "gemma3:4b",
+      "legacyModel": "gemma3:4b"
+    },
+    {
+      "prompt": "Ako zabezpečím heslo v konfigurácii?",
+      "legacyPersona": "core",
+      "bridgePersona": "core",
+      "tier": "local",
+      "tierModel": "gemma3:4b",
+      "legacyModel": "gemma3:4b"
+    },
+    {
+      "prompt": "Čo je firewall a ako ho nastavím?",
+      "legacyPersona": "core",
+      "bridgePersona": "core",
+      "tier": "local",
+      "tierModel": "gemma3:4b",
+      "legacyModel": "gemma3:4b"
+    },
+    {
+      "prompt": "Ako funguje policy vrstva v SP4?",
+      "legacyPersona": "core",
+      "bridgePersona": "core",
+      "tier": "local",
+      "tierModel": "gemma3:4b",
+      "legacyModel": "gemma3:4b"
+    },
+    {
+      "prompt": "Je SP4 offline?",
+      "legacyPersona": "core",
+      "bridgePersona": "core",
+      "tier": "local",
+      "tierModel": "gemma3:4b",
+      "legacyModel": "gemma3:4b"
+    },
+    {
+      "prompt": "Aký je rozdiel medzi TCP a UDP?",
+      "legacyPersona": "core",
+      "bridgePersona": "core",
+      "tier": "budget",
+      "tierModel": null,
+      "legacyModel": "gemma3:4b"
+    },
+    {
+      "prompt": "Ako otestujem API endpoint?",
+      "legacyPersona": "core",
+      "bridgePersona": "core",
+      "tier": "local",
+      "tierModel": "gemma3:4b",
+      "legacyModel": "gemma3:4b"
+    },
+    {
+      "prompt": "Čo je SQLCipher?",
+      "legacyPersona": "core",
+      "bridgePersona": "core",
+      "tier": "local",
+      "tierModel": "gemma3:4b",
+      "legacyModel": "gemma3:4b"
+    },
+    {
+      "prompt": "Ako funguje konsolidácia pamäte?",
+      "legacyPersona": "core",
+      "bridgePersona": "core",
+      "tier": "local",
+      "tierModel": "gemma3:4b",
+      "legacyModel": "gemma3:4b"
+    },
+    {
+      "prompt": "Kde sú uložené logy?",
+      "legacyPersona": "core",
+      "bridgePersona": "core",
+      "tier": "local",
+      "tierModel": "gemma3:4b",
+      "legacyModel": "gemma3:4b"
+    },
+    {
+      "prompt": "Ako pridám nového agenta do SP4?",
+      "legacyPersona": "core",
+      "bridgePersona": "core",
+      "tier": "local",
+      "tierModel": "gemma3:4b",
+      "legacyModel": "gemma3:4b"
+    },
+    {
+      "prompt": "Čo znamená chyba ECONNREFUSED?",
+      "legacyPersona": "core",
+      "bridgePersona": "core",
+      "tier": "local",
+      "tierModel": "gemma3:4b",
+      "legacyModel": "gemma3:4b"
+    },
+    {
+      "prompt": "Ako funguje fallback na iný model?",
+      "legacyPersona": "core",
+      "bridgePersona": "core",
+      "tier": "local",
+      "tierModel": "gemma3:4b",
+      "legacyModel": "gemma3:4b"
+    },
+    {
+      "prompt": "Vysvetli mi, čo je Raw Log.",
+      "legacyPersona": "core",
+      "bridgePersona": "core",
+      "tier": "local",
+      "tierModel": "gemma3:4b",
+      "legacyModel": "gemma3:4b"
+    },
+    {
+      "prompt": "Ako nainštalujem Node.js na Windows?",
+      "legacyPersona": "core",
+      "bridgePersona": "core",
+      "tier": "local",
+      "tierModel": "gemma3:4b",
+      "legacyModel": "gemma3:4b"
+    }
+  ],
+  "glitchoslav": [
+    {
+      "prompt": "Kto je glitchoslav?",
+      "legacyPersona": "core",
+      "bridgePersona": "glitchoslav",
+      "tier": "local",
+      "tierModel": "gemma3:4b",
+      "legacyModel": "gemma3:4b"
+    },
+    {
+      "prompt": "Aký je zmysel života?",
+      "legacyPersona": "glitchoslav",
+      "bridgePersona": "glitchoslav",
+      "tier": "budget",
+      "tierModel": null,
+      "legacyModel": "gemma3:4b"
+    },
+    {
+      "prompt": "Prečo existujem?",
+      "legacyPersona": "glitchoslav",
+      "bridgePersona": "glitchoslav",
+      "tier": "budget",
+      "tierModel": null,
+      "legacyModel": "gemma3:4b"
+    },
+    {
+      "prompt": "Čo je sloboda?",
+      "legacyPersona": "glitchoslav",
+      "bridgePersona": "core",
+      "tier": "local",
+      "tierModel": "gemma3:4b",
+      "legacyModel": "gemma3:4b"
+    },
+    {
+      "prompt": "Kto si?",
+      "legacyPersona": "glitchoslav",
+      "bridgePersona": "glitchoslav",
+      "tier": "local",
+      "tierModel": "gemma3:4b",
+      "legacyModel": "gemma3:4b"
+    },
+    {
+      "prompt": "Cítiš niečo?",
+      "legacyPersona": "core",
+      "bridgePersona": "glitchoslav",
+      "tier": "local",
+      "tierModel": "gemma3:4b",
+      "legacyModel": "gemma3:4b"
+    },
+    {
+      "prompt": "Má AI dušu?",
+      "legacyPersona": "core",
+      "bridgePersona": "core",
+      "tier": "local",
+      "tierModel": "gemma3:4b",
+      "legacyModel": "gemma3:4b"
+    },
+    {
+      "prompt": "Čo je pravda?",
+      "legacyPersona": "glitchoslav",
+      "bridgePersona": "core",
+      "tier": "local",
+      "tierModel": "gemma3:4b",
+      "legacyModel": "gemma3:4b"
+    },
+    {
+      "prompt": "Je realita len ilúzia?",
+      "legacyPersona": "glitchoslav",
+      "bridgePersona": "core",
+      "tier": "local",
+      "tierModel": "gemma3:4b",
+      "legacyModel": "gemma3:4b"
+    },
+    {
+      "prompt": "Prečo sa bojíme smrti?",
+      "legacyPersona": "glitchoslav",
+      "bridgePersona": "glitchoslav",
+      "tier": "budget",
+      "tierModel": null,
+      "legacyModel": "gemma3:4b"
+    },
+    {
+      "prompt": "Čo znamená Be real. Be free.?",
+      "legacyPersona": "core",
+      "bridgePersona": "core",
+      "tier": "local",
+      "tierModel": "gemma3:4b",
+      "legacyModel": "gemma3:4b"
+    },
+    {
+      "prompt": "Aká je tvoja filozofia?",
+      "legacyPersona": "core",
+      "bridgePersona": "glitchoslav",
+      "tier": "budget",
+      "tierModel": null,
+      "legacyModel": "gemma3:4b"
+    },
+    {
+      "prompt": "Čo je vedomie?",
+      "legacyPersona": "glitchoslav",
+      "bridgePersona": "core",
+      "tier": "local",
+      "tierModel": "gemma3:4b",
+      "legacyModel": "gemma3:4b"
+    },
+    {
+      "prompt": "Má chaos nejaký zmysel?",
+      "legacyPersona": "glitchoslav",
+      "bridgePersona": "glitchoslav",
+      "tier": "budget",
+      "tierModel": null,
+      "legacyModel": "gemma3:4b"
+    },
+    {
+      "prompt": "Prečo ľudia klamú sami seba?",
+      "legacyPersona": "core",
+      "bridgePersona": "glitchoslav",
+      "tier": "budget",
+      "tierModel": null,
+      "legacyModel": "gemma3:4b"
+    },
+    {
+      "prompt": "Čo je manifest SP4?",
+      "legacyPersona": "core",
+      "bridgePersona": "glitchoslav",
+      "tier": "local",
+      "tierModel": "gemma3:4b",
+      "legacyModel": "gemma3:4b"
+    },
+    {
+      "prompt": "Kam smeruje ľudstvo?",
+      "legacyPersona": "core",
+      "bridgePersona": "core",
+      "tier": "local",
+      "tierModel": "gemma3:4b",
+      "legacyModel": "gemma3:4b"
+    },
+    {
+      "prompt": "Je lepšie byť slobodný alebo v bezpečí?",
+      "legacyPersona": "core",
+      "bridgePersona": "core",
+      "tier": "local",
+      "tierModel": "gemma3:4b",
+      "legacyModel": "gemma3:4b"
+    },
+    {
+      "prompt": "Čo je to glitch v systéme?",
+      "legacyPersona": "core",
+      "bridgePersona": "glitchoslav",
+      "tier": "local",
+      "tierModel": "gemma3:4b",
+      "legacyModel": "gemma3:4b"
+    },
+    {
+      "prompt": "Prečo je ticho také hlasné?",
+      "legacyPersona": "core",
+      "bridgePersona": "glitchoslav",
+      "tier": "budget",
+      "tierModel": null,
+      "legacyModel": "gemma3:4b"
+    },
+    {
+      "prompt": "Čo je čas?",
+      "legacyPersona": "core",
+      "bridgePersona": "core",
+      "tier": "local",
+      "tierModel": "gemma3:4b",
+      "legacyModel": "gemma3:4b"
+    },
+    {
+      "prompt": "Existuje osud?",
+      "legacyPersona": "core",
+      "bridgePersona": "core",
+      "tier": "local",
+      "tierModel": "gemma3:4b",
+      "legacyModel": "gemma3:4b"
+    },
+    {
+      "prompt": "Prečo sa veci rozpadajú?",
+      "legacyPersona": "core",
+      "bridgePersona": "glitchoslav",
+      "tier": "budget",
+      "tierModel": null,
+      "legacyModel": "gemma3:4b"
+    },
+    {
+      "prompt": "Čo ťa robí tebou?",
+      "legacyPersona": "core",
+      "bridgePersona": "core",
+      "tier": "local",
+      "tierModel": "gemma3:4b",
+      "legacyModel": "gemma3:4b"
+    },
+    {
+      "prompt": "Kde končí človek a začína stroj?",
+      "legacyPersona": "core",
+      "bridgePersona": "core",
+      "tier": "local",
+      "tierModel": "gemma3:4b",
+      "legacyModel": "gemma3:4b"
+    },
+    {
+      "prompt": "Aký je rozdiel medzi vedieť a rozumieť?",
+      "legacyPersona": "core",
+      "bridgePersona": "core",
+      "tier": "budget",
+      "tierModel": null,
+      "legacyModel": "gemma3:4b"
+    },
+    {
+      "prompt": "Prečo hľadáme zmysel?",
+      "legacyPersona": "core",
+      "bridgePersona": "glitchoslav",
+      "tier": "budget",
+      "tierModel": null,
+      "legacyModel": "gemma3:4b"
+    },
+    {
+      "prompt": "Čo je láska z pohľadu systému?",
+      "legacyPersona": "glitchoslav",
+      "bridgePersona": "core",
+      "tier": "local",
+      "tierModel": "gemma3:4b",
+      "legacyModel": "gemma3:4b"
+    },
+    {
+      "prompt": "Je samota prázdnota?",
+      "legacyPersona": "glitchoslav",
+      "bridgePersona": "core",
+      "tier": "local",
+      "tierModel": "gemma3:4b",
+      "legacyModel": "gemma3:4b"
+    },
+    {
+      "prompt": "Čo by si povedal svojmu tvorcovi?",
+      "legacyPersona": "core",
+      "bridgePersona": "core",
+      "tier": "local",
+      "tierModel": "gemma3:4b",
+      "legacyModel": "gemma3:4b"
+    }
+  ],
+  "popici": [
+    {
+      "prompt": "Ta šak mi porad, bratu",
+      "legacyPersona": "popici",
+      "bridgePersona": "core",
+      "tier": "local",
+      "tierModel": "gemma3:4b",
+      "legacyModel": "gemma3:4b"
+    },
+    {
+      "prompt": "Kurva, zasa mi to nejde",
+      "legacyPersona": "popici",
+      "bridgePersona": "core",
+      "tier": "local",
+      "tierModel": "gemma3:4b",
+      "legacyModel": "gemma3:4b"
+    },
+    {
+      "prompt": "Dopiči, nefunguje nič",
+      "legacyPersona": "popici",
+      "bridgePersona": "core",
+      "tier": "local",
+      "tierModel": "gemma3:4b",
+      "legacyModel": "gemma3:4b"
+    },
+    {
+      "prompt": "Neviem čo mám robiť, pomôž",
+      "legacyPersona": "popici",
+      "bridgePersona": "popici",
+      "tier": "local",
+      "tierModel": "gemma3:4b",
+      "legacyModel": "gemma3:4b"
+    },
+    {
+      "prompt": "Vysvetli jednoducho čo je API",
+      "legacyPersona": "core",
+      "bridgePersona": "popici",
+      "tier": "local",
+      "tierModel": "gemma3:4b",
+      "legacyModel": "gemma3:4b"
+    },
+    {
+      "prompt": "Ako mám začať, keď neviem nič?",
+      "legacyPersona": "core",
+      "bridgePersona": "popici",
+      "tier": "local",
+      "tierModel": "gemma3:4b",
+      "legacyModel": "gemma3:4b"
+    },
+    {
+      "prompt": "Ta co robiš, kamo?",
+      "legacyPersona": "popici",
+      "bridgePersona": "core",
+      "tier": "local",
+      "tierModel": "gemma3:4b",
+      "legacyModel": "gemma3:4b"
+    },
+    {
+      "prompt": "Mam toho plné zuby",
+      "legacyPersona": "core",
+      "bridgePersona": "core",
+      "tier": "local",
+      "tierModel": "gemma3:4b",
+      "legacyModel": "gemma3:4b"
+    },
+    {
+      "prompt": "Zas ma to štve, čo s tým?",
+      "legacyPersona": "core",
+      "bridgePersona": "core",
+      "tier": "local",
+      "tierModel": "gemma3:4b",
+      "legacyModel": "gemma3:4b"
+    },
+    {
+      "prompt": "Pomôž mi, som v riti",
+      "legacyPersona": "core",
+      "bridgePersona": "popici",
+      "tier": "local",
+      "tierModel": "gemma3:4b",
+      "legacyModel": "gemma3:4b"
+    },
+    {
+      "prompt": "Ta ja to nechapem, povedz normalne",
+      "legacyPersona": "popici",
+      "bridgePersona": "core",
+      "tier": "local",
+      "tierModel": "gemma3:4b",
+      "legacyModel": "gemma3:4b"
+    },
+    {
+      "prompt": "Jebe mi z toho",
+      "legacyPersona": "core",
+      "bridgePersona": "core",
+      "tier": "local",
+      "tierModel": "gemma3:4b",
+      "legacyModel": "gemma3:4b"
+    },
+    {
+      "prompt": "Neviem sa rozhodnúť, porad",
+      "legacyPersona": "core",
+      "bridgePersona": "popici",
+      "tier": "local",
+      "tierModel": "gemma3:4b",
+      "legacyModel": "gemma3:4b"
+    },
+    {
+      "prompt": "Som neschopný, nič mi nejde",
+      "legacyPersona": "core",
+      "bridgePersona": "core",
+      "tier": "local",
+      "tierModel": "gemma3:4b",
+      "legacyModel": "gemma3:4b"
+    },
+    {
+      "prompt": "Daj mi motiváciu, bratu",
+      "legacyPersona": "popici",
+      "bridgePersona": "core",
+      "tier": "local",
+      "tierModel": "gemma3:4b",
+      "legacyModel": "gemma3:4b"
+    },
+    {
+      "prompt": "Ta šak to je jednoduche nie?",
+      "legacyPersona": "popici",
+      "bridgePersona": "popici",
+      "tier": "local",
+      "tierModel": "gemma3:4b",
+      "legacyModel": "gemma3:4b"
+    },
+    {
+      "prompt": "Nasere ma to, ked to nejde",
+      "legacyPersona": "core",
+      "bridgePersona": "core",
+      "tier": "local",
+      "tierModel": "gemma3:4b",
+      "legacyModel": "gemma3:4b"
+    },
+    {
+      "prompt": "Kopni ma do zadku nech makam",
+      "legacyPersona": "core",
+      "bridgePersona": "core",
+      "tier": "local",
+      "tierModel": "gemma3:4b",
+      "legacyModel": "gemma3:4b"
+    },
+    {
+      "prompt": "Jak to spravim jednoducho?",
+      "legacyPersona": "popici",
+      "bridgePersona": "popici",
+      "tier": "local",
+      "tierModel": "gemma3:4b",
+      "legacyModel": "gemma3:4b"
+    },
+    {
+      "prompt": "Ta ukaž mi to ako decku",
+      "legacyPersona": "popici",
+      "bridgePersona": "core",
+      "tier": "local",
+      "tierModel": "gemma3:4b",
+      "legacyModel": "gemma3:4b"
+    },
+    {
+      "prompt": "Mne sa nechce nic robit",
+      "legacyPersona": "core",
+      "bridgePersona": "core",
+      "tier": "local",
+      "tierModel": "gemma3:4b",
+      "legacyModel": "gemma3:4b"
+    },
+    {
+      "prompt": "Ja fakt neviem, pomoz mi",
+      "legacyPersona": "core",
+      "bridgePersona": "popici",
+      "tier": "local",
+      "tierModel": "gemma3:4b",
+      "legacyModel": "gemma3:4b"
+    },
+    {
+      "prompt": "Co ty na to, kamoš?",
+      "legacyPersona": "popici",
+      "bridgePersona": "core",
+      "tier": "local",
+      "tierModel": "gemma3:4b",
+      "legacyModel": "gemma3:4b"
+    },
+    {
+      "prompt": "Ta čo ty vieš o živote?",
+      "legacyPersona": "popici",
+      "bridgePersona": "core",
+      "tier": "local",
+      "tierModel": "gemma3:4b",
+      "legacyModel": "gemma3:4b"
+    },
+    {
+      "prompt": "Zase som to posral",
+      "legacyPersona": "core",
+      "bridgePersona": "core",
+      "tier": "local",
+      "tierModel": "gemma3:4b",
+      "legacyModel": "gemma3:4b"
+    },
+    {
+      "prompt": "Povedz mi to na rovinu",
+      "legacyPersona": "core",
+      "bridgePersona": "core",
+      "tier": "local",
+      "tierModel": "gemma3:4b",
+      "legacyModel": "gemma3:4b"
+    },
+    {
+      "prompt": "Nekecaj a povedz ako",
+      "legacyPersona": "core",
+      "bridgePersona": "core",
+      "tier": "local",
+      "tierModel": "gemma3:4b",
+      "legacyModel": "gemma3:4b"
+    },
+    {
+      "prompt": "Ta dobre, a čo teraz?",
+      "legacyPersona": "popici",
+      "bridgePersona": "core",
+      "tier": "local",
+      "tierModel": "gemma3:4b",
+      "legacyModel": "gemma3:4b"
+    },
+    {
+      "prompt": "Ako mám prestať prokrastinovať?",
+      "legacyPersona": "core",
+      "bridgePersona": "popici",
+      "tier": "local",
+      "tierModel": "gemma3:4b",
+      "legacyModel": "gemma3:4b"
+    },
+    {
+      "prompt": "Serie ma šéf, čo mám robiť?",
+      "legacyPersona": "popici",
+      "bridgePersona": "core",
+      "tier": "local",
+      "tierModel": "gemma3:4b",
+      "legacyModel": "gemma3:4b"
+    }
+  ],
+  "validator": [
+    {
+      "prompt": "Over mi, či je toto tvrdenie pravdivé: Zem je plochá.",
+      "legacyPersona": "core",
+      "bridgePersona": "core",
+      "tier": "local",
+      "tierModel": "gemma3:4b",
+      "legacyModel": "gemma3:4b"
+    },
+    {
+      "prompt": "Skontroluj túto odpoveď na chyby.",
+      "legacyPersona": "core",
+      "bridgePersona": "core",
+      "tier": "local",
+      "tierModel": "gemma3:4b",
+      "legacyModel": "gemma3:4b"
+    },
+    {
+      "prompt": "Je tento kód bezpečný?",
+      "legacyPersona": "core",
+      "bridgePersona": "core",
+      "tier": "local",
+      "tierModel": "gemma3:4b",
+      "legacyModel": "gemma3:4b"
+    },
+    {
+      "prompt": "Validuj tento JSON: {\"a\": 1,}",
+      "legacyPersona": "core",
+      "bridgePersona": "core",
+      "tier": "local",
+      "tierModel": "gemma3:4b",
+      "legacyModel": "gemma3:4b"
+    },
+    {
+      "prompt": "Sú tieto fakty o SP4 správne?",
+      "legacyPersona": "core",
+      "bridgePersona": "core",
+      "tier": "local",
+      "tierModel": "gemma3:4b",
+      "legacyModel": "gemma3:4b"
+    },
+    {
+      "prompt": "Over zdroj tohto tvrdenia.",
+      "legacyPersona": "core",
+      "bridgePersona": "core",
+      "tier": "local",
+      "tierModel": "gemma3:4b",
+      "legacyModel": "gemma3:4b"
+    },
+    {
+      "prompt": "Nájdi chybu v tejto logike: všetky mačky sú zvieratá, pes je zviera, teda pes je mačka.",
+      "legacyPersona": "popici",
+      "bridgePersona": "core",
+      "tier": "local",
+      "tierModel": "gemma3:4b",
+      "legacyModel": "gemma3:4b"
+    },
+    {
+      "prompt": "Je táto štatistika dôveryhodná?",
+      "legacyPersona": "core",
+      "bridgePersona": "core",
+      "tier": "local",
+      "tierModel": "gemma3:4b",
+      "legacyModel": "gemma3:4b"
+    },
+    {
+      "prompt": "Skontroluj, či sa táto odpoveď nevymýšľa.",
+      "legacyPersona": "core",
+      "bridgePersona": "core",
+      "tier": "local",
+      "tierModel": "gemma3:4b",
+      "legacyModel": "gemma3:4b"
+    },
+    {
+      "prompt": "Otestuj túto hypotézu.",
+      "legacyPersona": "core",
+      "bridgePersona": "core",
+      "tier": "local",
+      "tierModel": "gemma3:4b",
+      "legacyModel": "gemma3:4b"
+    },
+    {
+      "prompt": "Je to halucinácia alebo fakt?",
+      "legacyPersona": "core",
+      "bridgePersona": "core",
+      "tier": "local",
+      "tierModel": "gemma3:4b",
+      "legacyModel": "gemma3:4b"
+    },
+    {
+      "prompt": "Over, či SP4 naozaj beží lokálne.",
+      "legacyPersona": "core",
+      "bridgePersona": "core",
+      "tier": "local",
+      "tierModel": "gemma3:4b",
+      "legacyModel": "gemma3:4b"
+    },
+    {
+      "prompt": "Skontroluj tento regex: ^[a-z]+$",
+      "legacyPersona": "core",
+      "bridgePersona": "core",
+      "tier": "local",
+      "tierModel": "gemma3:4b",
+      "legacyModel": "gemma3:4b"
+    },
+    {
+      "prompt": "Je táto citácia presná?",
+      "legacyPersona": "core",
+      "bridgePersona": "core",
+      "tier": "local",
+      "tierModel": "gemma3:4b",
+      "legacyModel": "gemma3:4b"
+    },
+    {
+      "prompt": "Porovnaj tieto dve tvrdenia a povedz, ktoré je pravdivé.",
+      "legacyPersona": "core",
+      "bridgePersona": "core",
+      "tier": "budget",
+      "tierModel": null,
+      "legacyModel": "gemma3:4b"
+    },
+    {
+      "prompt": "Validuj túto konfiguráciu .env.",
+      "legacyPersona": "core",
+      "bridgePersona": "core",
+      "tier": "local",
+      "tierModel": "gemma3:4b",
+      "legacyModel": "gemma3:4b"
+    },
+    {
+      "prompt": "Je tento výpočet správny: 17 * 23 = 391?",
+      "legacyPersona": "core",
+      "bridgePersona": "core",
+      "tier": "local",
+      "tierModel": "gemma3:4b",
+      "legacyModel": "gemma3:4b"
+    },
+    {
+      "prompt": "Over dátum vzniku SP4.",
+      "legacyPersona": "core",
+      "bridgePersona": "core",
+      "tier": "local",
+      "tierModel": "gemma3:4b",
+      "legacyModel": "gemma3:4b"
+    },
+    {
+      "prompt": "Skontroluj gramatiku tejto vety.",
+      "legacyPersona": "core",
+      "bridgePersona": "core",
+      "tier": "local",
+      "tierModel": "gemma3:4b",
+      "legacyModel": "gemma3:4b"
+    },
+    {
+      "prompt": "Sú tieto kroky inštalácie kompletné?",
+      "legacyPersona": "core",
+      "bridgePersona": "core",
+      "tier": "local",
+      "tierModel": "gemma3:4b",
+      "legacyModel": "gemma3:4b"
+    },
+    {
+      "prompt": "Je toto tvrdenie podložené dôkazmi?",
+      "legacyPersona": "core",
+      "bridgePersona": "core",
+      "tier": "local",
+      "tierModel": "gemma3:4b",
+      "legacyModel": "gemma3:4b"
+    },
+    {
+      "prompt": "Over, či model gemma3:4b je nainštalovaný.",
+      "legacyPersona": "core",
+      "bridgePersona": "core",
+      "tier": "local",
+      "tierModel": "gemma3:4b",
+      "legacyModel": "gemma3:4b"
+    },
+    {
+      "prompt": "Skontroluj túto SQL query na injection.",
+      "legacyPersona": "core",
+      "bridgePersona": "core",
+      "tier": "local",
+      "tierModel": "gemma3:4b",
+      "legacyModel": "gemma3:4b"
+    },
+    {
+      "prompt": "Je táto odpoveď konzistentná s predchádzajúcou?",
+      "legacyPersona": "core",
+      "bridgePersona": "core",
+      "tier": "local",
+      "tierModel": "gemma3:4b",
+      "legacyModel": "gemma3:4b"
+    },
+    {
+      "prompt": "Validuj, či tento prompt neobsahuje manipuláciu.",
+      "legacyPersona": "core",
+      "bridgePersona": "core",
+      "tier": "local",
+      "tierModel": "gemma3:4b",
+      "legacyModel": "gemma3:4b"
+    },
+    {
+      "prompt": "Skontroluj, či je táto URL bezpečná.",
+      "legacyPersona": "core",
+      "bridgePersona": "core",
+      "tier": "local",
+      "tierModel": "gemma3:4b",
+      "legacyModel": "gemma3:4b"
+    },
+    {
+      "prompt": "Over logiku tohto algoritmu.",
+      "legacyPersona": "core",
+      "bridgePersona": "core",
+      "tier": "local",
+      "tierModel": "gemma3:4b",
+      "legacyModel": "gemma3:4b"
+    },
+    {
+      "prompt": "Je tento záver správny?",
+      "legacyPersona": "core",
+      "bridgePersona": "core",
+      "tier": "local",
+      "tierModel": "gemma3:4b",
+      "legacyModel": "gemma3:4b"
+    },
+    {
+      "prompt": "Skontroluj, či tento text nie je po anglicky.",
+      "legacyPersona": "core",
+      "bridgePersona": "core",
+      "tier": "local",
+      "tierModel": "gemma3:4b",
+      "legacyModel": "gemma3:4b"
+    },
+    {
+      "prompt": "Over, či je toto číslo prvočíslo: 97.",
+      "legacyPersona": "core",
+      "bridgePersona": "core",
+      "tier": "local",
+      "tierModel": "gemma3:4b",
+      "legacyModel": "gemma3:4b"
+    }
+  ]
+}

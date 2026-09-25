@@ -44,6 +44,7 @@ import {
 } from './bridge-memory.js';
 import { checkOllamaHealth, FAST_PATH_MODEL, PRIMARY_MODEL } from './sp4os/llmLocal.js';
 import { sp4LlmCall } from './src/llm/llmRouter.js';
+import { requestTraceMiddleware, traceLayer } from './src/core/requestTrace.js';
 import {
     SP4_INSUFFICIENT_INFORMATION_FACT,
     SP4_MODEL_ROUTING_FACT,
@@ -500,44 +501,9 @@ function resolvePersona(name) {
     return inline || PERSONAS.hasic;
 }
 
-// Lowercase + odstránenie diakritiky pre robustné keyword matchovanie (bez \b/diakritika
-// pasce — pozri opravu safetyRails.js z 2026-06-25).
-function normalizeForClassify(text) {
-    return String(text || '')
-        .toLowerCase()
-        .normalize('NFD')
-        .replace(/[̀-ͯ]/g, '');
-}
-
-// AUTO persona selector — jednoduché keyword matching (žiadny LLM call).
-// Poradie kategórií je zámerné: DHZ-špecifické termíny majú prednosť pred
-// všeobecnými (napr. "bezpečnosť výjazdu" by inak mohlo spadnúť pod 'core').
-const CLASSIFY_KEYWORDS = {
-    hasic: ['dhz', 'hasic', 'zbor', 'alarm', 'zasah', 'clen', 'vyjazd'],
-    core: ['bezpecnost', 'heslo', 'hesla', 'firewall', 'sifr', 'ochrana', 'sukromie'],
-    glitchoslav: ['glitchoslav', 'glitch', 'preco', 'filozofia', 'zmysel', 'kto si', 'manifest', 'citis', 'dusa'],
-    popici: ['jednoduch', 'pomoz', 'neviem', 'ako mam', 'vysvetli jednoducho']
-};
-const CLASSIFY_ORDER = ['hasic', 'glitchoslav', 'core', 'popici'];
-
-/**
- * Klasifikuje prompt na personu pomocou keyword matchingu (bez LLM).
- * @param {string} text - Užívateľský text.
- * @returns {string} - personaKey ('hasic'|'core'|'glitchoslav'|'popici'), default 'core'.
- */
-function classifyPrompt(text) {
-    const normalized = normalizeForClassify(text);
-    if (!normalized) return 'core';
-
-    for (const personaKey of CLASSIFY_ORDER) {
-        const keywords = CLASSIFY_KEYWORDS[personaKey];
-        if (keywords.some((kw) => normalized.includes(kw))) {
-            return personaKey;
-        }
-    }
-
-    return 'core'; // default
-}
+// AUTO persona selector + normalizeForClassify — presunuté bez zmeny logiky do
+// src/routing/bridgePersonaClassifier.js (T7 strangler Phase 0, characterization testy).
+import { classifyPrompt, normalizeForClassify } from './src/routing/bridgePersonaClassifier.js';
 
 function formatMemberRefs(items = []) {
     if (!Array.isArray(items) || items.length === 0) return '—';
@@ -1114,7 +1080,7 @@ app.get('/health', async (_req, res) => {
 // Body: { text, memberId?, persona?, context?, source?, policy?, model?, temperature? }
 // Vracia kontrakt-compliant odpoveď.
 // ─────────────────────────────────────────────────────────────
-app.post('/api/bridge/ask', inferenceRateLimit, async (req, res) => {
+app.post('/api/bridge/ask', inferenceRateLimit, requestTraceMiddleware('bridge-server:/api/bridge/ask'), async (req, res) => {
     const started = Date.now();
     const body = req.body || {};
     const text = String(body.text || '').trim();
@@ -1429,6 +1395,7 @@ app.post('/api/bridge/ask', inferenceRateLimit, async (req, res) => {
             stop: [],
             actorType: 'interactive-human'
         };
+        traceLayer('legacy', 'bridge-server:/api/bridge/ask', { persona: personaKey, autoSelected, preference: llmOptions.preference });
         let result = await sp4LlmCall(llmOptions);
 
         if (!result || !result.ok) {
