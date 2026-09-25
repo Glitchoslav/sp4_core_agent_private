@@ -308,9 +308,12 @@ export function pickMode(input, useContextLock = true, useQuickAnalyzer = true) 
             const totalTime = performance.now() - startTime;
             console.log(`   ⚡ Quick match: ${detection.mode.toUpperCase()} (conf: ${detection.confidence.toFixed(2)}, ${totalTime.toFixed(2)}ms)`);
         } else {
-            // Low confidence → fallback to pattern detection
+            // No/weak keyword match → fallback to pattern detection (expected path, not an error)
             const analysis = quickAnalyze(input);
-            console.log(`   ⚠️  Low confidence (${analysis.confidence.toFixed(2)}) → pattern fallback`);
+            const keywordNote = analysis.confidence > 0
+                ? `keyword match below threshold (${analysis.confidence.toFixed(2)} < 0.70)`
+                : 'no keyword match';
+            console.log(`   ↪️  ${keywordNote} → pattern fallback`);
             detection = _detectModeWithConfidence(input);
             method = 'pattern-fallback';
         }
