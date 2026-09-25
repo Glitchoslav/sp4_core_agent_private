@@ -1,6 +1,7 @@
 // 🔥 SP4_CORE_AGENT v0.6.2 - Lokálny RAG (Sentence Transformers)
 // Walter's upgrade: Retrieval-Augmented Generation with semantic embeddings
 
+import { createHash } from 'node:crypto';
 import { pipeline } from '@xenova/transformers';
 import { runtimeLog } from '../src/core/runtimeLogging.js';
 import { getRetrievableMemoryLog } from '../src/runtime/memoryHygiene.js';
@@ -88,6 +89,42 @@ export function cosineSimilarity(vec1, vec2) {
 // EMBEDDING MANAGEMENT
 // ============================================================
 
+// In-process cache (sha1(text) → embedding). integration.js volá loadMemory() každé kolo, takže
+// embeddingy zapísané do entry.metadata sa strácali s dočasnou kópiou stavu a ~660 sa prepočítalo
+// každé kolo. Do memory.json sa nezapisuje nič. LRU strop drží pamäť procesu ohraničenú.
+const EMBEDDING_CACHE_MAX = 5000;
+const embeddingCache = new Map();
+const embeddingCacheStats = { hits: 0, misses: 0 };
+
+async function getMemoryEmbedding(text) {
+    const key = createHash('sha1').update(text).digest('hex');
+    const cached = embeddingCache.get(key);
+    if (cached) {
+        embeddingCacheStats.hits++;
+        embeddingCache.delete(key); // LRU: posuň na koniec
+        embeddingCache.set(key, cached);
+        return { embedding: cached, fromCache: true };
+    }
+
+    embeddingCacheStats.misses++;
+    const embedding = await generateLocalEmbedding(text);
+    embeddingCache.set(key, embedding);
+    if (embeddingCache.size > EMBEDDING_CACHE_MAX) {
+        embeddingCache.delete(embeddingCache.keys().next().value);
+    }
+    return { embedding, fromCache: false };
+}
+
+export function getEmbeddingCacheStats() {
+    return { ...embeddingCacheStats, size: embeddingCache.size };
+}
+
+export function clearEmbeddingCache() {
+    embeddingCache.clear();
+    embeddingCacheStats.hits = 0;
+    embeddingCacheStats.misses = 0;
+}
+
 /**
  * Compute and cache embeddings for all memories
  */
@@ -117,19 +154,19 @@ export async function computeMemoryEmbeddings(state) {
         const safeAgentText = typeof agentText === 'string' ? agentText : '';
         const combinedText = `${safeUserText} ${safeAgentText}`;
 
-        const embedding = await generateLocalEmbedding(combinedText);
-
         // Validate metadata before assignment
         if (entry.metadata && typeof entry.metadata !== 'object') {
             console.warn(`⚠️  Skipping entry with non-object metadata (type: ${typeof entry.metadata})`);
             continue;
         }
 
+        const { embedding, fromCache } = await getMemoryEmbedding(combinedText);
+
         // Store embedding in metadata
         if (!entry.metadata) entry.metadata = {};
         entry.metadata.embedding = embedding;
 
-        computedCount++;
+        if (!fromCache) computedCount++;
     }
 
     runtimeLog(`📊 Computed ${computedCount} embeddings (${memories.length - computedCount} cached)`);
@@ -393,6 +430,8 @@ export default {
     generateLocalEmbedding,
     cosineSimilarity,
     computeMemoryEmbeddings,
+    getEmbeddingCacheStats,
+    clearEmbeddingCache,
     updateMemoryEmbedding,
     retrieveRelevantMemories,
     semanticSearch,
