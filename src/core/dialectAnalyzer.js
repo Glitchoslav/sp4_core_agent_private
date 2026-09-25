@@ -30,11 +30,11 @@ export class DialectAnalyzer {
             },
             extended: {
                 weight: 0.8,
-                keywords: ['kedz', 'dze', 'co', 'jak', 'ňe', 'še', 'hutori', 'dzeci', 'idze', 'dzevča']
+                keywords: ['kedz', 'dze', 'ňe', 'še', 'hutori', 'dzeci', 'idze', 'dzevča']
             },
             phrases: {
                 weight: 1.5,
-                keywords: ['hej ta', 'no še', 'bo furt', 'tam dze', 'šak vidiš', 'ta bratu', 'ta co']
+                keywords: ['hej ta', 'no še', 'bo furt', 'tam dze', 'šak vidiš', 'ta bratu', 'ta co', 'jak še']
             }
         };
 
