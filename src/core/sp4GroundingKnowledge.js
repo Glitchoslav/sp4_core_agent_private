@@ -179,36 +179,28 @@ const SP4_POLICY_FACTS = `
 ⚖️ SP4 POLICY SYSTEM (FAKTICKÉ ÚDAJE):
 
 **ÚČEL:**
-Kontrola, či AI môže/nesmie použiť cloud API (Groq, Google).
+Rozhoduje, či požiadavka smie ísť na cloud. Default je lokálne (Ollama), cloud je výnimka.
 
-**3 REŽIMY:**
-1. **local-first** (default) - preferuj Ollama, cloud len ak treba
-2. **force-local** - NIKDY nepoužívaj cloud (privacy mode)
-3. **autonomous-cloud** - cloud povolený, AI rozhoduje
+**JEDINÝ CLOUD KANÁL:**
+- LiteLLM gateway (lokálny proxy). Iný cloud kanál neexistuje.
 
-**METADATA CONTRACT (v1.4.2):**
-metadata: {
-  policy: {
-    cloudAllowed: true/false,  // Policy intent
-    forceLocal: true/false,
-    route: 'local-first' | 'force-local' | 'autonomous-cloud'
-  },
-  execution: {
-    cloudUsed: true/false,      // Runtime reality
-    provider: 'local_ollama' | 'cloud_groq' | 'cloud_google',
-    cloudDisabled: true/false,
-    cloudDisabledReason: 'policy' | 'testMode' | 'budget' | null
-  }
-}
+**KEDY SMIE POŽIADAVKA NA CLOUD (musí platiť všetko naraz):**
+1. Operátor zapol cloud na stroji: SP4_ALLOW_CLOUD=true v .env (default vypnuté).
+2. Požiadavka má výslovný súhlas (policy.allowCloud=true od volajúceho).
+3. Obsah je označený ako verejný (sensitivity 'public'). Chýbajúca alebo neznáma citlivosť = súkromné.
+4. Constitution egress brána to povolí.
 
-**PRIORITY:**
-policy.forceLocal > testMode > default (local-first)
+**SÚKROMNÉ NIKDY NEJDE NA CLOUD:**
+Pamäť, história konverzácie, identita, dáta člena a misie idú vždy lokálne — ani ako fallback.
+
+**ČO POUŽÍVATEĽ V CHATE NEVIE:**
+V chate neexistuje žiadny príkaz na zapnutie cloudu. Nevymýšľaj prepínače, príkazy ani nastavenia.
+Ak sa pýta, ako zapnúť cloud: je to rozhodnutie operátora stroja (.env), nie príkaz v chate.
 
 **PREČO:**
-- User control (nie auto cloud spam)
-- Privacy protection
-- Cost control (cloud API nie je free)
-- Transparent (metadata ukazuje čo sa stalo)
+- Súkromie (pamäť ostáva na stroji)
+- Kontrola (cloud je vedomé rozhodnutie operátora, nie automatika)
+- Náklady (cloud nie je zadarmo)
 `;
 
 const SP4_INTEGRATION_FACTS = `
@@ -283,7 +275,7 @@ const SP4_ARCHITECTURE_FACTS = `
 **OFFLINE-FIRST:**
 - Primary: Ollama (localhost:11434)
 - Routing models: Primary: ${PRIMARY_MODEL}, Fast-path: ${FAST_PATH_MODEL}
-- Cloud: Optional (Groq, Google) - len ak policy.allowCloud=true
+- Cloud: voliteľne len cez LiteLLM, ak ho operátor zapol (SP4_ALLOW_CLOUD) a obsah nie je súkromný
 
 **PREČO OFFLINE:**
 - Privacy (žiadne cloudové loggovanie)

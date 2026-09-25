@@ -92,13 +92,11 @@ export function generateGroundingFallback(topic) {
 
 Všetko beží lokálne v \`data/memory.json\`. Žiadne cloudové úložisko.`,
 
-        policy: `SP4 policy má 3 hlavné režimy:
+        policy: `SP4 beží defaultne lokálne (Ollama). Cloud je výnimka a ide len cez LiteLLM gateway.
 
-1. **local-first** (default) - Preferuje lokálne modely (Ollama)
-2. **autonomous-cloud** - Povoluje cloud (Groq, Google) s kontrolou
-3. **force-local** - Tvrdý zákaz cloudu (test mode, privacy mode)
+Požiadavka smie ísť na cloud, iba ak operátor zapol SP4_ALLOW_CLOUD=true v .env, požiadavka má výslovný súhlas a obsah je verejný. Pamäť, história a identita idú vždy lokálne.
 
-Policy je intent (čo chceš), execution je realita (čo sa stalo). Metadata contract ich oddeľuje.`,
+V chate neexistuje žiadny príkaz na zapnutie cloudu — je to rozhodnutie operátora stroja.`,
 
         integration: `SP4 integration layer spája všetky komponenty:
 
