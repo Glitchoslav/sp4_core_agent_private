@@ -221,13 +221,15 @@ async function showHelp() {
     const memory = await loadMemory();
     const userName = memory.userProfile?.name || 'Unknown';
     const currentMode = memory.preferences?.defaultMode || 'auto';
-    const relationship = memory.relationship?.stage || 'stranger';
-    const interactions = memory.relationship?.metrics?.interactionCount || 0;
+    // Kanonické počítadlo = rawMemory.log.length (rovnaké ako progresia vzťahu), + čo chýba do ďalšej fázy.
+    const { getNextStageGap, formatRelationshipSummary } = await import('./relationshipEvolution.js');
+    const { stage: relationship, totalInteractions: interactions } = getNextStageGap(memory);
 
     // Status bar
     console.log('\n╔═══════════════════════════════════════════════════════════╗');
     console.log(`║  👤 User: ${userName.padEnd(15)} 🎭 Mode: ${currentMode.padEnd(10)} 📊 ${relationship} (${interactions})  ║`);
     console.log('╚═══════════════════════════════════════════════════════════╝');
+    console.log(`   🤝 Vzťah: ${formatRelationshipSummary(memory)}`);
 
     console.log('\n📖 DOSTUPNÉ PRÍKAZY:\n');
     Object.entries(COMMANDS).forEach(([cmd, desc]) => {
@@ -627,7 +629,7 @@ async function init() {
 
         // 🇸🇰 LANGUAGE ENFORCER COMMANDS (MISSION: LANGUAGE_ENFORCER_v1)
         if (trimmed === '/language_stats') {
-            const { getEnforcementStats } = await import('./src/core/languageEnforcer.js');
+            const { getEnforcementStats, formatEnforcementSuccessRate } = await import('./src/core/languageEnforcer.js');
             const stats = getEnforcementStats();
 
             console.log('\n┌─────────────────────────────────────┐');
@@ -639,8 +641,7 @@ async function init() {
             console.log(`   Fallbacks used: ${stats.fallbacksUsed}`);
 
             if (stats.totalChecks > 0) {
-                const successRate = ((stats.retriesSuccessful / (stats.englishDetected || 1)) * 100).toFixed(1);
-                console.log(`\n   Success rate: ${successRate}%`);
+                console.log(`\n   Success rate: ${formatEnforcementSuccessRate(stats)}`);
             }
             console.log('');
             return;

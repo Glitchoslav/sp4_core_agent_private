@@ -14,6 +14,21 @@ function formatSeedValue(value) {
         .trim();
 }
 
+function stripLeadingPhrase(value, pattern) {
+    const stripped = value.replace(pattern, '').trim();
+    return stripped || value;
+}
+
+// Seed často ukladá odpoveď v 1. osobe ("chcem žiť naplno", "bojím sa samoty") —
+// bez odstránenia slovesa vzniká "Chceš chcem žiť naplno.".
+export function seedIntentPhrase(intent) {
+    return stripLeadingPhrase(formatSeedValue(intent), /^(chcem|chcel\s+by\s+som|chcela\s+by\s+som|chcel\s+som|chcela\s+som)\s+/i);
+}
+
+export function seedFearPhrase(fear) {
+    return stripLeadingPhrase(formatSeedValue(fear), /^(bojím\s+sa|bojim\s+sa|obávam\s+sa|obavam\s+sa)\s+/i);
+}
+
 export function buildWhoAmITextFromSeed(seed) {
     if (!seed) {
         return `⚠️ Nemám ešte seed.
@@ -33,11 +48,11 @@ Alebo použi: /seed_refresh username:tvoje_meno intent:tvoj_cieľ fear:tvoj_stra
     }
 
     if (seed.intent) {
-        lines.push(`Chceš ${formatSeedValue(seed.intent)}.`);
+        lines.push(`Chceš ${seedIntentPhrase(seed.intent)}.`);
     }
 
     if (seed.fear) {
-        lines.push(`Bojíš sa ${formatSeedValue(seed.fear)}.`);
+        lines.push(`Bojíš sa ${seedFearPhrase(seed.fear)}.`);
     }
 
     if (seed.created_at) {

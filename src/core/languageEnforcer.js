@@ -617,6 +617,17 @@ export function getEnforcementStats() {
     return { ...enforcementStats };
 }
 
+/**
+ * Úspešnosť opráv angličtiny pre /language_stats. Bez zistenej angličtiny nie je čo merať —
+ * predtým `retriesSuccessful / (englishDetected || 1)` hlásilo zavádzajúcich 0.0 %.
+ */
+export function formatEnforcementSuccessRate(stats = enforcementStats) {
+    if (!stats?.englishDetected) {
+        return 'n/a (žiadna angličtina nezistená)';
+    }
+    return `${((stats.retriesSuccessful / stats.englishDetected) * 100).toFixed(1)}%`;
+}
+
 export function resetEnforcementStats() {
     enforcementStats = {
         totalChecks: 0,
@@ -629,5 +640,6 @@ export function resetEnforcementStats() {
 export default {
     enforceSlovak,
     getEnforcementStats,
+    formatEnforcementSuccessRate,
     resetEnforcementStats
 };

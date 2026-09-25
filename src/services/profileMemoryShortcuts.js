@@ -3,7 +3,7 @@ import { SP4_COMMUNITY_FACT, SP4_FUTURE_DIRECTION_FACT } from '../core/sp4Facts.
 import { buildRuntimeFacts } from '../core/runtimeFacts.js';
 import { getRetrievableMemoryLog } from '../runtime/memoryHygiene.js';
 import { loadUserSeed } from '../startup/userSeed.js';
-import { buildWhoAmITextFromSeed } from './personalProfile.js';
+import { buildWhoAmITextFromSeed, seedIntentPhrase } from './personalProfile.js';
 
 function normalizeShortcutText(text = '') {
     return String(text || '')
@@ -74,7 +74,7 @@ function collectRememberedUserFacts(seed, memory) {
     }
 
     if (seed?.intent) {
-        remembered.push(`že chceš ${formatHumanValue(seed.intent)}`);
+        remembered.push(`že chceš ${seedIntentPhrase(seed.intent)}`);
     }
 
     if (userStyle) {

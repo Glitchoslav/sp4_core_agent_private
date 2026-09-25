@@ -301,6 +301,46 @@ export function getStageAppropiateBehavior(state) {
     return behaviorMap[stage.name] || behaviorMap.stranger;
 }
 
+// Kanonické počítadlo interakcií = rawMemory.log.length (to isté, čo používa progresia),
+// nie relationship.metrics.interactionCount.
+function countInteractions(state) {
+    if (Array.isArray(state?.rawMemory?.log)) return state.rawMemory.log.length;
+    if (Array.isArray(state?.rawMemory)) return state.rawMemory.length;
+    return 0;
+}
+
+/**
+ * Čo chýba do ďalšej fázy vzťahu (rovnaké podmienky ako evaluateRelationshipProgression).
+ * @returns {{ stage: string, nextStage: string|null, totalInteractions: number, missing: string[] }}
+ */
+export function getNextStageGap(state) {
+    const stage = getCurrentStage(state);
+    const totalInteractions = countInteractions(state);
+    const nextStageName = getNextStageName(stage.name);
+    if (!nextStageName) {
+        return { stage: stage.name, nextStage: null, totalInteractions, missing: [] };
+    }
+
+    const nextStage = RELATIONSHIP_STAGES.find(s => s.name === nextStageName);
+    const metrics = calculateRelationshipMetrics(state);
+    const missing = [];
+    if (totalInteractions < nextStage.minInteractions) missing.push('interactions');
+    for (const [factor, required] of Object.entries(nextStage.progressionFactors)) {
+        if (metrics[factor] < required) missing.push(factor);
+    }
+    return { stage: stage.name, nextStage: nextStage.name, totalInteractions, missing };
+}
+
+/** Jednoriadkový súhrn pre /help: "stranger (12) → acquaintance, chýba: time". */
+export function formatRelationshipSummary(state) {
+    const gap = getNextStageGap(state);
+    const base = `${gap.stage} (${gap.totalInteractions})`;
+    if (!gap.nextStage) return base;
+    return gap.missing.length > 0
+        ? `${base} → ${gap.nextStage}, chýba: ${gap.missing.join(', ')}`
+        : `${base} → ${gap.nextStage}, podmienky splnené`;
+}
+
 /**
  * Format relationship status for display
  */
@@ -333,6 +373,8 @@ export function formatRelationshipStatus(state) {
         status += `   - Depth: ${(metrics.depth * 100).toFixed(0)}%/${(nextStage.progressionFactors.depth * 100).toFixed(0)}%\n`;
         status += `   - Vulnerability: ${(metrics.vulnerability * 100).toFixed(0)}%/${(nextStage.progressionFactors.vulnerability * 100).toFixed(0)}%\n`;
         status += `   - Consistency: ${(metrics.consistency * 100).toFixed(0)}%/${(nextStage.progressionFactors.consistency * 100).toFixed(0)}%\n`;
+        const { missing } = getNextStageGap(state);
+        status += missing.length > 0 ? `   Chýba: ${missing.join(', ')}\n` : `   Podmienky splnené — posun príde pri ďalšej interakcii.\n`;
     } else {
         status += `\n🌀 SYMBIONT stage achieved - maximum bond.\n`;
     }
@@ -350,5 +392,7 @@ export default {
     evaluateRelationshipProgression,
     getCurrentStage,
     getStageAppropiateBehavior,
+    getNextStageGap,
+    formatRelationshipSummary,
     formatRelationshipStatus
 };
