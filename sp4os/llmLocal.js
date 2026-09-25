@@ -15,9 +15,10 @@ import {
     getRegistryMode,
     resolveModelForRole,
 } from '../src/core/localModelRegistry.js';
+import { PRIMARY_MODEL, FAST_PATH_MODEL } from '../src/config/models.js';
+import { recordTagsSnapshot } from '../src/routing/modelResolver.js';
 
-export const PRIMARY_MODEL = process.env.PRIMARY_MODEL || 'gemma3:4b';
-export const FAST_PATH_MODEL = process.env.FAST_PATH_MODEL || 'llama3.2:3b';
+export { PRIMARY_MODEL, FAST_PATH_MODEL };
 let availableModelsCache = [];
 let lastHealthCheck = null;
 let lastHealthSnapshot = null;
@@ -28,6 +29,7 @@ export { formatModelRegistryAudit };
 export async function ollamaHealthCheck() {
   const health = await runOllamaHealthCheck();
   lastHealthSnapshot = health;
+  recordTagsSnapshot(health);
 
   if (health.healthy) {
     availableModelsCache = health.models || [];
