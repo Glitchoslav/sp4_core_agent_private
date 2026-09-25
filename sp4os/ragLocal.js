@@ -12,7 +12,7 @@ import { getRetrievableMemoryLog } from '../src/runtime/memoryHygiene.js';
 
 export const RAG_CONFIG = {
     embeddingMethod: 'sentence-transformers',  // v0.6.2: Real semantic embeddings
-    model: 'Xenova/all-MiniLM-L6-v2',         // Lightweight 80MB model
+    model: 'Xenova/paraphrase-multilingual-MiniLM-L12-v2',  // Multilingual 470MB model
     topK: 5,                                   // Return top 5 most relevant memories
     minSimilarity: 0.3,                        // Minimum cosine similarity threshold
     cacheEmbeddings: true,                     // Cache computed embeddings
@@ -32,7 +32,7 @@ async function initializeExtractor() {
     if (!featureExtractor) {
         runtimeLog('🧠 Loading sentence transformer model...');
         featureExtractor = await pipeline('feature-extraction', RAG_CONFIG.model);
-        runtimeLog('   ✅ Model loaded: all-MiniLM-L6-v2');
+        runtimeLog('   ✅ Model loaded: paraphrase-multilingual-MiniLM-L12-v2');
     }
     return featureExtractor;
 }
