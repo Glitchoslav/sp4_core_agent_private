@@ -70,6 +70,46 @@ const SK_NEUTRAL_WORDS = new Set([
     'vieru', 'viera',
 ]);
 
+// Pozitívny EN signál: len slová, ktoré sú reálne anglické (funkčné slová + bežná EN slovná
+// zásoba LLM výstupov). Chýbajúca diakritika NIE je EN signál — slovenčina má veľa slov bez
+// diakritiky (myslenia, pochopenie, jeho, zameriava) a prevzaté slová (boss, meta-awareness).
+// Vynechané sú tvary zhodné so slovenčinou (a, to, on, do, no, by, my, ten, tie, most, list, let)
+// a 'be' (motto "Be real. Be free." v SK texte).
+const ENGLISH_WORDS = new Set([
+    // funkčné slová
+    'the', 'an', 'and', 'or', 'but', 'of', 'in', 'at', 'for', 'with', 'from', 'into', 'onto',
+    'about', 'over', 'under', 'between', 'through', 'during', 'without', 'within', 'against',
+    'is', 'are', 'was', 'were', 'been', 'being', 'has', 'have', 'had', 'having',
+    'does', 'did', 'doing', 'done', 'will', 'would', 'shall', 'should', 'can', 'could', 'may',
+    'might', 'must', 'not', 'isnt', 'arent', 'dont', 'doesnt', 'didnt', 'cant', 'wont',
+    'this', 'that', 'these', 'those', 'there', 'here', 'where', 'when', 'what', 'which', 'who',
+    'whom', 'whose', 'why', 'how', 'it', 'its', 'he', 'she', 'we', 'you', 'your', 'yours',
+    'they', 'them', 'their', 'theirs', 'his', 'her', 'hers', 'our', 'ours', 'me', 'him', 'us',
+    'if', 'then', 'than', 'so', 'as', 'because', 'while', 'although', 'though', 'however',
+    'therefore', 'also', 'just', 'only', 'very', 'really', 'more', 'less', 'many',
+    'much', 'some', 'any', 'each', 'every', 'all', 'both', 'either', 'neither', 'other',
+    'such', 'own', 'same', 'up', 'out', 'off', 'again', 'still', 'yet', 'already', 'always',
+    'never', 'often', 'sometimes', 'usually', 'like', 'unlike', 'whether', 'until', 'since',
+    // bežná EN slovná zásoba (bez tvarov zhodných so slovenčinou)
+    'clearly', 'several', 'english', 'response', 'answer', 'question', 'questions', 'words',
+    'word', 'final', 'founder', 'created', 'create', 'help', 'helps', 'think', 'thinking',
+    'know', 'knowledge', 'understand', 'understanding', 'important', 'focus', 'focuses',
+    'deeper', 'deep', 'philosophical', 'eastern', 'digital', 'control',
+    'something', 'anything', 'everything', 'nothing', 'someone', 'please', 'thanks',
+    'thank', 'sorry', 'yes', 'hello', 'world', 'way', 'ways', 'thing', 'things', 'make',
+    'makes', 'made', 'use', 'uses', 'used', 'using', 'want', 'need', 'needs', 'good', 'great',
+    'best', 'better', 'new', 'first', 'last', 'next', 'time',
+]);
+
+// Krátke SK funkčné slová (≤3 znaky by inak padli do skipu skratiek). Bez tvarov
+// zhodných s angličtinou (a, to, on, do, no, by, so, me, my).
+const SLOVAK_SHORT_WORDS = new Set([
+    'je', 'sa', 'si', 'sme', 'ste', 'na', 'aj', 'ako', 'ale', 'ani', 'už', 'že', 'či',
+    'ich', 'ho', 'mu', 'ju', 'ma', 'mi', 'ti', 'sú', 'pre', 'pri', 'od', 'po', 'za',
+    'zo', 'ku', 'bez', 'len', 'iba', 'čo', 'kde', 'kto', 'tak', 'tu', 'ten', 'tie',
+    'ta', 'ty', 'vy', 'oni', 'bol', 'mám', 'máš', 'má', 'nie', 'áno', 'v', 'z', 's', 'k', 'o', 'u',
+]);
+
 export function detectEnglish(text) {
     if (!text) {
         return { ratio: 0, totalWords: 0, englishWords: 0, slovakHits: 0 };
@@ -83,52 +123,43 @@ export function detectEnglish(text) {
 
     let totalWords = 0;
     let englishWords = 0;
-    let slovakChars = 0;
+    let slovakWords = 0;
     let slovakHits = 0;
 
     for (const token of tokens) {
+        // krátke EN funkčné slová (the, is, of, ...) sú silný signál — počítaj ich pred skipom.
+        // SP4 kanonické termíny a SK neutrálne slová nie sú EN nikdy (poistka proti prekryvu).
+        if (ENGLISH_WORDS.has(token) && !SP4_CANONICAL_TERMS.has(token) && !SK_NEUTRAL_WORDS.has(token)) {
+            totalWords++;
+            englishWords++;
+            continue;
+        }
+
+        // krátke SK funkčné slová (je, sa, na, ...) sú SK signál
+        if (SLOVAK_SHORT_WORDS.has(token)) {
+            totalWords++;
+            slovakWords++;
+            continue;
+        }
+
         // ignoruj krátke skratky typu SP4, AI, LLM
         if (/^[a-z0-9]{1,3}$/i.test(token)) continue;
 
         totalWords++;
 
-        const hasSk = /[áäčďéíľĺňóôŕšťúýž]/.test(token);
-        if (hasSk) {
-            slovakChars++;
-        }
+        if (SLOVAK_STOPWORDS.includes(token)) slovakHits++;
 
-        if (SLOVAK_STOPWORDS.includes(token)) {
-            slovakHits++;
-            continue;
+        if (/[áäčďéíľĺňóôŕšťúýž]/.test(token) || SLOVAK_STOPWORDS.includes(token) || SK_NEUTRAL_WORDS.has(token)) {
+            slovakWords++;
         }
-
-        // SP4 kanonické technické termíny a SK neutrálne slová bez diakritiky → preskočiť
-        if (SP4_CANONICAL_TERMS.has(token) || SK_NEUTRAL_WORDS.has(token)) {
-            continue;
-        }
-
-        // ak nemá SK diakritiku a nie je to stopslovo → skôr EN
-        if (!hasSk) {
-            englishWords++;
-        }
+        // Ostatné slová (boss, glitchoslav, meta-awareness, response, ...) sú neutrálne:
+        // chýbajúca diakritika ešte neznamená anglicky a do pomeru sa nerátajú.
     }
 
-    if (totalWords === 0) {
-        return { ratio: 0, totalWords: 0, englishWords: 0, slovakHits };
-    }
-
-    let ratio;
-    if (slovakChars > 0 || slovakHits >= 3) {
-        // schlaď EN pomer, keď je veľa SK signálov
-        ratio = englishWords / (totalWords + slovakHits * 3 + slovakChars * 2);
-    } else {
-        ratio = englishWords / totalWords;
-    }
-
-    // ak je text dlhý a máme aspoň trochu slovenských signálov, nepreháňaj EN pomer
-    if (totalWords > 40 && (slovakHits >= 2 || slovakChars > 0)) {
-        ratio = ratio * 0.6;
-    }
+    // EN pomer = EN signály voči všetkým jazykovým signálom (EN + SK). Delenie celkovým počtom
+    // slov by anglický text s bohatou slovnou zásobou (mimo ENGLISH_WORDS) podhodnotilo.
+    const signals = englishWords + slovakWords;
+    const ratio = signals > 0 ? englishWords / signals : 0;
 
     return { ratio, totalWords, englishWords, slovakHits };
 }

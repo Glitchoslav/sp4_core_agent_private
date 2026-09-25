@@ -25,6 +25,7 @@ import {
     SP4_LOCAL_FIRST_NATURE,
     SP4_MEANING_FACT,
     SP4_ORIGIN_FACT,
+    SP4_PERSONA_ROSTER_FACT,
     SP4_SYSTEM_ROLE,
     SP4_VALUES
 } from './sp4Facts.js';
@@ -477,10 +478,13 @@ export function getGroundedFallbackAnswer(userMessage) {
         identity: `${SP4_FOUNDER} ${SP4_ORIGIN_FACT}`,
         architecture: SP4_EXTERNAL_EXPLANATION,
         meaning: SP4_MEANING_FACT,
+        personas: SP4_PERSONA_ROSTER_FACT,
         memory: 'SP4 pamäť je lokálna a vrstvená: Raw Log, zhrnutia a Seeds. Používa JSON súbory, embeddingy a semantické vyhľadávanie, nie hardvérovú cache metaforu.',
         policy: 'SP4 policy vrstva rozhoduje, či sa smie použiť cloud. Default je local-first, cloud je opt-in a má byť transparentne oddelený od reálneho execution stavu.',
         integration: 'SP4 integration vrstva je orchestration hub. Spája routing, prompt build, memory, validáciu, language enforcement a policy rozhodovanie do jedného runtime flow.'
     };
 
-    return fallbackMap[topic] || fallbackMap.architecture;
+    // Téma bez vlastného faktu → null (volajúci ostane pri vlastnej ceste), nikdy nie
+    // architecture: otázka o persóne nesmie dostať odpoveď o SP4 architektúre.
+    return fallbackMap[topic] || null;
 }

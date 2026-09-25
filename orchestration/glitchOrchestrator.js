@@ -949,7 +949,8 @@ async function delegateToCORE(userMessage, filteredContext, context) {
     if (shouldTriggerStrictTranslate(normalizedResponse)) {
         if (context.groundingApplied && context.detectedTopic) {
             const groundedFallback = getGroundedFallbackAnswer(userMessage);
-            if (groundedFallback) {
+            // T12 V3: korektnú neanglickú odpoveď nikdy nenahrádzaj len kvôli jazykovému detektoru.
+            if (groundedFallback && shouldUseGroundedLanguageFallback(normalizedResponse)) {
                 runtimeLog('   🛡️ Grounded SP4 query + English CORE output → using factual fallback');
                 normalizedResponse = groundedFallback;
                 validationMeta.languageEnforced = true;
@@ -1143,7 +1144,8 @@ async function delegateToPOPICI(userMessage, filteredContext, context) {
     if (shouldTriggerStrictTranslate(normalizedResponse)) {
         if (context.groundingApplied && context.detectedTopic) {
             const groundedFallback = getGroundedFallbackAnswer(userMessage);
-            if (groundedFallback) {
+            // T12 V3: korektnú neanglickú odpoveď nikdy nenahrádzaj len kvôli jazykovému detektoru.
+            if (groundedFallback && shouldUseGroundedLanguageFallback(normalizedResponse)) {
                 runtimeLog('   🛡️ Grounded SP4 query + English POPICI output → using factual fallback');
                 normalizedResponse = groundedFallback;
                 validationMeta.languageEnforced = true;
