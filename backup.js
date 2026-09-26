@@ -31,7 +31,7 @@ export async function createBackup(reason = "auto") {
     const memoryUpdated = JSON.stringify(memory, null, 2);
 
     // Save updated memory back
-    await fs.writeFile(MEMORY_FILE, memoryUpdated, "utf-8");
+    await atomicWriteFile(MEMORY_FILE, memoryUpdated);
 
     // Vygeneruj meno: memory-2025-11-15_14-30.json
     const timestamp = new Date().toISOString()
@@ -110,7 +110,7 @@ export async function restoreBackup(filename) {
 
     // Obnov pamäť
     await fs.mkdir("data", { recursive: true });
-    await fs.writeFile(MEMORY_FILE, backup, "utf-8");
+    await atomicWriteFile(MEMORY_FILE, backup);
 
     console.log(`✅ Pamäť obnovená z: ${filename}`);
     return true;
@@ -131,6 +131,14 @@ async function fileExists(filePath) {
   } catch {
     return false;
   }
+}
+
+async function atomicWriteFile(filePath, content) {
+  // Atómový zápis (temp + rename) — bráni korupcii "valid JSON + duplikovaný chvost"
+  // pri súbežných zápisoch (saveMemory, createBackup, restoreBackup).
+  const tmp = filePath + ".tmp";
+  await fs.writeFile(tmp, content, "utf-8");
+  await fs.rename(tmp, filePath);
 }
 
 async function appendBackupLog(meta) {
