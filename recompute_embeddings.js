@@ -2,7 +2,7 @@
 // Vymaže staré TF-IDF embeddings a vytvorí nové
 
 import fs from 'fs/promises';
-import { loadMemory } from './memory.js';
+import { loadMemory, saveMemory } from './memory.js';
 import { computeMemoryEmbeddings } from './sp4os/ragLocal.js';
 
 console.log('🔄 Prepočítavam embeddings na sentence-transformers...\n');
@@ -26,15 +26,15 @@ console.log('🔄 Prepočítavam embeddings na sentence-transformers...\n');
         });
         console.log(`   ✅ Vymazaných ${deletedCount} starých embeddings\n`);
 
-        // Ulož state bez embeddings
-        await fs.writeFile('data/memory.json', JSON.stringify(state, null, 2));
+        // Ulož state bez embeddings (atómovo)
+        await saveMemory(state);
 
         // Prepočítaj embeddings s novým modelom
         console.log('🧠 Prepočítavam embeddings s all-MiniLM-L6-v2...\n');
         const computed = await computeMemoryEmbeddings(state);
 
-        // Ulož state s novými embeddings
-        await fs.writeFile('data/memory.json', JSON.stringify(state, null, 2));
+        // Ulož state s novými embeddings (atómovo)
+        await saveMemory(state);
 
         console.log(`\n✅ Hotovo! Prepočítaných ${computed} embeddings.`);
         console.log('💾 Memory.json aktualizovaný.\n');

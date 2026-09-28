@@ -342,10 +342,9 @@ async function init() {
             console.log('🌅 Denný rituál je pripravený: /today\n');
         }
 
-        // Ulož session metadata
+        // Ulož session metadata (atómovo — bráni korupcii pri súbežných zápisoch)
         memory.sessionMetadata = { ...memory.sessionMetadata, lastSessionDate: today };
-        const fs = await import('fs/promises');
-        await fs.writeFile('data/memory.json', JSON.stringify(memory, null, 2));
+        await saveMemory(memory);
     }
 
     let currentMode = memory.preferences.defaultMode || 'auto';
