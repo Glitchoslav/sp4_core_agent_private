@@ -200,7 +200,12 @@ export async function loadMemory() {
 
 export async function saveMemory(mem) {
   await ensureDataDir();
-  await fs.writeFile(MEMORY_FILE, JSON.stringify(mem, null, 2), "utf-8");
+  // Atómový zápis (temp + rename) — bráni korupcii pri súbežných zápisoch.
+  // Priamy fs.writeFile bol zdrojom "valid JSON + duplikovaný chvost" (viacero
+  // asynchroných writerov: saveMemory ×14, recompute_embeddings, backup).
+  const tmp = MEMORY_FILE + '.tmp';
+  await fs.writeFile(tmp, JSON.stringify(mem, null, 2), "utf-8");
+  await fs.rename(tmp, MEMORY_FILE);
 }
 
 // ──────────────────────────────

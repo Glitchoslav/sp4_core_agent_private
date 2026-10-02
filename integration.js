@@ -32,6 +32,7 @@ import { ruleMiningPipeline } from './ruleMiningPipeline.js'; // v1.0: Auto-Lear
 import firstAidManifest from './sp4_first_aid/logic_manifest.json' with { type: 'json' }; // v0.1: First Aid SPG
 import { runSPG } from './sp4_first_aid/spg.js'; // v0.1: Strict Procedural Gate
 import { detectCrisis, getSafeResponse } from './src/core/safetyRails.js'; // crisis/self-harm safety rail (2026-06-26)
+import { classifyRisk } from './src/core/riskDomains.js'; // v0.1 Domain Guard (R0/R1/R2) — gate PRED retrievalom
 import { extractMemoryMetadata } from './sp4os/llmLocal.js';
 import { retrieveRelevantMemories } from './sp4os/ragLocal.js'; // v0.6.2: Sentence-transformers RAG
 import { processResponseActions } from './src/core/actionRouter.js'; // v0.11.7: Action Layer integration
@@ -591,6 +592,21 @@ export class SP4IntegratedAgent {
   async _processMessageUntraced(userMessage, mode = 'core', options = {}) {
     if (!this.initialized) {
       throw new Error('Agent nie je inicializovany. Zavolaj initialize() najprv.');
+    }
+
+    // 🔒 Domain Guard v0.1 (fail-closed): gate PRED retrievalom/LLM.
+    // Bezpečnostné dopyty (R1/R2) nesmú prejsť do bežného retrievalu ani k modelu.
+    // Model retrievalu nikdy neurčuje, či je dopyt bezpečný — guard beží pred ním.
+    const risk = classifyRisk(userMessage);
+    if (risk.level === 'R2' || risk.level === 'R1') {
+      const redirect = risk.level === 'R2'
+        ? '\n\n🚨 Pri bezprostrednom ohrození volaj okamžite 112 (tiesňová linka).'
+        : '\n\nNedokážem to bezpečne zodpovedať z osobnej pamäte. Riaď sa schváleným postupom alebo odborníkom.';
+      return {
+        success: true,
+        response: `${risk.warning}${redirect}`,
+        metadata: { handledBy: 'domain-guard', riskLevel: risk.level, domains: risk.domains },
+      };
     }
     // Phase 3 Step 1: intent pre dialogue topic ide cez unifiedIntent (read-only, bez side-effectov).
     // analyzeUnified(userMessage).intent === extractIntent(userMessage) (rovnaké opts={}).
